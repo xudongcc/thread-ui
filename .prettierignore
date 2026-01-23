@@ -1,0 +1,12 @@
+node_modules
+.next
+.turbo
+.vercel
+dist
+build
+out
+coverage
+pnpm-lock.yaml
+
+# Shadcn UI
+packages/shadcn-ui

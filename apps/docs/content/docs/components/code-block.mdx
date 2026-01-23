@@ -1,0 +1,104 @@
+---
+title: CodeBlock
+description: A code block component with syntax highlighting, line numbers, copy button, and file tabs.
+---
+
+<Preview path="code-block" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/code-block
+```
+
+## Usage
+
+```tsx
+import {
+  CodeBlock,
+  CodeBlockBody,
+  CodeBlockContent,
+  CodeBlockCopyButton,
+  CodeBlockHeader,
+  CodeBlockItem,
+} from "@/components/thread-ui/code-block";
+```
+
+```tsx
+const data = [
+  {
+    language: "tsx",
+    filename: "example.tsx",
+    code: "console.log('Hello, World!');",
+  },
+];
+
+<CodeBlock data={data} defaultValue="tsx">
+  <CodeBlockHeader>
+    <span className="text-muted-foreground px-3 text-xs">example.tsx</span>
+    <CodeBlockCopyButton className="ml-auto" />
+  </CodeBlockHeader>
+  <CodeBlockBody>
+    {(item) => (
+      <CodeBlockItem key={item.language} value={item.language}>
+        <CodeBlockContent language="tsx">{item.code}</CodeBlockContent>
+      </CodeBlockItem>
+    )}
+  </CodeBlockBody>
+</CodeBlock>;
+```
+
+## Examples
+
+### Multiple Files with Tabs
+
+Use `CodeBlockSelect` to create a tabbed interface for multiple code files.
+
+<Preview path="code-block-tabs" />
+
+## Features
+
+- **Syntax Highlighting** - Powered by Shiki with support for 100+ languages
+- **Dark Mode** - Automatic theme switching with light and dark themes
+- **Line Numbers** - Optional line numbers display
+- **Copy Button** - One-click code copying to clipboard
+- **File Tabs** - Support for multiple files with tabbed navigation
+- **File Icons** - Automatic file type icons based on filename
+
+## API Reference
+
+### CodeBlockProps
+
+The root component that manages the state of the code block.
+
+<AutoTypeTable
+  path="../../packages/code-block/index.tsx"
+  type={`Pick<CodeBlockProps, 'data' | 'defaultValue' | 'value' | 'onValueChange' | 'className'>`}
+/>
+
+### CodeBlockItemProps
+
+Wrapper for individual code file content.
+
+<AutoTypeTable
+  path="../../packages/code-block/index.tsx"
+  type={`Pick<CodeBlockItemProps, 'value' | 'lineNumbers' | 'className'>`}
+/>
+
+### CodeBlockContentProps
+
+The syntax-highlighted code content.
+
+<AutoTypeTable
+  path="../../packages/code-block/index.tsx"
+  type={`Pick<CodeBlockContentProps, 'language' | 'syntaxHighlighting' | 'children'>`}
+/>
+
+### CodeBlockCopyButtonProps
+
+Button to copy code to clipboard.
+
+<AutoTypeTable
+  path="../../packages/code-block/index.tsx"
+  type={`Pick<CodeBlockCopyButtonProps, 'onCopy' | 'onError' | 'timeout' | 'className'>`}
+/>

@@ -1,0 +1,17 @@
+{
+  "name": "@repo/dialog",
+  "description": "A responsive dialog component that displays as a Dialog on desktop and automatically switches to a Drawer on mobile devices.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@repo/shadcn-ui": "workspace:*",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

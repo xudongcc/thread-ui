@@ -1,0 +1,44 @@
+---
+title: Button
+description: Displays a button or a component that looks like a button.
+---
+
+<Preview path="button" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/button
+```
+
+## Examples
+
+### Variant
+
+Use the `variant` prop to change the visual style of the button.
+
+<Preview path="button-variant" />
+
+### Size
+
+Use the `size` prop to change the size of the button.
+
+<Preview path="button-size" />
+
+### Loading
+
+Use the `loading` prop to show a loading spinner and disable the button.
+
+<Preview path="button-loading" />
+
+## API Reference
+
+### ButtonProps
+
+<AutoTypeTable
+  path="../../packages/button/index.tsx"
+  type={
+    /* typescript */
+    `Pick<ButtonProps, 'variant' | 'size' | 'loading' | 'disabled' | 'className'>`
+  }
+/>

@@ -1,0 +1,18 @@
+{
+  "name": "@repo/checkbox-group",
+  "description": "A checkbox group component that manages collective state across multiple checkboxes with support for parent checkbox and indeterminate states.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@base-ui/react": "^1.1.0",
+    "@repo/shadcn-ui": "workspace:*",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,59 @@
+---
+title: Get Started
+description: Welcome to Thread UI! This guide will help you set up and start using our components in your project.
+---
+
+## Introduction
+
+Thread UI is a component library built on top of [shadcn/ui](https://ui.shadcn.com) and [Base UI](https://base-ui.com). It provides accessible, customizable components that extend the shadcn/ui ecosystem with additional functionality powered by Base UI primitives.
+
+## Installation
+
+### New Projects
+
+Create a new project with Base UI support using the shadcn/ui CLI:
+
+```bash
+pnpm dlx shadcn@latest init --base base
+```
+
+Or visit [ui.shadcn.com/create?base=base](https://ui.shadcn.com/create?base=base) to create a new project interactively.
+
+### Existing Projects
+
+If you have an existing shadcn/ui project, update your `components.json` to use Base UI:
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-vega"
+}
+```
+
+## Adding Components
+
+Thread UI is a trusted registry for shadcn/ui. Add components using the CLI:
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/badge
+```
+
+This will automatically add the Thread UI registry to your `components.json`:
+
+```json
+{
+  "registries": {
+    "@thread-ui": "https://thread-ui-kit.vercel.app/r/{name}.json"
+  }
+}
+```
+
+## Why Base UI?
+
+The `base-vega` style uses [Base UI](https://base-ui.com) as the underlying component library, providing:
+
+- **Better Accessibility** - Built with ARIA best practices from the ground up
+- **Flexible APIs** - More control over component behavior and styling
+- **Modern Architecture** - Designed for React 18+ with concurrent features support
+
+For more information, visit the [Base UI documentation](https://base-ui.com).

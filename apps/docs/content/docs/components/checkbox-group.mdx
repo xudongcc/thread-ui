@@ -1,0 +1,78 @@
+---
+title: CheckboxGroup
+description: A checkbox group component that manages collective state across multiple checkboxes with support for parent checkbox and indeterminate states.
+---
+
+<Preview path="checkbox-group" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/checkbox-group
+```
+
+## Usage
+
+```tsx
+import {
+  CheckboxGroup,
+  CheckboxGroupItem,
+} from "@/components/thread-ui/checkbox-group";
+```
+
+```tsx
+<CheckboxGroup defaultValue={["option1"]}>
+  <CheckboxGroupItem name="option1" />
+  <CheckboxGroupItem name="option2" />
+  <CheckboxGroupItem name="option3" />
+</CheckboxGroup>
+```
+
+## Examples
+
+### Parent Checkbox
+
+Use the `parent` prop combined with `allValues` to create a checkbox that controls all child checkboxes. The parent checkbox will show an indeterminate state when some but not all children are selected.
+
+<Preview path="checkbox-group-parent" />
+
+### Disabled
+
+Use the `disabled` prop on the `CheckboxGroup` to disable all checkboxes in the group.
+
+<Preview path="checkbox-group-disabled" />
+
+## Features
+
+- **Collective State Management**: Manages the state of multiple checkboxes as a group
+- **Parent Checkbox**: Support for a parent checkbox that can select/deselect all children
+- **Indeterminate State**: Automatically shows indeterminate state on parent when partially selected
+- **Controlled & Uncontrolled**: Works in both controlled and uncontrolled modes
+- **Built on Base UI**: Leverages Base UI primitives for accessibility
+
+## Best Practices
+
+- Use clear labels for each checkbox option
+- Group related checkboxes together with a descriptive legend
+- Use the parent checkbox pattern for "select all" functionality
+- Consider using `FieldSet` and `FieldLegend` for proper form structure
+
+## API Reference
+
+### CheckboxGroupProps
+
+The root component that manages the state of all checkboxes in the group.
+
+<AutoTypeTable
+  path="../../packages/checkbox-group/index.tsx"
+  type={`Pick<CheckboxGroupProps, 'defaultValue' | 'value' | 'onValueChange' | 'allValues' | 'disabled' | 'className'>`}
+/>
+
+### CheckboxGroupItemProps
+
+Individual checkbox item within the group.
+
+<AutoTypeTable
+  path="../../packages/checkbox-group/index.tsx"
+  type={`Pick<CheckboxGroupItemProps, 'name' | 'parent' | 'checked' | 'defaultChecked' | 'disabled' | 'className'>`}
+/>

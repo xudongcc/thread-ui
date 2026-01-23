@@ -1,0 +1,15 @@
+{
+  "extends": "@repo/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@repo/*": ["../*"],
+      "@/components/*": ["../shadcn-ui/components/*"],
+      "@/utils/*": ["../shadcn-ui/utils/*"],
+      "@/lib/*": ["../shadcn-ui/lib/*"],
+      "@/hooks/*": ["../shadcn-ui/hooks/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
