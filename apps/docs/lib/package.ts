@@ -66,7 +66,7 @@ export const getPackage = async (packageName: string) => {
   for (const dep of repoDependencies) {
     const pkg = dep.replace("@repo/", "");
 
-    registryDependencies.push(`https://thread-ui-kit.vercel.app/r/${pkg}.json`);
+    registryDependencies.push(`https://thread-ui.vercel.app/r/${pkg}.json`);
   }
 
   const css: RegistryItem["css"] = {};

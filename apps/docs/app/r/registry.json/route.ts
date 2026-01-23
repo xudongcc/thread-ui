@@ -22,7 +22,7 @@ export const GET = async (_: NextRequest) => {
 
   const response: Registry = {
     name: "Thread UI",
-    homepage: "https://thread-ui-kit.vercel.app/",
+    homepage: "https://thread-ui.vercel.app/",
     items: [],
   };
 
