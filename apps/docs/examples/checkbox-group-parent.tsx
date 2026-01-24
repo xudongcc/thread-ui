@@ -1,13 +1,16 @@
 "use client";
 
-import { CheckboxGroup, CheckboxGroupItem } from "@repo/checkbox-group";
+import { useState } from "react";
+import {
+  CheckboxGroup,
+  CheckboxGroupItem,
+} from "@/components/thread-ui/checkbox-group";
 import {
   Field,
   FieldContent,
   FieldLabel,
   FieldSet,
-} from "@repo/shadcn-ui/components/ui/field";
-import { useState } from "react";
+} from "@/components/ui/field";
 
 const Example = () => {
   const [value, setValue] = useState<string[]>([]);

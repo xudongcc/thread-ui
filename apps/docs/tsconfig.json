@@ -17,7 +17,7 @@
     "incremental": true,
     "paths": {
       "~/*": ["./*"],
-      "@repo/*": ["../../packages/*"],
+      "@/components/thread-ui/*": ["../../components/*"],
       "@/components/*": ["../../packages/shadcn-ui/components/*"],
       "@/utils/*": ["../../packages/shadcn-ui/utils/*"],
       "@/lib/*": ["../../packages/shadcn-ui/lib/*"],

@@ -1,0 +1,54 @@
+---
+title: Dialog
+description: A responsive dialog component that displays as a bottom sheet on mobile and a centered modal on desktop.
+---
+
+<Preview path="dialog" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/dialog
+```
+
+## Usage
+
+```tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/thread-ui/dialog";
+```
+
+```tsx
+<Dialog>
+  <DialogTrigger>Open</DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Dialog Title</DialogTitle>
+      <DialogDescription>Dialog description goes here.</DialogDescription>
+    </DialogHeader>
+  </DialogContent>
+</Dialog>
+```
+
+## Features
+
+### Responsive Layout
+
+The dialog automatically adapts to different screen sizes:
+
+- **Mobile**: Slides up from the bottom of the screen as a bottom sheet
+- **Desktop**: Displays as a centered modal dialog
+
+## Examples
+
+### Custom Close Button
+
+Use `showCloseButton={false}` to hide the default close button and add a custom close button using `DialogClose`.
+
+<Preview path="dialog-close-button" />

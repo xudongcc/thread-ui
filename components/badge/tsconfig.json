@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@repo/*": ["../*"],
+      "@/components/thread-ui/*": ["../../components/*"],
       "@/components/*": ["../../packages/shadcn-ui/components/*"],
       "@/utils/*": ["../../packages/shadcn-ui/utils/*"],
       "@/lib/*": ["../../packages/shadcn-ui/lib/*"],

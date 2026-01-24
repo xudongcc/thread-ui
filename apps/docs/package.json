@@ -13,10 +13,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
-    "@repo/badge": "workspace:*",
-    "@repo/checkbox-group": "workspace:*",
-    "@repo/page": "workspace:*",
-    "@repo/shadcn-ui": "workspace:*",
     "@tanstack/react-form": "^1.27.7",
     "@vercel/analytics": "^1.6.1",
     "fumadocs-core": "16.4.7",

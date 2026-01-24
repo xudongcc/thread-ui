@@ -1,20 +1,20 @@
 "use client";
 
+import { SiReact } from "react-icons/si";
+import type { BundledLanguage } from "@/components/thread-ui/code-block";
 import {
   CodeBlock,
   CodeBlockBody,
   CodeBlockContent,
   CodeBlockCopyButton,
   CodeBlockItem,
-} from "@repo/code-block";
+} from "@/components/thread-ui/code-block";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@repo/shadcn-ui/components/ui/accordion";
-import { SiReact } from "react-icons/si";
-import type { BundledLanguage } from "@repo/code-block";
+} from "@/components/ui/accordion";
 
 interface PreviewSourceProps {
   source: { name: string; source: string }[];

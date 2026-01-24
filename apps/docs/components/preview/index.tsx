@@ -1,19 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@repo/shadcn-ui/components/ui/tabs";
-import { cn } from "@repo/shadcn-ui/lib/utils";
 import { BoxIcon, CodeIcon, EyeIcon } from "lucide-react";
-
-import { PreviewCode } from "./code";
+import { PreviewSource } from "./source";
 import { PreviewContent } from "./content";
 import { PreviewRender } from "./render";
-import { PreviewSource } from "./source";
+import { PreviewCode } from "./code";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface PreviewProps {
   path: string;

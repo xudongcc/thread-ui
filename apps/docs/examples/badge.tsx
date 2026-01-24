@@ -1,4 +1,4 @@
-import { Badge } from "@repo/badge";
+import { Badge } from "@/components/thread-ui/badge";
 
 const Example = () => (
   <div className="flex flex-wrap gap-2">

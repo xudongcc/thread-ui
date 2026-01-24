@@ -7,8 +7,6 @@ import { getPackage } from "../../../lib/package";
 import type { NextRequest } from "next/server";
 import type { Registry } from "shadcn/schema";
 
-const filteredPackages = ["shadcn-ui", "tsconfig", "patterns"];
-
 export const GET = async (_: NextRequest) => {
   if (process.env.NODE_ENV === "production") {
     try {
@@ -26,15 +24,14 @@ export const GET = async (_: NextRequest) => {
     items: [],
   };
 
-  const packagesDir = join(process.cwd(), "..", "..", "packages");
-  const packageDirectories = await readdir(packagesDir, {
+  const componentsDir = join(process.cwd(), "..", "..", "components");
+  const packageDirectories = await readdir(componentsDir, {
     withFileTypes: true,
   });
 
   const packageNames = packageDirectories
     .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name)
-    .filter((name) => !filteredPackages.includes(name));
+    .map((dirent) => dirent.name);
 
   for (const name of packageNames) {
     try {
@@ -42,7 +39,7 @@ export const GET = async (_: NextRequest) => {
 
       response.items.push(pkg);
     } catch {
-      // skip packages that fail
+      // skip components that fail
     }
   }
 

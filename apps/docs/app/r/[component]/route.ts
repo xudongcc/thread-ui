@@ -2,7 +2,6 @@ import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 
 import { track } from "@vercel/analytics/server";
-import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 import { getPackage } from "../../../lib/package";
 import type { NextRequest } from "next/server";
@@ -10,8 +9,6 @@ import type { NextRequest } from "next/server";
 interface RegistryParams {
   params: Promise<{ component: string }>;
 }
-
-const filteredPackages = ["shadcn-ui", "tsconfig", "patterns"];
 
 export const GET = async (_: NextRequest, { params }: RegistryParams) => {
   const { component } = await params;
@@ -23,16 +20,12 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
     );
   }
 
-  const packageName = component.replace(".json", "");
-
-  if (filteredPackages.includes(packageName)) {
-    notFound();
-  }
+  const componentName = component.replace(".json", "");
 
   if (process.env.NODE_ENV === "production") {
     try {
       await track("Registry download", {
-        component: packageName,
+        component: componentName,
       });
     } catch (error) {
       console.error(error);
@@ -40,25 +33,24 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
   }
 
   try {
-    const pkg = await getPackage(packageName);
+    const pkg = await getPackage(componentName);
 
     return NextResponse.json(pkg);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to get package", details: error },
+      { error: "Failed to get component", details: error },
       { status: 500 },
     );
   }
 };
 
 export const generateStaticParams = async () => {
-  const packagesDir = join(process.cwd(), "..", "..", "packages");
-  const packageDirectories = await readdir(packagesDir, {
+  const componentsDir = join(process.cwd(), "..", "..", "components");
+  const componentDirectories = await readdir(componentsDir, {
     withFileTypes: true,
   });
 
-  return packageDirectories
+  return componentDirectories
     .map((dirent) => dirent.name)
-    .filter((name) => !filteredPackages.includes(name))
     .map((name) => ({ component: name }));
 };

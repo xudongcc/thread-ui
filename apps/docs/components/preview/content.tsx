@@ -1,10 +1,10 @@
+import type { ReactNode } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@repo/shadcn-ui/components/ui/resizable";
-import { cn } from "@repo/shadcn-ui/lib/utils";
-import type { ReactNode } from "react";
+} from "@/components/ui/resizable";
+import { cn } from "@/lib/utils";
 
 interface PreviewContentProps {
   children: ReactNode;

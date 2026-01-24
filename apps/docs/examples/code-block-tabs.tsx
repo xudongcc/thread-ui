@@ -1,5 +1,6 @@
 "use client";
 
+import type { CodeBlockProps } from "@/components/thread-ui/code-block";
 import {
   CodeBlock,
   CodeBlockBody,
@@ -12,8 +13,7 @@ import {
   CodeBlockSelectItem,
   CodeBlockSelectTrigger,
   CodeBlockSelectValue,
-} from "@repo/code-block";
-import type { CodeBlockProps } from "@repo/code-block";
+} from "@/components/thread-ui/code-block";
 
 const tsCode = `interface User {
   id: string;

@@ -4,7 +4,7 @@ import {
   PageDescription,
   PageHeader,
   PageTitle,
-} from "@repo/page";
+} from "@/components/thread-ui/page";
 
 const Example = () => (
   <Page>

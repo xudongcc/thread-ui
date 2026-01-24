@@ -1,11 +1,14 @@
-import { CheckboxGroup, CheckboxGroupItem } from "@repo/checkbox-group";
+import {
+  CheckboxGroup,
+  CheckboxGroupItem,
+} from "@/components/thread-ui/checkbox-group";
 import {
   Field,
   FieldContent,
   FieldLabel,
   FieldLegend,
   FieldSet,
-} from "@repo/shadcn-ui/components/ui/field";
+} from "@/components/ui/field";
 
 const Example = () => (
   <FieldSet>

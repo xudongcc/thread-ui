@@ -7,7 +7,7 @@ import postcssNested from "postcss-nested";
 import type { RegistryItem } from "shadcn/schema";
 
 export const getPackage = async (packageName: string) => {
-  const packageDir = join(process.cwd(), "..", "..", "packages", packageName);
+  const packageDir = join(process.cwd(), "..", "..", "components", packageName);
   const packagePath = join(packageDir, "package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf-8"));
 
