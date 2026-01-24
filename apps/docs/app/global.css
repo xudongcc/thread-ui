@@ -4,8 +4,8 @@
 @import "fumadocs-ui/css/shadcn.css";
 @import "fumadocs-ui/css/preset.css";
 
-@source "../node_modules/shadcn-ui/**/*.{js,jsx,ts,tsx}";
-@source "../../../packages/*/**/*.{js,jsx,ts,tsx}";
+@source "../../../packages/shadcn-ui/**/*.{js,jsx,ts,tsx}";
+@source "../../../components/*/**/*.{js,jsx,ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));
 
