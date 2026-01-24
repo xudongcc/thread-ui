@@ -25,15 +25,15 @@ export const GET = async (_: NextRequest) => {
   };
 
   const componentsDir = join(process.cwd(), "..", "..", "components");
-  const packageDirectories = await readdir(componentsDir, {
+  const componentDirectories = await readdir(componentsDir, {
     withFileTypes: true,
   });
 
-  const packageNames = packageDirectories
+  const componentNames = componentDirectories
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => dirent.name);
 
-  for (const name of packageNames) {
+  for (const name of componentNames) {
     try {
       const pkg = await getPackage(name);
 

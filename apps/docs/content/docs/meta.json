@@ -2,5 +2,17 @@
   "title": "Components",
   "defaultOpen": true,
   "collapsible": false,
-  "pages": ["index", "..."]
+  "pages": [
+    "index",
+    "---Display---",
+    "...display",
+    "---Feedback---",
+    "...feedback",
+    "---Form---",
+    "...form",
+    "---Layout---",
+    "...layout",
+    "---Overlay---",
+    "...overlay"
+  ]
 }
