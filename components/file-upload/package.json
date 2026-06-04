@@ -1,0 +1,17 @@
+{
+  "name": "@repo/file-upload",
+  "description": "A file upload component with click, drag-and-drop, and paste support.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

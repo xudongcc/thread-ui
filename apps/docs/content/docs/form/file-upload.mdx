@@ -1,0 +1,157 @@
+---
+title: File Upload
+description: A file upload component with click, drag-and-drop, and paste support.
+---
+
+<Preview path="file-upload" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/file-upload
+```
+
+## Usage
+
+```tsx
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadDropzoneDescription,
+  FileUploadDropzoneIcon,
+  FileUploadItem,
+  FileUploadList,
+  FileUploadPreview,
+  FileUploadPreviewItem,
+} from "@/components/thread-ui/file-upload";
+```
+
+```tsx
+<FileUpload multiple accept="image/*,.pdf">
+  <FileUploadDropzone>
+    <FileUploadDropzoneIcon />
+    <FileUploadDropzoneDescription />
+  </FileUploadDropzone>
+  <FileUploadList>
+    <FileUploadItem />
+  </FileUploadList>
+</FileUpload>
+```
+
+## Examples
+
+### Multiple
+
+Use the `multiple` prop to allow several files. New dropped, pasted, or selected files are appended to the current list.
+
+<Preview path="file-upload-multiple" />
+
+### Preview
+
+Use `FileUploadPreview` to render image and video previews in a grid.
+
+```tsx
+<FileUpload multiple accept="image/*,video/*">
+  <FileUploadDropzone />
+  <FileUploadPreview>
+    <FileUploadPreviewItem />
+  </FileUploadPreview>
+</FileUpload>
+```
+
+<Preview path="file-upload-preview" />
+
+### Disabled
+
+Use the `disabled` prop to disable click, drag-and-drop, and paste handling.
+
+<Preview path="file-upload-disabled" />
+
+## Features
+
+- **Click to Browse**: Opens the native file picker from a focused drop zone
+- **Drag & Drop**: Accepts dropped files and appends them when `multiple` is enabled
+- **Paste Support**: Reads file items from the clipboard when focused
+- **Controlled & Uncontrolled**: Supports `value`, `defaultValue`, and `onChange`
+- **Native Input Props**: Supports `accept`, `multiple`, `disabled`, `name`, and other file input props
+
+## Best Practices
+
+- Use `multiple` when users may provide more than one file
+- Use `accept` to guide file selection, but validate files on the server too
+- Pair the upload area with a `FieldLabel` and `FieldDescription` for clear form context
+- Treat `value` as the source of truth in forms that need external validation
+
+## API Reference
+
+### FileUploadProps
+
+Extends all native HTML `<input>` element props except `type`, `value`, `defaultValue`, `onChange`, and `placeholder`.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadProps, 'value' | 'defaultValue' | 'onChange' | 'placeholder' | 'multiple' | 'accept' | 'disabled' | 'className' | 'children'>`}
+/>
+
+### FileUploadDropzoneProps
+
+Extends all native HTML `<div>` element props.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadDropzoneProps, 'placeholder' | 'className' | 'children'>`}
+/>
+
+### FileUploadDropzoneIconProps
+
+Extends all native HTML `<svg>` element props.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadDropzoneIconProps, 'className'>`}
+/>
+
+### FileUploadDropzoneDescriptionProps
+
+Extends all native HTML `<span>` element props.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadDropzoneDescriptionProps, 'placeholder' | 'className' | 'children'>`}
+/>
+
+### FileUploadListProps
+
+Extends all native HTML `<ul>` element props.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadListProps, 'className' | 'children'>`}
+/>
+
+### FileUploadItemProps
+
+Extends all native HTML `<li>` element props.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadItemProps, 'file' | 'onRemove' | 'className'>`}
+/>
+
+### FileUploadPreviewProps
+
+Extends all native HTML `<ul>` element props.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadPreviewProps, 'className' | 'children'>`}
+/>
+
+### FileUploadPreviewItemProps
+
+Extends all native HTML `<li>` element props.
+
+<AutoTypeTable
+  path="../../components/file-upload/index.tsx"
+  type={`Pick<FileUploadPreviewItemProps, 'file' | 'onRemove' | 'className' | 'mediaClassName'>`}
+/>
