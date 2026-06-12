@@ -40,7 +40,7 @@ export const PageHeader: FC<PageHeaderProps> = ({ className, ...props }) => {
     <header
       data-slot="page-header"
       className={cn(
-        "group/page-header grid gap-1 pb-4 has-data-[slot=page-actions]:grid-cols-[1fr_auto] has-data-[slot=page-back-action]:grid-cols-[1fr_auto] has-data-[slot=page-back-action]:grid-rows-[auto_auto_auto] @md/page:has-data-[slot=page-back-action]:grid-cols-[auto_1fr_auto] @md/page:has-data-[slot=page-back-action]:grid-rows-[auto_auto] @md/page:has-data-[slot=page-back-action]:gap-x-2",
+        "group/page-header grid gap-1 pb-4 has-data-[slot=page-actions]:grid-cols-[1fr_auto] has-data-[slot=page-back-action]:grid-cols-[1fr_auto] has-data-[slot=page-back-action]:grid-rows-[auto_auto_auto] @3xl/page:has-data-[slot=page-back-action]:grid-cols-[auto_1fr_auto] @3xl/page:has-data-[slot=page-back-action]:grid-rows-[auto_auto] @3xl/page:has-data-[slot=page-back-action]:gap-x-2",
         className,
       )}
       {...props}
@@ -63,7 +63,7 @@ export const PageBackAction: FC<PageBackActionProps> = ({
       size={size}
       variant={variant}
       className={cn(
-        "col-start-1 row-start-1 self-start justify-self-start @md/page:row-span-2",
+        "col-start-1 row-start-1 self-start justify-self-start @3xl/page:row-span-2",
         className,
       )}
       {...props}
@@ -85,7 +85,7 @@ export const PageTitle: FC<PageTitleProps> = ({ className, ...props }) => {
     <h2
       data-slot="page-title"
       className={cn(
-        "py-0.5 text-2xl font-semibold tracking-tight group-has-data-[slot=page-back-action]/page-header:col-span-2 group-has-data-[slot=page-back-action]/page-header:row-start-2 @md/page:group-has-data-[slot=page-back-action]/page-header:col-span-1 @md/page:group-has-data-[slot=page-back-action]/page-header:col-start-2 @md/page:group-has-data-[slot=page-back-action]/page-header:row-start-1",
+        "py-0.5 text-2xl font-semibold tracking-tight group-has-data-[slot=page-back-action]/page-header:col-span-2 group-has-data-[slot=page-back-action]/page-header:row-start-2 @3xl/page:group-has-data-[slot=page-back-action]/page-header:col-span-1 @3xl/page:group-has-data-[slot=page-back-action]/page-header:col-start-2 @3xl/page:group-has-data-[slot=page-back-action]/page-header:row-start-1",
         className,
       )}
       {...props}
@@ -103,7 +103,7 @@ export const PageDescription: FC<PageDescriptionProps> = ({
     <p
       data-slot="page-description"
       className={cn(
-        "text-muted-foreground text-sm group-has-data-[slot=page-back-action]/page-header:col-span-2 group-has-data-[slot=page-back-action]/page-header:row-start-3 @md/page:group-has-data-[slot=page-back-action]/page-header:col-span-1 @md/page:group-has-data-[slot=page-back-action]/page-header:col-start-2 @md/page:group-has-data-[slot=page-back-action]/page-header:row-start-2",
+        "text-muted-foreground text-sm group-has-data-[slot=page-back-action]/page-header:col-span-2 group-has-data-[slot=page-back-action]/page-header:row-start-3 @3xl/page:group-has-data-[slot=page-back-action]/page-header:col-span-1 @3xl/page:group-has-data-[slot=page-back-action]/page-header:col-start-2 @3xl/page:group-has-data-[slot=page-back-action]/page-header:row-start-2",
         className,
       )}
       {...props}
@@ -118,7 +118,7 @@ export const PageActions: FC<PageActionsProps> = ({ className, ...props }) => {
     <div
       data-slot="page-actions"
       className={cn(
-        "col-start-2 row-span-2 row-start-1 flex items-center gap-2 self-start justify-self-end group-has-data-[slot=page-back-action]/page-header:row-span-1 @md/page:group-has-data-[slot=page-back-action]/page-header:col-start-3 @md/page:group-has-data-[slot=page-back-action]/page-header:row-span-2",
+        "col-start-2 row-span-2 row-start-1 flex items-center gap-2 self-start justify-self-end group-has-data-[slot=page-back-action]/page-header:row-span-1 @3xl/page:group-has-data-[slot=page-back-action]/page-header:col-start-3 @3xl/page:group-has-data-[slot=page-back-action]/page-header:row-span-2",
         className,
       )}
       {...props}

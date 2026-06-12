@@ -5,7 +5,11 @@ import { source } from "~/lib/source";
 
 export default function Layout({ children }: LayoutProps<"/docs">) {
   return (
-    <DocsLayout tree={source.getPageTree()} {...baseOptions()}>
+    <DocsLayout
+      containerProps={{ className: "xl:[--fd-layout-width:100%]" }}
+      tree={source.getPageTree()}
+      {...baseOptions()}
+    >
       {children}
     </DocsLayout>
   );
