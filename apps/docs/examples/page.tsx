@@ -10,6 +10,7 @@ import {
 import {
   Page,
   PageActions,
+  PageBackAction,
   PageContent,
   PageDescription,
   PageHeader,
@@ -19,10 +20,11 @@ import {
 const Example = () => (
   <Page>
     <PageHeader>
-      <PageTitle>Products</PageTitle>
-      <PageDescription>Manage your products and inventory.</PageDescription>
+      <PageBackAction />
+      <PageTitle>3/4 inch Leather pet collar</PageTitle>
+      <PageDescription>Perfect for any pet</PageDescription>
       <PageActions>
-        <Button variant="secondary">Export</Button>
+        <Button variant="secondary">Duplicate</Button>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={<Button size="icon" variant="secondary" />}
@@ -31,11 +33,11 @@ const Example = () => (
             <span className="sr-only">More actions</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Duplicate</DropdownMenuItem>
+            <DropdownMenuItem>Rename</DropdownMenuItem>
             <DropdownMenuItem>Archive</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button>Add product</Button>
+        <Button>Save</Button>
       </PageActions>
     </PageHeader>
     <PageContent>
