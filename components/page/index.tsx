@@ -38,7 +38,7 @@ export const PageHeader: FC<PageHeaderProps> = ({ className, ...props }) => {
     <header
       data-slot="page-header"
       className={cn(
-        "grid gap-1 pb-4 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto]",
+        "grid gap-1 pb-4 has-data-[slot=page-actions]:grid-cols-[1fr_auto] has-data-[slot=page-description]:grid-rows-[auto_auto]",
         className,
       )}
       {...props}
@@ -51,7 +51,7 @@ export type PageTitleProps = ComponentProps<"h2">;
 export const PageTitle: FC<PageTitleProps> = ({ className, ...props }) => {
   return (
     <h2
-      className={cn("text-xl font-semibold tracking-tight", className)}
+      className={cn("py-0.5 text-2xl font-semibold tracking-tight", className)}
       data-slot="page-title"
       {...props}
     />
@@ -73,14 +73,14 @@ export const PageDescription: FC<PageDescriptionProps> = ({
   );
 };
 
-export type PageActionProps = ComponentProps<"div">;
+export type PageActionsProps = ComponentProps<"div">;
 
-export const PageAction: FC<PageActionProps> = ({ className, ...props }) => {
+export const PageActions: FC<PageActionsProps> = ({ className, ...props }) => {
   return (
     <div
-      data-slot="page-action"
+      data-slot="page-actions"
       className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+        "col-start-2 row-span-2 row-start-1 flex items-center gap-2 self-start justify-self-end",
         className,
       )}
       {...props}
