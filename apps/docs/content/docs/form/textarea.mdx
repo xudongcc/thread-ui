@@ -1,0 +1,69 @@
+---
+title: Textarea
+description: A textarea component with support for labels, descriptions, and error states.
+---
+
+<Preview path="textarea" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/textarea
+```
+
+## Usage
+
+```tsx
+import { Textarea } from "@/components/thread-ui/textarea";
+```
+
+```tsx
+<Textarea label="Message" placeholder="Enter your message" />
+```
+
+## Examples
+
+### With Label and Description
+
+Add labels and descriptions to provide context.
+
+<Preview path="textarea-with-label" />
+
+### With Error
+
+Display error messages below the textarea.
+
+<Preview path="textarea-with-error" />
+
+### Disabled
+
+Use the `disabled` prop to disable the textarea.
+
+<Preview path="textarea-disabled" />
+
+## Features
+
+- **Label & Description**: Built-in support for labels and helper text
+- **Error States**: Display error messages with visual feedback
+- **Accessible**: Proper ARIA attributes and label associations
+- **Auto-sizing**: Uses `field-sizing-content` for automatic height adjustment
+- **Controlled & Uncontrolled**: Works in both controlled and uncontrolled modes
+
+## Best Practices
+
+- Always provide a `label` for accessibility
+- Use `description` to provide helpful context about the expected input
+- Use `error` to display validation errors
+- Provide an `id` prop when you need explicit label-textarea association
+- Use `placeholder` to show example input format
+
+## API Reference
+
+### TextareaProps
+
+Extends all native HTML `<textarea>` element props.
+
+<AutoTypeTable
+  path="../../components/textarea/index.tsx"
+  type={`Pick<TextareaProps, 'label' | 'description' | 'error' | 'className'>`}
+/>

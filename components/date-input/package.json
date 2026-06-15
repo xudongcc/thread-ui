@@ -1,0 +1,19 @@
+{
+  "name": "@repo/date-input",
+  "description": "A date input component with a pre-styled button trigger and calendar popup.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@repo/date-picker": "workspace:*",
+    "dayjs": "^1.11.19",
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

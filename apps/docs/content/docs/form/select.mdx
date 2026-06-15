@@ -1,0 +1,87 @@
+---
+title: Select
+description: A select component with support for labels, descriptions, and error states.
+---
+
+<Preview path="select" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/select
+```
+
+## Usage
+
+```tsx
+import { Select } from "@/components/thread-ui/select";
+```
+
+```tsx
+<Select
+  label="Country"
+  description="Select your country of residence"
+  placeholder="Choose a country"
+  items={[
+    { value: "us", label: "United States" },
+    { value: "uk", label: "United Kingdom" },
+    { value: "ca", label: "Canada" },
+  ]}
+/>
+```
+
+## Examples
+
+### With Error
+
+Display error messages below the select field.
+
+<Preview path="select-with-error" />
+
+### Disabled
+
+Use the `disabled` prop to disable the select.
+
+<Preview path="select-disabled" />
+
+### Controlled
+
+Use the `value` and `onValueChange` props for controlled state.
+
+<Preview path="select-controlled" />
+
+## Features
+
+- **Label & Description**: Built-in support for labels and helper text
+- **Error States**: Display error messages with visual feedback
+- **Accessible**: Proper ARIA attributes and label associations
+- **Keyboard Navigation**: Full keyboard support for option selection
+- **Controlled & Uncontrolled**: Works in both controlled and uncontrolled modes
+
+## Best Practices
+
+- Always provide a `label` for accessibility
+- Use `description` to provide helpful context about the selection
+- Use `error` to display validation errors
+- Provide clear and concise option labels
+- Use `placeholder` to indicate what should be selected
+
+## API Reference
+
+### SelectProps
+
+Extends all Base UI Select.Root props.
+
+<AutoTypeTable
+  path="../../components/select/index.tsx"
+  type={`Pick<SelectProps<string>, 'label' | 'description' | 'error' | 'placeholder' | 'items' | 'className'>`}
+/>
+
+### SelectItemProps
+
+Properties for individual select items in the `items` array.
+
+<AutoTypeTable
+  path="../../components/select/index.tsx"
+  type="SelectItemProps"
+/>

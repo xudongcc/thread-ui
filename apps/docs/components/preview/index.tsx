@@ -114,7 +114,7 @@ export const Preview = async ({
             type === "component" ? "overflow-hidden" : "overflow-auto",
           )}
         >
-          <PreviewContent type={type}>
+          <PreviewContent id={path} type={type}>
             {type === "block" ? (
               <Component />
             ) : (

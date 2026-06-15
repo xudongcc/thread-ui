@@ -1,0 +1,93 @@
+---
+title: DateInput
+description: A date input component with a pre-styled button trigger and calendar popup.
+---
+
+<Preview path="date-input" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/date-input
+```
+
+## Usage
+
+```tsx
+import { DateInput } from "@/components/thread-ui/date-input";
+```
+
+```tsx
+<DateInput label="Date" placeholder="Select a date" />
+```
+
+## Examples
+
+### With Label and Description
+
+Add labels and descriptions to provide context.
+
+<Preview path="date-input-with-label" />
+
+### With Error
+
+Display error messages below the date input.
+
+<Preview path="date-input-with-error" />
+
+### Custom Format
+
+Use the `format` prop to customize date display format.
+
+<Preview path="date-input-format" />
+
+### Disabled
+
+Use the `disabled` prop to disable the date input.
+
+<Preview path="date-input-disabled" />
+
+## Features
+
+- **Label & Description**: Built-in support for labels and helper text
+- **Error States**: Display error messages with visual feedback
+- **Pre-styled Trigger**: Built-in button trigger with consistent styling
+- **Custom Date Formatting**: Flexible date formatting using dayjs format strings
+- **Placeholder Support**: Customizable placeholder text when no date is selected
+- **Disabled State**: Support for disabling the date input
+- **Calendar Integration**: Full-featured calendar with dropdown navigation
+- **Keyboard Navigation**: Complete keyboard support for date selection
+- **Date Constraints**: Support for `fromDate`, `toDate`, and date range restrictions
+- **Controlled & Uncontrolled**: Works in both controlled and uncontrolled modes
+
+## Best Practices
+
+- Always provide a `label` for accessibility
+- Use `description` to provide helpful context about the date selection
+- Use `error` to display validation errors
+- Use `selected` and `onSelect` for controlled state management
+- Customize date format using the `format` prop with dayjs format tokens
+- Provide clear `placeholder` text to guide users
+- Use `fromDate` and `toDate` to limit selectable date ranges
+- Use `disabled` prop to prevent interaction when needed
+- Customize width using `className` prop if needed
+
+## API Reference
+
+### DateInputProps
+
+Extends all DatePicker props except `render`.
+
+<AutoTypeTable
+  path="../../components/date-input/index.tsx"
+  type={`Pick<DateInputProps, 'label' | 'description' | 'error' | 'selected' | 'onSelect' | 'format' | 'placeholder' | 'disabled' | 'className'>`}
+/>
+
+### Calendar Props
+
+The DateInput passes through all Calendar component props. Common props include:
+
+- `fromDate`: Earliest date that can be selected
+- `toDate`: Latest date that can be selected
+- `disabled`: Dates or date ranges to disable
+- `numberOfMonths`: Number of months to display

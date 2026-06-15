@@ -1,0 +1,16 @@
+{
+  "name": "@repo/date-picker",
+  "description": "A date picker component with calendar popup using a flexible render prop pattern.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

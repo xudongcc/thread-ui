@@ -1,0 +1,73 @@
+---
+title: Input
+description: A text input component with support for labels, descriptions, and error states.
+---
+
+<Preview path="input" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/input
+```
+
+## Usage
+
+```tsx
+import { Input } from "@/components/thread-ui/input";
+```
+
+```tsx
+<Input
+  label="Email"
+  description="We'll send you a verification email"
+  placeholder="your@email.com"
+/>
+```
+
+## Examples
+
+### With Error
+
+Display error messages below the input field.
+
+<Preview path="input-with-error" />
+
+### Disabled
+
+Use the `disabled` prop to disable the input.
+
+<Preview path="input-disabled" />
+
+### Input Types
+
+Supports all native HTML input types.
+
+<Preview path="input-types" />
+
+## Features
+
+- **Label & Description**: Built-in support for labels and helper text
+- **Error States**: Display error messages with visual feedback
+- **Accessible**: Proper ARIA attributes and label associations
+- **Type Support**: Supports all native HTML input types (text, email, password, number, etc.)
+- **Controlled & Uncontrolled**: Works in both controlled and uncontrolled modes
+
+## Best Practices
+
+- Always provide a `label` for accessibility
+- Use `description` to provide helpful context about the expected input
+- Use `error` to display validation errors
+- Provide an `id` prop when you need explicit label-input association
+- Use appropriate input `type` for better mobile keyboards and validation
+
+## API Reference
+
+### InputProps
+
+Extends all native HTML `<input>` element props.
+
+<AutoTypeTable
+  path="../../components/input/index.tsx"
+  type={`Pick<InputProps, 'label' | 'description' | 'error' | 'className'>`}
+/>

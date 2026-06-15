@@ -1,0 +1,67 @@
+---
+title: DatePicker
+description: A date picker component with calendar popup using a flexible render prop pattern.
+---
+
+<Preview path="date-picker" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/date-picker
+```
+
+## Usage
+
+```tsx
+import { DatePicker } from "@/components/thread-ui/date-picker";
+import { Input } from "@/components/thread-ui/input";
+import { CalendarIcon } from "lucide-react";
+```
+
+```tsx
+<DatePicker
+  render={(props) => (
+    <button {...props} className="h-9 w-full rounded-md border px-2.5 py-1">
+      Pick a date
+    </button>
+  )}
+/>
+```
+
+## Features
+
+- **Flexible Rendering**: Use the `render` prop to fully customize the trigger
+- **Calendar Integration**: Full-featured calendar with dropdown navigation
+- **Keyboard Navigation**: Complete keyboard support for date selection
+- **Date Constraints**: Support for `fromDate`, `toDate`, and `disabled` dates
+- **Controlled & Uncontrolled**: Works in both controlled and uncontrolled modes
+- **Accessible**: Proper ARIA attributes and keyboard interactions
+
+## Best Practices
+
+- Use the `render` prop to integrate with form field components
+- Add labels and descriptions through your trigger component
+- Use `fromDate` and `toDate` to limit selectable date ranges
+- Consider using `readOnly` on input triggers to prevent manual input
+- Format dates appropriately in your trigger component
+
+## API Reference
+
+### DatePickerProps
+
+Extends all Calendar props except `mode`, plus PopoverTrigger's `render` prop.
+
+<AutoTypeTable
+  path="../../components/date-picker/index.tsx"
+  type={`Pick<DatePickerProps, 'selected' | 'onSelect' | 'render'>`}
+/>
+
+### Calendar Props
+
+The DatePicker passes through all Calendar component props. Common props include:
+
+- `fromDate`: Earliest date that can be selected
+- `toDate`: Latest date that can be selected
+- `disabled`: Dates or date ranges to disable
+- `numberOfMonths`: Number of months to display

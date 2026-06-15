@@ -8,16 +8,25 @@ import { cn } from "@/lib/utils";
 
 interface PreviewContentProps {
   children: ReactNode;
+  id: string;
   type: "component" | "block";
 }
 
-export const PreviewContent = ({ children, type }: PreviewContentProps) => {
+export const PreviewContent = ({ children, id, type }: PreviewContentProps) => {
+  const groupId = `preview-${id}`;
+
   return (
-    <ResizablePanelGroup className="size-full" direction="horizontal">
+    <ResizablePanelGroup
+      className="size-full"
+      direction="horizontal"
+      id={groupId}
+    >
       <ResizablePanel
         defaultSize={100}
+        id={`${groupId}-content`}
         maxSize={100}
         minSize={40}
+        order={1}
         className={cn(
           "not-fumadocs-codeblock peer size-full",
           type === "component" ? "overflow-hidden!" : "overflow-auto!",
@@ -28,12 +37,15 @@ export const PreviewContent = ({ children, type }: PreviewContentProps) => {
       <ResizableHandle
         withHandle
         className="peer-data-[panel-size=100.0]:w-0"
+        id={`${groupId}-handle`}
       />
       <ResizablePanel
         className="bg-background border-none"
         defaultSize={0}
+        id={`${groupId}-spacer`}
         maxSize={70}
         minSize={0}
+        order={2}
       />
     </ResizablePanelGroup>
   );
