@@ -14,15 +14,6 @@ pnpm dlx shadcn@latest add @thread-ui/page
 ## Usage
 
 ```tsx
-import { MoreHorizontalIcon } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Page,
   PageActions,
@@ -30,6 +21,8 @@ import {
   PageContent,
   PageDescription,
   PageHeader,
+  PagePrimaryAction,
+  PageSecondaryAction,
   PageTitle,
 } from "@/components/thread-ui/page";
 ```
@@ -41,20 +34,11 @@ import {
     <PageTitle>3/4 inch Leather pet collar</PageTitle>
     <PageDescription>Perfect for any pet</PageDescription>
     <PageActions>
-      <Button variant="secondary">Duplicate</Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={<Button size="icon" variant="secondary" />}
-        >
-          <MoreHorizontalIcon />
-          <span className="sr-only">More actions</span>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem>Rename</DropdownMenuItem>
-          <DropdownMenuItem>Archive</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Button>Save</Button>
+      <PageSecondaryAction>Duplicate</PageSecondaryAction>
+      <PageSecondaryAction>Rename</PageSecondaryAction>
+      <PageSecondaryAction>Export</PageSecondaryAction>
+      <PageSecondaryAction destructive>Archive</PageSecondaryAction>
+      <PagePrimaryAction>Save</PagePrimaryAction>
     </PageActions>
   </PageHeader>
   <PageContent>{/* Page content */}</PageContent>
@@ -100,11 +84,29 @@ The page title component.
 
 ### PageBackAction
 
-The page back action button.
+The page back button.
 
 <AutoTypeTable
   path="../../components/page/index.tsx"
-  type="Pick<PageBackActionProps, 'className' | 'size' | 'variant'>"
+  type="Pick<PageBackActionProps, 'children' | 'className' | 'disabled' | 'onClick'>"
+/>
+
+### PagePrimaryAction
+
+The primary page action button.
+
+<AutoTypeTable
+  path="../../components/page/index.tsx"
+  type="Pick<PagePrimaryActionProps, 'children' | 'className' | 'disabled' | 'onClick' | 'type'>"
+/>
+
+### PageSecondaryAction
+
+The secondary page action item.
+
+<AutoTypeTable
+  path="../../components/page/index.tsx"
+  type="Pick<PageSecondaryActionProps, 'children' | 'className' | 'destructive' | 'disabled' | 'icon' | 'onAction'>"
 />
 
 ### PageDescription
@@ -118,11 +120,14 @@ The page description component.
 
 ### PageActions
 
-Container for action buttons.
+Container for page actions. Direct child secondary actions collapse into a menu
+at compact widths. At wider page widths, up to three secondary actions are
+displayed inline. When there are four or more, the first two remain inline and
+the rest move into the menu.
 
 <AutoTypeTable
   path="../../components/page/index.tsx"
-  type="Pick<PageActionsProps, 'className'>"
+  type="Pick<PageActionsProps, 'children' | 'className' | 'secondaryMenuLabel'>"
 />
 
 ### PageContent

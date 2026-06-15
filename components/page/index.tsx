@@ -1,11 +1,18 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, MoreHorizontalIcon } from "lucide-react";
+import { Children, isValidElement } from "react";
+import type { ComponentProps, FC, ReactElement, ReactNode } from "react";
 import type { VariantProps } from "class-variance-authority";
-import type { ComponentProps, FC } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 const pageVariants = cva(
@@ -48,25 +55,28 @@ export const PageHeader: FC<PageHeaderProps> = ({ className, ...props }) => {
   );
 };
 
-export type PageBackActionProps = ComponentProps<typeof Button>;
+type PageButtonActionProps = Omit<
+  ComponentProps<typeof Button>,
+  "data-slot" | "render" | "size" | "variant"
+>;
+
+export type PageBackActionProps = PageButtonActionProps;
 
 export const PageBackAction: FC<PageBackActionProps> = ({
   children,
   className,
-  size = "icon",
-  variant = "ghost",
   ...props
 }) => {
   return (
     <Button
+      {...props}
       data-slot="page-back-action"
-      size={size}
-      variant={variant}
+      size="icon"
+      variant="ghost"
       className={cn(
         "col-start-1 row-start-1 self-start justify-self-start @3xl/page:row-span-2",
         className,
       )}
-      {...props}
     >
       {children ?? (
         <>
@@ -77,6 +87,42 @@ export const PageBackAction: FC<PageBackActionProps> = ({
     </Button>
   );
 };
+
+export type PagePrimaryActionProps = PageButtonActionProps;
+
+export const PagePrimaryAction: FC<PagePrimaryActionProps> = ({
+  className,
+  ...props
+}) => {
+  return (
+    <Button
+      {...props}
+      className={cn("order-last", className)}
+      data-slot="page-primary-action"
+      variant="default"
+    />
+  );
+};
+
+export type PageSecondaryActionProps = {
+  children: ReactNode;
+  className?: string;
+  destructive?: boolean;
+  disabled?: boolean;
+  icon?: ReactNode;
+  onAction?: () => void;
+};
+
+export const PageSecondaryAction: FC<PageSecondaryActionProps> = () => {
+  return null;
+};
+
+const isPageSecondaryActionElement = (
+  child: ReactNode,
+): child is ReactElement<
+  PageSecondaryActionProps,
+  typeof PageSecondaryAction
+> => isValidElement(child) && child.type === PageSecondaryAction;
 
 export type PageTitleProps = ComponentProps<"h2">;
 
@@ -111,18 +157,118 @@ export const PageDescription: FC<PageDescriptionProps> = ({
   );
 };
 
-export type PageActionsProps = ComponentProps<"div">;
+export type PageActionsProps = Omit<
+  ComponentProps<"div">,
+  "children" | "data-slot"
+> & {
+  children?: ReactNode;
+  secondaryMenuLabel?: string;
+};
 
-export const PageActions: FC<PageActionsProps> = ({ className, ...props }) => {
+export const PageActions: FC<PageActionsProps> = ({
+  children,
+  className,
+  secondaryMenuLabel = "More actions",
+  ...props
+}) => {
+  const secondaryActions: Array<
+    ReactElement<PageSecondaryActionProps, typeof PageSecondaryAction>
+  > = [];
+  const actionChildren = Children.toArray(children).filter((child) => {
+    if (isPageSecondaryActionElement(child)) {
+      secondaryActions.push(child);
+      return false;
+    }
+
+    return true;
+  });
+  const inlineSecondaryActions =
+    secondaryActions.length > 3
+      ? secondaryActions.slice(0, 2)
+      : secondaryActions;
+  const overflowSecondaryActions =
+    secondaryActions.length > 3 ? secondaryActions.slice(2) : [];
+  const renderSecondaryButtons = (actions: typeof secondaryActions) =>
+    actions.map(({ key, props: action }, index) => (
+      <Button
+        key={key ?? index}
+        className={action.className}
+        data-slot="page-secondary-action"
+        disabled={action.disabled}
+        variant={action.destructive ? "destructive" : "secondary"}
+        onClick={() => action.onAction?.()}
+      >
+        {action.icon}
+        {action.children}
+      </Button>
+    ));
+  const renderSecondaryMenuItems = (actions: typeof secondaryActions) =>
+    actions.map(({ key, props: action }, index) => (
+      <DropdownMenuItem
+        key={key ?? index}
+        className={action.className}
+        disabled={action.disabled}
+        variant={action.destructive ? "destructive" : "default"}
+        onSelect={() => action.onAction?.()}
+      >
+        {action.icon}
+        {action.children}
+      </DropdownMenuItem>
+    ));
+
   return (
     <div
+      {...props}
       data-slot="page-actions"
       className={cn(
-        "col-start-2 row-span-2 row-start-1 flex items-center gap-2 self-start justify-self-end group-has-data-[slot=page-back-action]/page-header:row-span-1 @3xl/page:group-has-data-[slot=page-back-action]/page-header:col-start-3 @3xl/page:group-has-data-[slot=page-back-action]/page-header:row-span-2",
+        "col-start-2 row-span-2 row-start-1 flex items-center gap-2 self-start justify-self-end group-has-data-[slot=page-back-action]/page-header:row-span-1 @3xl/page:group-has-data-[slot=page-back-action]/page-header:col-start-3 @3xl/page:group-has-data-[slot=page-back-action]/page-header:row-span-2 [&>[data-slot=page-primary-action]]:order-last [&>[data-slot=page-secondary-actions]]:order-10",
         className,
       )}
-      {...props}
-    />
+    >
+      {actionChildren}
+      {secondaryActions.length > 0 ? (
+        <div
+          className="order-10 flex items-center gap-2"
+          data-slot="page-secondary-actions"
+        >
+          <div className="hidden @3xl/page:flex @3xl/page:items-center @3xl/page:gap-2">
+            {renderSecondaryButtons(inlineSecondaryActions)}
+          </div>
+          <div className="@3xl/page:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button size="icon" variant="secondary">
+                    <MoreHorizontalIcon />
+                    <span className="sr-only">{secondaryMenuLabel}</span>
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                {renderSecondaryMenuItems(secondaryActions)}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {overflowSecondaryActions.length > 0 ? (
+            <div className="hidden @3xl/page:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button size="icon" variant="secondary">
+                      <MoreHorizontalIcon />
+                      <span className="sr-only">{secondaryMenuLabel}</span>
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end">
+                  {renderSecondaryMenuItems(overflowSecondaryActions)}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 };
 

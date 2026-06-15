@@ -1,12 +1,5 @@
-import { MoreHorizontalIcon } from "lucide-react";
+"use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Page,
   PageActions,
@@ -14,6 +7,8 @@ import {
   PageContent,
   PageDescription,
   PageHeader,
+  PagePrimaryAction,
+  PageSecondaryAction,
   PageTitle,
 } from "@/components/thread-ui/page";
 
@@ -24,20 +19,11 @@ const Example = () => (
       <PageTitle>3/4 inch Leather pet collar</PageTitle>
       <PageDescription>Perfect for any pet</PageDescription>
       <PageActions>
-        <Button variant="secondary">Duplicate</Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button size="icon" variant="secondary" />}
-          >
-            <MoreHorizontalIcon />
-            <span className="sr-only">More actions</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Rename</DropdownMenuItem>
-            <DropdownMenuItem>Archive</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button>Save</Button>
+        <PageSecondaryAction>Duplicate</PageSecondaryAction>
+        <PageSecondaryAction>Rename</PageSecondaryAction>
+        <PageSecondaryAction>Export</PageSecondaryAction>
+        <PageSecondaryAction destructive>Archive</PageSecondaryAction>
+        <PagePrimaryAction>Save</PagePrimaryAction>
       </PageActions>
     </PageHeader>
     <PageContent>
