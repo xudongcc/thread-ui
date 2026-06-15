@@ -403,20 +403,23 @@ export const CodeBlockFilename = ({
   );
 };
 
-export type CodeBlockSelectProps = ComponentProps<typeof Select>;
+export type CodeBlockSelectProps = Omit<
+  ComponentProps<typeof Select>,
+  "defaultValue" | "onValueChange" | "value"
+>;
 
 export const CodeBlockSelect = (props: CodeBlockSelectProps) => {
   const { value, onValueChange } = useContext(CodeBlockContext);
 
   return (
     <Select
+      {...props}
       value={value}
       onValueChange={(value) => {
         if (typeof value === "string") {
           onValueChange?.(value);
         }
       }}
-      {...props}
     />
   );
 };
@@ -467,7 +470,10 @@ export const CodeBlockSelectItem = ({
   <SelectItem className={cn("text-sm", className)} {...props} />
 );
 
-export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
+export type CodeBlockCopyButtonProps = Omit<
+  ComponentProps<typeof Button>,
+  "onClick"
+> & {
   onCopy?: () => void;
   onError?: (error: Error) => void;
   timeout?: number;
@@ -506,11 +512,11 @@ export const CodeBlockCopyButton = ({
 
   return (
     <Button
+      {...props}
       className={cn("shrink-0", className)}
       size="icon"
       variant="ghost"
       onClick={copyToClipboard}
-      {...props}
     >
       {children ?? <Icon className="text-muted-foreground" size={14} />}
     </Button>
@@ -586,7 +592,10 @@ export const CodeBlockItem = ({
   );
 };
 
-export type CodeBlockContentProps = HTMLAttributes<HTMLDivElement> & {
+export type CodeBlockContentProps = Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children" | "dangerouslySetInnerHTML"
+> & {
   themes?: CodeOptionsMultipleThemes["themes"];
   language?: BundledLanguage;
   syntaxHighlighting?: boolean;
@@ -616,5 +625,5 @@ export const CodeBlockContent = ({
     return <CodeBlockFallback>{children}</CodeBlockFallback>;
   }
 
-  return <div dangerouslySetInnerHTML={{ __html: html }} {...props} />;
+  return <div {...props} dangerouslySetInnerHTML={{ __html: html }} />;
 };
