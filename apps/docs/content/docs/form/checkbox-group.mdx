@@ -20,19 +20,50 @@ import {
 } from "@/components/thread-ui/checkbox-group";
 ```
 
+Props-first:
+
 ```tsx
-<CheckboxGroup defaultValue={["option1"]}>
-  <CheckboxGroupItem name="option1" />
-  <CheckboxGroupItem name="option2" />
-  <CheckboxGroupItem name="option3" />
+<CheckboxGroup
+  label="Options"
+  description="Select your preferred options"
+  defaultValue={["option1"]}
+  parent={{ label: "All options" }}
+  items={[
+    { value: "option1", label: "Option 1" },
+    { value: "option2", label: "Option 2" },
+    { value: "option3", label: "Option 3" },
+  ]}
+/>
+```
+
+Compound-first:
+
+```tsx
+<CheckboxGroup allValues={["option1", "option2", "option3"]}>
+  <CheckboxGroupItem parent>All options</CheckboxGroupItem>
+  <CheckboxGroupItem value="option1">Option 1</CheckboxGroupItem>
+  <CheckboxGroupItem value="option2">Option 2</CheckboxGroupItem>
+  <CheckboxGroupItem value="option3">Option 3</CheckboxGroupItem>
 </CheckboxGroup>
 ```
 
 ## Examples
 
+### Props First
+
+Use the `items` prop when your checkbox options come from data. Add `parent` to render a select-all checkbox.
+
+<Preview path="checkbox-group" />
+
+### Compound First
+
+Use `CheckboxGroupItem` children when you want to compose items directly.
+
+<Preview path="checkbox-group-compound" />
+
 ### Parent Checkbox
 
-Use the `parent` prop combined with `allValues` to create a checkbox that controls all child checkboxes. The parent checkbox will show an indeterminate state when some but not all children are selected.
+Use the `parent` prop to create a checkbox that controls all child checkboxes. The parent checkbox will show an indeterminate state when some but not all children are selected.
 
 <Preview path="checkbox-group-parent" />
 
@@ -45,6 +76,7 @@ Use the `disabled` prop on the `CheckboxGroup` to disable all checkboxes in the 
 ## Features
 
 - **Collective State Management**: Manages the state of multiple checkboxes as a group
+- **Props-first & Compound-first**: Use the `items` prop or compose `CheckboxGroupItem` children
 - **Parent Checkbox**: Support for a parent checkbox that can select/deselect all children
 - **Indeterminate State**: Automatically shows indeterminate state on parent when partially selected
 - **Controlled & Uncontrolled**: Works in both controlled and uncontrolled modes
@@ -65,14 +97,32 @@ The root component that manages the state of all checkboxes in the group.
 
 <AutoTypeTable
   path="../../components/checkbox-group/index.tsx"
-  type={`Pick<CheckboxGroupProps, 'defaultValue' | 'value' | 'onValueChange' | 'allValues' | 'disabled' | 'className'>`}
+  type={`Pick<CheckboxGroupProps<string>, 'name' | 'label' | 'description' | 'items' | 'parent' | 'allValues' | 'defaultValue' | 'value' | 'onValueChange' | 'disabled' | 'className'>`}
 />
 
 ### CheckboxGroupItemProps
 
-Individual checkbox item within the group.
+Props for compound-first `CheckboxGroupItem` children.
 
 <AutoTypeTable
   path="../../components/checkbox-group/index.tsx"
-  type={`Pick<CheckboxGroupItemProps, 'name' | 'parent' | 'checked' | 'defaultChecked' | 'disabled' | 'className'>`}
+  type={`Pick<CheckboxGroupItemProps, 'children' | 'description' | 'value' | 'name' | 'parent' | 'checked' | 'defaultChecked' | 'disabled' | 'className'>`}
+/>
+
+### CheckboxGroupOptionProps
+
+Properties for individual checkbox options in the `items` array.
+
+<AutoTypeTable
+  path="../../components/checkbox-group/index.tsx"
+  type="CheckboxGroupOptionProps<string>"
+/>
+
+### CheckboxGroupParentProps
+
+Properties for the props-first parent checkbox.
+
+<AutoTypeTable
+  path="../../components/checkbox-group/index.tsx"
+  type="CheckboxGroupParentProps"
 />

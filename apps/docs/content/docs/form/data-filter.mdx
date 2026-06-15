@@ -1,0 +1,141 @@
+---
+title: DataFilter
+description: A powerful data filter component with search, sort, and multiple filter conditions.
+---
+
+<Preview path="data-filter" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/data-filter
+```
+
+## Usage
+
+```tsx
+import {
+  DataFilter,
+  type DataFilterItemProps,
+  type DataFilterValues,
+} from "@/components/thread-ui/data-filter";
+```
+
+```tsx
+import { Input } from "@/components/ui/input";
+
+const filters: DataFilterItemProps[] = [
+  {
+    field: "name",
+    label: "Name",
+    render: ({ field: { value, onChange } }) => (
+      <div className="w-48 p-2">
+        <Input
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Filter by name..."
+        />
+      </div>
+    ),
+  },
+];
+
+const values: DataFilterValues = {};
+
+<DataFilter
+  filters={filters}
+  values={values}
+  onChange={(v) => console.log(v)}
+/>;
+```
+
+## Examples
+
+### Standalone Search
+
+You can use the search feature entirely on its own by providing an empty `filters` array. You can also customize the search bar with `leading` and `trailing` elements.
+
+<Preview path="data-filter-search" />
+
+### Sort Menu
+
+The Search bar provides an anchor for the `sort` control menu, allowing users to select directional grouping for different fields directly from the primary bar.
+
+<Preview path="data-filter-sort" />
+
+### Pinned Filters
+
+Set `pinned: true` to make specific filters always visible and preventing the user from completely removing them. Provide `search: false` if you want to skip the main search bar.
+
+<Preview path="data-filter-pinned" />
+
+### Custom Render Components
+
+You can easily replace standard text boxes with sophisticated components such as a \`Select\` drop-down or a \`DatePicker\` block via the \`render\` prop function. Use \`renderValue\` to specify how the formatted value appears in the badge.
+
+<Preview path="data-filter-custom" />
+
+## API Reference
+
+### DataFilterProps
+
+The root component props for the data filter.
+
+<AutoTypeTable
+  path="../../components/data-filter/index.tsx"
+  type={`Pick<DataFilterProps, 'className' | 'loading' | 'filters' | 'search' | 'sort' | 'values' | 'renderers' | 'i18n' | 'onChange'>`}
+/>
+
+### DataFilterItemProps
+
+Configuration for an individual filter field.
+
+<AutoTypeTable
+  path="../../components/data-filter/index.tsx"
+  type={`Pick<DataFilterItemProps, 'label' | 'field' | 'icon' | 'render' | 'renderValue' | 'pinned'>`}
+/>
+
+### DataFilterSearchConfig
+
+Configuration for the integrated search input.
+
+<AutoTypeTable
+  path="../../components/data-filter/index.tsx"
+  type={`Pick<DataFilterSearchConfig, 'value' | 'leading' | 'trailing' | 'suffix' | 'prefix' | 'placeholder' | 'disabled' | 'className' | 'onChange'>`}
+/>
+
+### DataFilterSortConfig
+
+Configuration for sorting.
+
+<AutoTypeTable
+  path="../../components/data-filter/index.tsx"
+  type={`Pick<DataFilterSortConfig, 'options' | 'selected' | 'onChange'>`}
+/>
+
+### DataFilterSortOptions
+
+Configuration for an individual sort option.
+
+<AutoTypeTable
+  path="../../components/data-filter/index.tsx"
+  type={`Pick<DataFilterSortOptions, 'field' | 'direction' | 'fieldLabel' | 'directionLabel' | 'disabled'>`}
+/>
+
+### DataFilterRenderers
+
+Optional render hooks for replacing filter controls.
+
+<AutoTypeTable
+  path="../../components/data-filter/index.tsx"
+  type={`Pick<DataFilterRenderers, 'addFilter' | 'filterItem'>`}
+/>
+
+### DataFilterI18n
+
+Text overrides used by the default controls.
+
+<AutoTypeTable
+  path="../../components/data-filter/index.tsx"
+  type={`Pick<DataFilterI18n, 'addFilter'>`}
+/>

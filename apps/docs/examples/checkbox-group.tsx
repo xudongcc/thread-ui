@@ -1,48 +1,29 @@
-import {
-  CheckboxGroup,
-  CheckboxGroupItem,
-} from "@/components/thread-ui/checkbox-group";
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from "@/components/ui/field";
+import { CheckboxGroup } from "@/components/thread-ui/checkbox-group";
 
 const Example = () => (
-  <FieldSet>
-    <FieldLegend variant="label">Notifications</FieldLegend>
-    <FieldDescription>
-      Select the notifications you want to receive.
-    </FieldDescription>
-    <CheckboxGroup defaultValue={["email"]}>
-      <Field orientation="horizontal">
-        <CheckboxGroupItem name="email" />
-        <FieldContent>
-          <FieldLabel>Email notifications</FieldLabel>
-          <FieldDescription>Receive notifications via email.</FieldDescription>
-        </FieldContent>
-      </Field>
-      <Field orientation="horizontal">
-        <CheckboxGroupItem name="sms" />
-        <FieldContent>
-          <FieldLabel>SMS notifications</FieldLabel>
-          <FieldDescription>Receive notifications via SMS.</FieldDescription>
-        </FieldContent>
-      </Field>
-      <Field orientation="horizontal">
-        <CheckboxGroupItem name="push" />
-        <FieldContent>
-          <FieldLabel>Push notifications</FieldLabel>
-          <FieldDescription>
-            Receive push notifications on your device.
-          </FieldDescription>
-        </FieldContent>
-      </Field>
-    </CheckboxGroup>
-  </FieldSet>
+  <CheckboxGroup
+    defaultValue={["email"]}
+    description="Select the notifications you want to receive."
+    label="Notifications"
+    parent={{ label: "All notifications" }}
+    items={[
+      {
+        value: "email",
+        label: "Email notifications",
+        description: "Receive notifications via email.",
+      },
+      {
+        value: "sms",
+        label: "SMS notifications",
+        description: "Receive notifications via SMS.",
+      },
+      {
+        value: "push",
+        label: "Push notifications",
+        description: "Receive push notifications on your device.",
+      },
+    ]}
+  />
 );
 
 export default Example;

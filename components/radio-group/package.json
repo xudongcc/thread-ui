@@ -1,0 +1,17 @@
+{
+  "name": "@repo/radio-group",
+  "description": "A radio group component for selecting a single option from a list of choices.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@base-ui/react": "^1.1.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

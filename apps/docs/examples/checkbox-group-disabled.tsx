@@ -1,39 +1,16 @@
-import {
-  CheckboxGroup,
-  CheckboxGroupItem,
-} from "@/components/thread-ui/checkbox-group";
-import {
-  Field,
-  FieldContent,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from "@/components/ui/field";
+import { CheckboxGroup } from "@/components/thread-ui/checkbox-group";
 
 const Example = () => (
-  <FieldSet>
-    <FieldLegend variant="label">Disabled Group</FieldLegend>
-    <CheckboxGroup disabled defaultValue={["option1"]}>
-      <Field orientation="horizontal">
-        <CheckboxGroupItem name="option1" />
-        <FieldContent>
-          <FieldLabel>Option 1</FieldLabel>
-        </FieldContent>
-      </Field>
-      <Field orientation="horizontal">
-        <CheckboxGroupItem name="option2" />
-        <FieldContent>
-          <FieldLabel>Option 2</FieldLabel>
-        </FieldContent>
-      </Field>
-      <Field orientation="horizontal">
-        <CheckboxGroupItem name="option3" />
-        <FieldContent>
-          <FieldLabel>Option 3</FieldLabel>
-        </FieldContent>
-      </Field>
-    </CheckboxGroup>
-  </FieldSet>
+  <CheckboxGroup
+    disabled
+    defaultValue={["option1"]}
+    label="Disabled Group"
+    items={[
+      { value: "option1", label: "Option 1" },
+      { value: "option2", label: "Option 2" },
+      { value: "option3", label: "Option 3" },
+    ]}
+  />
 );
 
 export default Example;

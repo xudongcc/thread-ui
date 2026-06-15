@@ -1,53 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CheckboxGroup,
-  CheckboxGroupItem,
-} from "@/components/thread-ui/checkbox-group";
-import {
-  Field,
-  FieldContent,
-  FieldLabel,
-  FieldSet,
-} from "@/components/ui/field";
+import { CheckboxGroup } from "@/components/thread-ui/checkbox-group";
 
 const Example = () => {
   const [value, setValue] = useState<string[]>([]);
 
   return (
-    <FieldSet>
-      <CheckboxGroup
-        allValues={["read", "write", "delete"]}
-        value={value}
-        onValueChange={setValue}
-      >
-        <Field orientation="horizontal">
-          <CheckboxGroupItem parent />
-          <FieldContent>
-            <FieldLabel>All permissions</FieldLabel>
-          </FieldContent>
-        </Field>
-        <Field orientation="horizontal">
-          <CheckboxGroupItem name="read" />
-          <FieldContent>
-            <FieldLabel>Read</FieldLabel>
-          </FieldContent>
-        </Field>
-        <Field orientation="horizontal">
-          <CheckboxGroupItem name="write" />
-          <FieldContent>
-            <FieldLabel>Write</FieldLabel>
-          </FieldContent>
-        </Field>
-        <Field orientation="horizontal">
-          <CheckboxGroupItem name="delete" />
-          <FieldContent>
-            <FieldLabel>Delete</FieldLabel>
-          </FieldContent>
-        </Field>
-      </CheckboxGroup>
-    </FieldSet>
+    <CheckboxGroup
+      label="Permissions"
+      parent={{ label: "All permissions" }}
+      value={value}
+      items={[
+        { value: "read", label: "Read" },
+        { value: "write", label: "Write" },
+        { value: "delete", label: "Delete" },
+      ]}
+      onValueChange={setValue}
+    />
   );
 };
 
