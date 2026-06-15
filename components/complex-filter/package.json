@@ -1,0 +1,17 @@
+{
+  "name": "@repo/complex-filter",
+  "description": "A recursive filter builder for composing nested condition groups.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

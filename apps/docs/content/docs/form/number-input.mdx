@@ -1,0 +1,48 @@
+---
+title: NumberInput
+description: A numeric input component with formatting support.
+---
+
+<Preview path="number-input" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/number-input
+```
+
+## Usage
+
+```tsx
+import { NumberInput } from "@/components/thread-ui/number-input";
+```
+
+```tsx
+<NumberInput
+  thousandSeparator=","
+  prefix="$"
+  value={value}
+  onValueChange={(values) => setValue(values.value)}
+/>
+```
+
+## Examples
+
+### Percentage
+
+Use prefixes, suffixes, decimal precision, and other `react-number-format`
+options to tailor the numeric input.
+
+<Preview path="number-input-percentage" />
+
+## API Reference
+
+### NumberInputProps
+
+Extends `NumericFormatProps` and native input props, excluding
+`customInput` and `getInputRef`.
+
+<AutoTypeTable
+  path="../../components/number-input/index.tsx"
+  type={`Pick<NumberInputProps, 'value' | 'onValueChange' | 'thousandSeparator' | 'decimalScale' | 'prefix' | 'suffix' | 'allowNegative' | 'placeholder' | 'disabled' | 'className'>`}
+/>

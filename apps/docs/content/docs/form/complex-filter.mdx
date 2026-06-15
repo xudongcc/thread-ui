@@ -1,0 +1,92 @@
+---
+title: ComplexFilter
+description: A recursive filter builder for composing nested condition groups.
+---
+
+<Preview path="complex-filter" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/complex-filter
+```
+
+## Usage
+
+```tsx
+import {
+  ComplexFilter,
+  ComplexFilterLogical,
+  ComplexFilterType,
+  type ComplexFilterItem,
+  type ComplexFilterValue,
+} from "@/components/thread-ui/complex-filter";
+```
+
+```tsx
+const filters: ComplexFilterItem[] = [
+  {
+    field: "name",
+    label: "Name",
+    type: ComplexFilterType.STRING,
+    render: ({ value, disabled, onChange }) => (
+      <Input
+        disabled={disabled}
+        value={value ?? ""}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    ),
+  },
+];
+
+const value: ComplexFilterValue = {
+  [ComplexFilterLogical.AND]: [{ name: { $eq: "Joe" } }],
+};
+
+<ComplexFilter filters={filters} value={value} onChange={setValue} />;
+```
+
+Use `NumberInput`, `DateInput`, or your own form controls inside each
+field's `render` callback.
+
+## Examples
+
+### Empty
+
+Start with an empty logical group and add conditions from the control menu.
+
+<Preview path="complex-filter-empty" />
+
+## API Reference
+
+### ComplexFilterProps
+
+The root component props for the complex filter builder.
+
+<AutoTypeTable
+  path="../../components/complex-filter/index.tsx"
+  type={`Pick<ComplexFilterProps, 'filters' | 'i18n' | 'showClearAll' | 'value' | 'onChange'>`}
+/>
+
+### ComplexFilterItem
+
+Configuration for one available filter field.
+
+<AutoTypeTable
+  path="../../components/complex-filter/index.tsx"
+  type={`Pick<ComplexFilterItem, 'type' | 'label' | 'field' | 'render' | 'operators'>`}
+/>
+
+### ComplexFilterI18n
+
+Text overrides used by the default controls.
+
+<AutoTypeTable
+  path="../../components/complex-filter/index.tsx"
+  type={`Pick<ComplexFilterI18n, 'operators' | 'logicals' | 'addCondition' | 'addGroup' | 'selectField' | 'selectOperator' | 'selectValue' | 'clearAll'>`}
+/>
+
+### ComplexFilterValue
+
+`ComplexFilterValue` is a recursive group or condition object. Groups use
+`$and` or `$or`; conditions use a field name with one operator/value pair.

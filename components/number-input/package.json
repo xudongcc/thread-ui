@@ -1,0 +1,17 @@
+{
+  "name": "@repo/number-input",
+  "description": "A numeric input component with formatting support.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-number-format": "^5.4.5"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}
