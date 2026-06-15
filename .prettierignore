@@ -7,6 +7,7 @@ build
 out
 coverage
 pnpm-lock.yaml
+apps/docs/.source
 
 # Shadcn UI
 packages/shadcn-ui
