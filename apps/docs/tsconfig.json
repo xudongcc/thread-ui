@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -22,7 +21,7 @@
       "@/utils/*": ["../../packages/shadcn-ui/utils/*"],
       "@/lib/*": ["../../packages/shadcn-ui/lib/*"],
       "@/hooks/*": ["../../packages/shadcn-ui/hooks/*"],
-      "fumadocs-mdx:collections/*": [".source/*"]
+      "fumadocs-mdx:collections/*": ["./.source/*"]
     },
     "plugins": [
       {
