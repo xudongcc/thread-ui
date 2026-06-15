@@ -3,10 +3,16 @@
 import { cva } from "class-variance-authority";
 import { ArrowLeftIcon, MoreHorizontalIcon } from "lucide-react";
 import { Children, isValidElement } from "react";
-import type { ComponentProps, FC, ReactElement, ReactNode } from "react";
+import type {
+  ComponentProps,
+  FC,
+  HTMLAttributes,
+  ReactElement,
+  ReactNode,
+} from "react";
 import type { VariantProps } from "class-variance-authority";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/thread-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,12 +61,11 @@ export const PageHeader: FC<PageHeaderProps> = ({ className, ...props }) => {
   );
 };
 
-type PageButtonActionProps = Omit<
-  ComponentProps<typeof Button>,
-  "data-slot" | "render" | "size" | "variant"
->;
+export interface PageActionProps extends HTMLAttributes<HTMLElement> {
+  loading?: boolean;
+}
 
-export type PageBackActionProps = PageButtonActionProps;
+export type PageBackActionProps = PageActionProps;
 
 export const PageBackAction: FC<PageBackActionProps> = ({
   children,
@@ -88,7 +93,7 @@ export const PageBackAction: FC<PageBackActionProps> = ({
   );
 };
 
-export type PagePrimaryActionProps = PageButtonActionProps;
+export type PagePrimaryActionProps = PageActionProps;
 
 export const PagePrimaryAction: FC<PagePrimaryActionProps> = ({
   className,

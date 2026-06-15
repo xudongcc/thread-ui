@@ -133,11 +133,58 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  components/alert-dialog:
+    dependencies:
+      react:
+        specifier: ^19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.2.3
+        version: 19.2.3(react@19.2.3)
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/react':
+        specifier: ^19.2.8
+        version: 19.2.8
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.8)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   components/badge:
     dependencies:
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
+      react:
+        specifier: ^19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.2.3
+        version: 19.2.3(react@19.2.3)
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/react':
+        specifier: ^19.2.8
+        version: 19.2.8
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.8)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  components/button:
+    dependencies:
+      lucide-react:
+        specifier: ^0.562.0
+        version: 0.562.0(react@19.2.3)
       react:
         specifier: ^19.2.3
         version: 19.2.3
@@ -269,6 +316,9 @@ importers:
 
   components/page:
     dependencies:
+      '@repo/button':
+        specifier: workspace:*
+        version: link:../button
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -281,6 +331,31 @@ importers:
       react-dom:
         specifier: ^19.2.3
         version: 19.2.3(react@19.2.3)
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/react':
+        specifier: ^19.2.8
+        version: 19.2.8
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.8)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  components/toast:
+    dependencies:
+      react:
+        specifier: ^19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.2.3
+        version: 19.2.3(react@19.2.3)
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*

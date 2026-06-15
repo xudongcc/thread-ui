@@ -1,12 +1,9 @@
 {
-  "name": "@repo/page",
-  "description": "A layout component for building consistent page structures with title, description, and actions.",
+  "name": "@repo/alert-dialog",
+  "description": "A functional alert dialog component for confirmations and important actions.",
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@repo/button": "workspace:*",
-    "class-variance-authority": "^0.7.1",
-    "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },

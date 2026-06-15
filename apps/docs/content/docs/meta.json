@@ -4,6 +4,8 @@
   "collapsible": false,
   "pages": [
     "index",
+    "---Action---",
+    "...action",
     "---Display---",
     "...display",
     "---Feedback---",

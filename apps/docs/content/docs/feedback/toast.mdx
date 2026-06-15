@@ -1,0 +1,134 @@
+---
+title: Toast
+description: A toast notification component powered by Sonner for displaying temporary messages.
+---
+
+<Preview path="toast" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/toast
+```
+
+## Setup
+
+Add the `ToastProvider` to your root layout:
+
+```tsx
+import { ToastProvider } from "@/components/thread-ui/toast";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <ToastProvider>{children}</ToastProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Usage
+
+```tsx
+import { toast } from "@/components/thread-ui/toast";
+```
+
+```tsx
+toast("Event has been created.");
+```
+
+## Examples
+
+### Toast Types
+
+Display different types of toast notifications.
+
+<Preview path="toast-types" />
+
+### With Description
+
+Add a description to provide more context.
+
+<Preview path="toast-description" />
+
+### With Action
+
+Add an action button to the toast.
+
+<Preview path="toast-action" />
+
+## Features
+
+- **Multiple Types**: Support for default, success, info, warning, and error toasts
+- **Promise Support**: Show loading, success, and error states for async operations
+- **Customizable Position**: Place toasts in any corner of the screen
+- **Actions**: Add interactive buttons to toasts
+- **Auto Dismiss**: Toasts automatically dismiss after a configurable duration
+- **Accessible**: Follows WAI-ARIA guidelines for notifications
+
+## Best Practices
+
+- Use success toasts to confirm completed actions
+- Use error toasts for failures that need user attention
+- Keep toast messages concise and actionable
+- Use descriptions sparingly for additional context
+- Avoid stacking too many toasts at once
+
+## API Reference
+
+### ToastProvider
+
+The provider component that enables toast notifications throughout your app.
+
+<AutoTypeTable
+  path="../../components/toast/index.tsx"
+  type="ToastProviderProps"
+/>
+
+### toast()
+
+The toast function accepts a message and optional configuration:
+
+```tsx
+// Simple message
+toast("Hello World");
+
+// With options
+toast("Event created", {
+  description: "Your event has been created successfully.",
+  action: {
+    label: "Undo",
+    onClick: () => console.log("Undo"),
+  },
+});
+
+// Different types
+toast.success("Success!");
+toast.error("Something went wrong");
+toast.info("Did you know?");
+toast.warning("Be careful!");
+
+// Promise toast
+toast.promise(saveData(), {
+  loading: "Saving...",
+  success: "Data saved!",
+  error: "Could not save",
+});
+```
+
+### Position
+
+Configure the toast position via the `position` prop on `ToastProvider`:
+
+- `top-left`
+- `top-center`
+- `top-right`
+- `bottom-left`
+- `bottom-center` (default)
+- `bottom-right`
+
+```tsx
+<ToastProvider position="top-right">{children}</ToastProvider>
+```

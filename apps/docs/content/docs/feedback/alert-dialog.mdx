@@ -1,0 +1,121 @@
+---
+title: AlertDialog
+description: A functional alert dialog component for confirmations and important actions.
+---
+
+<Preview path="alert-dialog" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/alert-dialog
+```
+
+## Setup
+
+Add the `AlertDialogProvider` to your root layout:
+
+```tsx
+import { AlertDialogProvider } from "@/components/thread-ui/alert-dialog";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <AlertDialogProvider>{children}</AlertDialogProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Usage
+
+```tsx
+import { alertDialog } from "@/components/thread-ui/alert-dialog";
+```
+
+```tsx
+const handleDelete = async () => {
+  const confirmed = await alertDialog({
+    title: "Delete item?",
+    description: "This action cannot be undone.",
+    confirmText: "Delete",
+    variant: "destructive",
+  });
+
+  if (confirmed) {
+    // Perform delete action
+  }
+};
+```
+
+## Examples
+
+### With Icon
+
+Add an icon to provide visual context.
+
+<Preview path="alert-dialog-destructive" />
+
+### Small Size
+
+Use `size: "sm"` for a compact dialog.
+
+<Preview path="alert-dialog-small" />
+
+### Custom Button Text
+
+Customize the cancel and confirm button text.
+
+<Preview path="alert-dialog-custom" />
+
+## Features
+
+- **Function-based API**: Call `alertDialog()` anywhere without hooks
+- **Promise-based**: Returns a Promise that resolves to `true` or `false`
+- **Icon Support**: Add icons for visual context
+- **Size Variants**: Choose between default and small sizes
+- **Customizable**: Configure title, description, button text, and variant
+- **Queue Support**: Multiple dialogs are queued and shown sequentially
+- **Accessible**: Built on Base UI AlertDialog with proper ARIA attributes
+- **Async/Await Support**: Easily integrate with async workflows
+
+## Best Practices
+
+- Use for irreversible or important actions that need user confirmation
+- Provide clear, concise titles that describe the action
+- Use descriptions to explain the consequences of the action
+- Use `variant: "destructive"` for delete or dangerous operations
+- Keep button text short and action-oriented
+
+## API Reference
+
+### AlertDialogProvider
+
+The provider component that enables alert dialogs throughout your app.
+
+### alertDialog(options)
+
+Shows an alert dialog and returns a Promise.
+
+```tsx
+import { Trash2Icon } from "lucide-react";
+
+const confirmed = await alertDialog({
+  title: "Delete item?",
+  description: "This action cannot be undone.",
+  icon: <Trash2Icon />,
+  size: "default",
+  cancelText: "Cancel",
+  confirmText: "Delete",
+  variant: "destructive",
+});
+```
+
+<AutoTypeTable
+  path="../../components/alert-dialog/index.tsx"
+  type="AlertDialogOptions"
+/>
+
+**Returns:** `Promise<boolean>` - Resolves to `true` if confirmed, `false` if cancelled.

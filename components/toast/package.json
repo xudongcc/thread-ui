@@ -1,0 +1,17 @@
+{
+  "name": "@repo/toast",
+  "description": "A toast notification component powered by Sonner for displaying temporary messages.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}
