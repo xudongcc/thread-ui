@@ -22,25 +22,54 @@ import {
 ```
 
 ```tsx
-import { Input } from "@/components/ui/input";
-
 const filters: DataFilterItemProps[] = [
   {
     field: "name",
     label: "Name",
-    render: ({ field: { value, onChange } }) => (
-      <div className="w-48 p-2">
-        <Input
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Filter by name..."
-        />
-      </div>
-    ),
+    type: "input",
+    defaultOperator: "$fulltext",
+    operators: ["$eq", "$ne", "$fulltext"],
+    placeholder: "Filter by name...",
+  },
+  {
+    field: "amount",
+    label: "Amount",
+    type: "number-input",
+    defaultOperator: "$gte",
+    operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte"],
+    min: 0,
+    max: 10000,
+    decimalScale: 2,
+  },
+  {
+    field: "createdAt",
+    label: "Created At",
+    type: "date-picker",
+    defaultOperator: "$lt",
+    operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte"],
+    min: new Date("2024-01-01"),
+    max: new Date("2026-12-31"),
+  },
+  {
+    field: "archived",
+    label: "Archived",
+    type: "checkbox",
+    defaultOperator: "$eq",
+    operators: ["$eq", "$ne"],
   },
 ];
 
-const values: DataFilterValues = {};
+const values: DataFilterValues = {
+  amount: {
+    $gte: 100,
+  },
+  name: {
+    $fulltext: "Acme",
+  },
+  archived: {
+    $eq: true,
+  },
+};
 
 <DataFilter
   filters={filters}
@@ -53,7 +82,7 @@ const values: DataFilterValues = {};
 
 ### Standalone Search
 
-You can use the search feature entirely on its own by providing an empty `filters` array. You can also customize the search bar with `leading` and `trailing` elements.
+You can use the search feature entirely on its own by providing an empty `filters` array.
 
 <Preview path="data-filter-search" />
 
@@ -63,15 +92,15 @@ The Search bar provides an anchor for the `sort` control menu, allowing users to
 
 <Preview path="data-filter-sort" />
 
-### Pinned Filters
+### Async Select Options
 
-Set `pinned: true` to make specific filters always visible and preventing the user from completely removing them. Provide `search: false` if you want to skip the main search bar.
+Select filters can load options from an async function. The function receives the current query and returns matching options.
 
-<Preview path="data-filter-pinned" />
+<Preview path="data-filter-async-select" />
 
 ### Custom Render Components
 
-You can easily replace standard text boxes with sophisticated components such as a \`Select\` drop-down or a \`DatePicker\` block via the \`render\` prop function. Use \`renderValue\` to specify how the formatted value appears in the badge.
+You can use built-in `input`, `number-input`, `date-picker`, and `checkbox` filters, or replace them with sophisticated components such as a `Select` drop-down or a `DatePicker` block via the `render` prop function. Custom renderers receive the selected `operator` and the raw field value. Use `renderValue` to specify how the formatted value appears in the badge.
 
 <Preview path="data-filter-custom" />
 
@@ -82,35 +111,86 @@ You can easily replace standard text boxes with sophisticated components such as
 The root component props for the data filter.
 
 <AutoTypeTable
-  path="../../components/data-filter/index.tsx"
-  type={`Pick<DataFilterProps, 'className' | 'loading' | 'filters' | 'search' | 'sort' | 'values' | 'renderers' | 'i18n' | 'onChange'>`}
+  path="../../components/data-filter/interfaces/data-filter-props.ts"
+  type={`Pick<DataFilterProps, 'className' | 'loading' | 'filters' | 'search' | 'sort' | 'values' | 'onChange'>`}
 />
 
-### DataFilterItemProps
+### DataFilterItemBaseProps
 
-Configuration for an individual filter field.
+Shared configuration for an individual filter field.
 
 <AutoTypeTable
-  path="../../components/data-filter/index.tsx"
-  type={`Pick<DataFilterItemProps, 'label' | 'field' | 'icon' | 'render' | 'renderValue' | 'pinned'>`}
+  path="../../components/data-filter/interfaces/data-filter-item-base-props.ts"
+  type={`Pick<DataFilterItemBaseProps, 'label' | 'field' | 'icon' | 'operators' | 'defaultOperator' | 'render' | 'renderValue'>`}
 />
 
-### DataFilterSearchConfig
+### DataFilterOperator
+
+Built-in filters support `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$fulltext`, `$in`, and `$nin`. Input filters support `$eq`, `$ne`, and `$fulltext`; number-input and date-picker filters support `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, and `$lte`; checkbox filters support `$eq` and `$ne`; select filters support `$in` and `$nin`.
+
+All built-in filter types also support `is empty` and `is not empty`. These options output `$eq: null` and `$ne: null` respectively, and the value editor content is hidden while either option is selected.
+
+### DataFilterItemInputProps
+
+Configuration for a built-in input filter.
+
+<AutoTypeTable
+  path="../../components/data-filter/interfaces/data-filter-item-input-props.ts"
+  type={`Pick<DataFilterItemInputProps, 'type' | 'placeholder'>`}
+/>
+
+### DataFilterItemNumberInputProps
+
+Configuration for a built-in numeric filter.
+
+<AutoTypeTable
+  path="../../components/data-filter/interfaces/data-filter-item-number-input-props.ts"
+  type={`Pick<DataFilterItemNumberInputProps, 'type' | 'min' | 'max' | 'step' | 'decimalScale' | 'fixedDecimalScale' | 'placeholder'>`}
+/>
+
+### DataFilterItemDatePickerProps
+
+Configuration for a built-in date filter.
+
+<AutoTypeTable
+  path="../../components/data-filter/interfaces/data-filter-item-date-picker-props.ts"
+  type={`Pick<DataFilterItemDatePickerProps, 'type' | 'min' | 'max' | 'placeholder'>`}
+/>
+
+### DataFilterItemCheckboxProps
+
+Configuration for a built-in checkbox-style boolean filter.
+
+<AutoTypeTable
+  path="../../components/data-filter/interfaces/data-filter-item-checkbox-props.ts"
+  type={`Pick<DataFilterItemCheckboxProps, 'type'>`}
+/>
+
+### DataFilterItemSelectProps
+
+Configuration for a built-in multi-select filter. `options` accepts a static array or an async `(query) => Promise<DataFilterSelectOption[]>` function for remote search.
+
+<AutoTypeTable
+  path="../../components/data-filter/interfaces/data-filter-item-select-props.ts"
+  type={`Pick<DataFilterItemSelectProps, 'type' | 'options' | 'placeholder'>`}
+/>
+
+### DataFilterSearchProps
 
 Configuration for the integrated search input.
 
 <AutoTypeTable
-  path="../../components/data-filter/index.tsx"
-  type={`Pick<DataFilterSearchConfig, 'value' | 'leading' | 'trailing' | 'suffix' | 'prefix' | 'placeholder' | 'disabled' | 'className' | 'onChange'>`}
+  path="../../components/data-filter/interfaces/data-filter-search-props.ts"
+  type={`Pick<DataFilterSearchProps, 'className' | 'disabled' | 'loading' | 'placeholder' | 'value' | 'onChange'>`}
 />
 
-### DataFilterSortConfig
+### DataFilterSortProps
 
 Configuration for sorting.
 
 <AutoTypeTable
-  path="../../components/data-filter/index.tsx"
-  type={`Pick<DataFilterSortConfig, 'options' | 'selected' | 'onChange'>`}
+  path="../../components/data-filter/interfaces/data-filter-sort-props.ts"
+  type={`Pick<DataFilterSortProps, 'options' | 'selected' | 'onChange'>`}
 />
 
 ### DataFilterSortOptions
@@ -118,24 +198,6 @@ Configuration for sorting.
 Configuration for an individual sort option.
 
 <AutoTypeTable
-  path="../../components/data-filter/index.tsx"
+  path="../../components/data-filter/interfaces/data-filter-sort-options.ts"
   type={`Pick<DataFilterSortOptions, 'field' | 'direction' | 'fieldLabel' | 'directionLabel' | 'disabled'>`}
-/>
-
-### DataFilterRenderers
-
-Optional render hooks for replacing filter controls.
-
-<AutoTypeTable
-  path="../../components/data-filter/index.tsx"
-  type={`Pick<DataFilterRenderers, 'addFilter' | 'filterItem'>`}
-/>
-
-### DataFilterI18n
-
-Text overrides used by the default controls.
-
-<AutoTypeTable
-  path="../../components/data-filter/index.tsx"
-  type={`Pick<DataFilterI18n, 'addFilter'>`}
 />

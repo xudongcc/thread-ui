@@ -1,10 +1,34 @@
-import { promises as fs, readdirSync } from "node:fs";
+import { promises as fs } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 
 import postcss from "postcss";
 import postcssNested from "postcss-nested";
 import type { RegistryItem } from "shadcn/schema";
+
+const getPackageFiles = async (dir: string): Promise<Array<string>> => {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const files: Array<string> = [];
+
+  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+    if (entry.name === "node_modules" || entry.name === "__tests__") {
+      continue;
+    }
+
+    const entryPath = join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...(await getPackageFiles(entryPath)));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+};
 
 export const getPackage = async (packageName: string) => {
   const packageDir = join(process.cwd(), "..", "..", "components", packageName);
@@ -32,26 +56,23 @@ export const getPackage = async (packageName: string) => {
       ].includes(dep),
   );
 
-  const packageFiles = readdirSync(packageDir, { withFileTypes: true });
-  const tsxFiles = packageFiles.filter(
-    (file) => file.isFile() && file.name.endsWith(".tsx"),
+  const packageFiles = await getPackageFiles(packageDir);
+  const sourceFiles = packageFiles.filter(
+    (file) => file.endsWith(".ts") || file.endsWith(".tsx"),
   );
-
-  const cssFiles = packageFiles.filter(
-    (file) => file.isFile() && file.name.endsWith(".css"),
-  );
+  const cssFiles = packageFiles.filter((file) => file.endsWith(".css"));
 
   const files: RegistryItem["files"] = [];
 
-  for (const file of tsxFiles) {
-    const filePath = join(packageDir, file.name);
+  for (const filePath of sourceFiles) {
+    const fileName = relative(packageDir, filePath);
     const content = await fs.readFile(filePath, "utf-8");
 
     files.push({
       type: "registry:ui",
-      path: file.name,
+      path: fileName,
       content,
-      target: `components/thread-ui/${packageName}/${file.name}`,
+      target: `components/thread-ui/${packageName}/${fileName}`,
     });
   }
 
@@ -71,8 +92,8 @@ export const getPackage = async (packageName: string) => {
 
   const css: RegistryItem["css"] = {};
 
-  for (const file of cssFiles) {
-    const contents = await fs.readFile(join(packageDir, file.name), "utf-8");
+  for (const filePath of cssFiles) {
+    const contents = await fs.readFile(filePath, "utf-8");
 
     // Process CSS with PostCSS to handle nested selectors
     const processed = await postcss([postcssNested]).process(contents, {

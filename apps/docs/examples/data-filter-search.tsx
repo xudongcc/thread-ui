@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { DataFilter } from "@/components/thread-ui/data-filter";
-import { Button } from "@/components/ui/button";
 
 export default function DataFilterSearchExample() {
   const [query, setQuery] = useState("");
@@ -15,7 +14,6 @@ export default function DataFilterSearchExample() {
           value: query,
           placeholder: "Search documents...",
           onChange: setQuery,
-          trailing: <Button size="sm">Search</Button>,
         }}
       />
 

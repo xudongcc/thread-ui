@@ -26,6 +26,7 @@ export default function DataFilterCustomExample() {
     {
       field: "role",
       label: "User Role",
+      type: "input",
       render: ({ field: { value, onChange } }) => (
         <div className="min-w-48 p-2">
           <Select
@@ -36,7 +37,9 @@ export default function DataFilterCustomExample() {
               { value: "editor", label: "Editor" },
               { value: "viewer", label: "Viewer" },
             ]}
-            onValueChange={onChange}
+            onValueChange={(nextValue) => {
+              onChange(nextValue ?? undefined);
+            }}
           />
         </div>
       ),
@@ -52,6 +55,7 @@ export default function DataFilterCustomExample() {
     {
       field: "createdAt",
       label: "Created After",
+      type: "date-picker",
       render: ({ field: { value, onChange } }) => (
         <div className="min-w-48 p-2">
           <DatePicker
