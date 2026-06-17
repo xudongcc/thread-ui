@@ -1,0 +1,19 @@
+{
+  "name": "@repo/data-table",
+  "description": "A powerful data table component with sorting, selection, pagination, and row actions.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@repo/empty": "workspace:*",
+    "@tanstack/react-table": "^8.21.3",
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

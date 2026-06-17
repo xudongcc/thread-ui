@@ -1,0 +1,55 @@
+---
+title: Empty
+description: A props-driven empty state component built on top of shadcn/ui.
+---
+
+<Preview path="empty" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/empty
+```
+
+## Usage
+
+```tsx
+import { Empty } from "@/components/thread-ui/empty";
+```
+
+```tsx
+<Empty
+  description="You haven't created any projects yet. Get started by creating your first project."
+  icon={<FolderCodeIcon />}
+  primaryAction={{ label: "Create Project" }}
+  secondaryAction={{ label: "Import Project" }}
+  title="No Projects Yet"
+/>
+```
+
+## Examples
+
+### Custom Button
+
+Pass React nodes to `primaryAction` or `secondaryAction` when you need custom action buttons.
+
+<Preview path="empty-custom-button" />
+
+## API Reference
+
+### EmptyProps
+
+<AutoTypeTable
+  path="../../components/empty/index.tsx"
+  type={
+    /* typescript */
+    `Pick<EmptyProps, 'title' | 'description' | 'icon' | 'primaryAction' | 'secondaryAction' | 'className'>`
+  }
+/>
+
+### EmptyActionProps
+
+<AutoTypeTable
+  path="../../components/empty/index.tsx"
+  type="EmptyActionProps"
+/>
