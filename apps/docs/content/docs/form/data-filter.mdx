@@ -36,17 +36,26 @@ const filters: DataFilterItemProps[] = [
     label: "Amount",
     type: "number-input",
     defaultOperator: "$gte",
-    operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte"],
+    operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte", "$between"],
     min: 0,
     max: 10000,
     decimalScale: 2,
   },
   {
+    field: "age",
+    label: "Age",
+    type: "number-input",
+    defaultOperator: "$between",
+    operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte", "$between"],
+    min: 0,
+    max: 120,
+  },
+  {
     field: "createdAt",
     label: "Created At",
     type: "date-picker",
-    defaultOperator: "$lt",
-    operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte"],
+    defaultOperator: "$between",
+    operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte", "$between"],
     min: new Date("2024-01-01"),
     max: new Date("2026-12-31"),
   },
@@ -62,6 +71,14 @@ const filters: DataFilterItemProps[] = [
 const values: DataFilterValues = {
   amount: {
     $gte: 100,
+  },
+  age: {
+    $gte: 18,
+    $lte: 30,
+  },
+  createdAt: {
+    $gte: "2025-03-01T00:00:00.000Z",
+    $lte: "2025-03-15T00:00:00.000Z",
   },
   name: {
     $fulltext: "Acme",
@@ -126,7 +143,9 @@ Shared configuration for an individual filter field.
 
 ### DataFilterOperator
 
-Built-in filters support `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$fulltext`, `$in`, and `$nin`. Input filters support `$eq`, `$ne`, and `$fulltext`; number-input and date-picker filters support `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, and `$lte`; checkbox filters support `$eq` and `$ne`; select filters support `$in` and `$nin`.
+Built-in filters support `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$between`, `$fulltext`, `$in`, and `$nin`. Input filters support `$eq`, `$ne`, and `$fulltext`; number-input and date-picker filters support `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, and `$between`; checkbox filters support `$eq` and `$ne`; select filters support `$in` and `$nin`.
+
+The number-input and date-picker `$between` operators output a range using `$gte` and `$lte`, for example `{ age: { $gte: 18, $lte: 30 } }` or `{ createdAt: { $gte: "2025-03-01T00:00:00.000Z", $lte: "2025-03-15T00:00:00.000Z" } }`.
 
 All built-in filter types also support `is empty` and `is not empty`. These options output `$eq: null` and `$ne: null` respectively, and the value editor content is hidden while either option is selected.
 

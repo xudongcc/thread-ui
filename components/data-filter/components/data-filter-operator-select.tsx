@@ -1,5 +1,9 @@
 import { ChevronDown } from "lucide-react";
-import { getDataFilterOperatorLabel, getDataFilterOperators } from "../utils";
+import {
+  getDataFilterBetweenValue,
+  getDataFilterOperatorLabel,
+  getDataFilterOperators,
+} from "../utils";
 import type { FC } from "react";
 
 import type { DataFilterOperatorSelectProps } from "../interfaces";
@@ -25,8 +29,30 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
         ? "is not empty"
         : getDataFilterOperatorLabel(operator);
 
-  const getNextValue = () => {
-    return value === null ? undefined : value;
+  const getNextValue = (nextOperator: string) => {
+    if (value === null) {
+      return undefined;
+    }
+
+    if (operator === "$between") {
+      const range = getDataFilterBetweenValue(value);
+
+      return nextOperator === "$lt" || nextOperator === "$lte"
+        ? (range.$lte ?? range.$gte)
+        : (range.$gte ?? range.$lte);
+    }
+
+    if (nextOperator === "$between") {
+      return operator === "$lt" || operator === "$lte"
+        ? {
+            $lte: value,
+          }
+        : {
+            $gte: value,
+          };
+    }
+
+    return value;
   };
 
   return (
@@ -47,7 +73,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
             <DropdownMenuItem
               key={itemOperator}
               onClick={() => {
-                onChange(itemOperator, getNextValue());
+                onChange(itemOperator, getNextValue(itemOperator));
               }}
             >
               {getDataFilterOperatorLabel(itemOperator)}

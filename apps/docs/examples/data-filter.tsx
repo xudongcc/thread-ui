@@ -12,8 +12,13 @@ export default function DataFilterExample() {
     amount: {
       $gte: 2450.75,
     },
+    age: {
+      $gte: 18,
+      $lte: 30,
+    },
     createdAt: {
-      $lt: "2025-03-15T00:00:00.000Z",
+      $gte: "2025-03-01T00:00:00.000Z",
+      $lte: "2025-03-15T00:00:00.000Z",
     },
     customer: {
       $fulltext: "Acme",
@@ -48,12 +53,22 @@ export default function DataFilterExample() {
       type: "number-input",
     },
     {
-      defaultOperator: "$lt",
+      defaultOperator: "$between",
+      field: "age",
+      label: "Age",
+      max: 120,
+      min: 0,
+      operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte", "$between"],
+      step: 1,
+      type: "number-input",
+    },
+    {
+      defaultOperator: "$between",
       field: "createdAt",
       label: "Created At",
       max: new Date("2026-12-31"),
       min: new Date("2024-01-01"),
-      operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte"],
+      operators: ["$eq", "$ne", "$gt", "$gte", "$lt", "$lte", "$between"],
       placeholder: "Pick a date",
       type: "date-picker",
     },

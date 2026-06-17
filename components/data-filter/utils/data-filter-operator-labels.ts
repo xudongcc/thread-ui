@@ -7,6 +7,7 @@ export const dataFilterOperatorLabels: Record<DataFilterOperator, string> = {
   $gte: "greater than or equal",
   $lt: "less than",
   $lte: "less than or equal",
+  $between: "between",
   $fulltext: "contains",
   $in: "contains",
   $nin: "does not contain",

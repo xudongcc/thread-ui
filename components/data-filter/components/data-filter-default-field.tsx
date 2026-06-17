@@ -9,6 +9,7 @@ import type { DataFilterDefaultFieldProps } from "../interfaces/data-filter-defa
 
 export const DataFilterDefaultField: FC<DataFilterDefaultFieldProps> = ({
   item,
+  operator,
   value,
   onChange,
 }) => {
@@ -16,6 +17,7 @@ export const DataFilterDefaultField: FC<DataFilterDefaultFieldProps> = ({
     return (
       <DataFilterDefaultNumberInputField
         item={item}
+        operator={operator}
         value={value}
         onChange={onChange}
       />
@@ -26,6 +28,7 @@ export const DataFilterDefaultField: FC<DataFilterDefaultFieldProps> = ({
     return (
       <DataFilterDefaultDatePickerField
         item={item}
+        operator={operator}
         value={value}
         onChange={onChange}
       />

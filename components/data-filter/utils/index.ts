@@ -9,6 +9,7 @@ export { dataFilterDefaultSelectOperators } from "./data-filter-default-select-o
 export { dataFilterOperatorLabels } from "./data-filter-operator-labels";
 export { flattenObject } from "./flatten-object";
 export { formatRenderValue } from "./format-render-value";
+export { getDataFilterBetweenValue } from "./get-data-filter-between-value";
 export { getDataFilterCondition } from "./get-data-filter-condition";
 export { getDataFilterOperatorLabel } from "./get-data-filter-operator-label";
 export { getDataFilterOperators } from "./get-data-filter-operators";

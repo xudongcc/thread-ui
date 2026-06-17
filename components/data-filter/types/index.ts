@@ -1,6 +1,9 @@
+export type * from "./data-filter-between-operator";
+export type * from "./data-filter-between-value";
 export type * from "./data-filter-checkbox-operator";
 export type * from "./data-filter-comparison-operator";
 export type * from "./data-filter-condition-value";
+export type * from "./data-filter-date-picker-between-value";
 export type * from "./data-filter-date-picker-operator";
 export type * from "./data-filter-equality-operator";
 export type * from "./data-filter-full-text-operator";
@@ -8,6 +11,7 @@ export type * from "./data-filter-in-operator";
 export type * from "./data-filter-input-operator";
 export type * from "./data-filter-not-in-operator";
 export type * from "./data-filter-number-input-operator";
+export type * from "./data-filter-number-input-between-value";
 export type * from "./data-filter-operator";
 export type * from "./data-filter-select-operator";
 export type * from "./data-filter-sort-direction";

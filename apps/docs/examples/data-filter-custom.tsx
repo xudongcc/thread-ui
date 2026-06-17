@@ -56,23 +56,39 @@ export default function DataFilterCustomExample() {
       field: "createdAt",
       label: "Created After",
       type: "date-picker",
-      render: ({ field: { value, onChange } }) => (
-        <div className="min-w-48 p-2">
-          <DatePicker
-            selected={value ? new Date(value) : undefined}
-            render={
-              <Button
-                className="w-full justify-start text-left font-normal"
-                variant="outline"
-              >
-                {value ? formatDate(value as string) : "Pick a date"}
-              </Button>
-            }
-            onSelect={(date) => onChange(date ? date.toISOString() : undefined)}
-          />
-        </div>
-      ),
-      renderValue: ({ value }) => formatDate(value as string),
+      render: ({ field: { value, onChange } }) => {
+        const selectedValue =
+          value instanceof Date || typeof value === "string"
+            ? value
+            : undefined;
+
+        return (
+          <div className="min-w-48 p-2">
+            <DatePicker
+              selected={selectedValue ? new Date(selectedValue) : undefined}
+              render={
+                <Button
+                  className="w-full justify-start text-left font-normal"
+                  variant="outline"
+                >
+                  {selectedValue ? formatDate(selectedValue) : "Pick a date"}
+                </Button>
+              }
+              onSelect={(date) =>
+                onChange(date ? date.toISOString() : undefined)
+              }
+            />
+          </div>
+        );
+      },
+      renderValue: ({ value }) => {
+        const selectedValue =
+          value instanceof Date || typeof value === "string"
+            ? value
+            : undefined;
+
+        return selectedValue ? formatDate(selectedValue) : "";
+      },
     },
   ];
 

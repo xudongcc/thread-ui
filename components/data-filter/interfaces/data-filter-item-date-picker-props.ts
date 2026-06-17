@@ -1,8 +1,11 @@
 import type { DataFilterItemBaseProps } from "./data-filter-item-base-props";
-import type { DataFilterDatePickerOperator } from "../types";
+import type {
+  DataFilterDatePickerBetweenValue,
+  DataFilterDatePickerOperator,
+} from "../types";
 
 export interface DataFilterItemDatePickerProps extends DataFilterItemBaseProps<
-  Date | string | null,
+  DataFilterDatePickerBetweenValue | Date | string | null,
   DataFilterDatePickerOperator
 > {
   type: "date-picker";

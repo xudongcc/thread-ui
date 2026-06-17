@@ -57,14 +57,38 @@ const inOperator = read(
 const notInOperator = read(
   "components/data-filter/types/data-filter-not-in-operator.ts",
 );
+const betweenOperator = read(
+  "components/data-filter/types/data-filter-between-operator.ts",
+);
+const numberInputOperator = read(
+  "components/data-filter/types/data-filter-number-input-operator.ts",
+);
+const datePickerOperator = read(
+  "components/data-filter/types/data-filter-date-picker-operator.ts",
+);
 const selectOperators = read(
   "components/data-filter/utils/data-filter-default-select-operators.ts",
+);
+const numberInputOperators = read(
+  "components/data-filter/utils/data-filter-default-number-input-operators.ts",
+);
+const datePickerOperators = read(
+  "components/data-filter/utils/data-filter-default-date-picker-operators.ts",
 );
 const allOperators = read(
   "components/data-filter/utils/data-filter-all-operators.ts",
 );
 const operatorLabels = read(
   "components/data-filter/utils/data-filter-operator-labels.ts",
+);
+const createCondition = read(
+  "components/data-filter/utils/create-data-filter-condition.ts",
+);
+const getCondition = read(
+  "components/data-filter/utils/get-data-filter-condition.ts",
+);
+const isEmptyDataFilterValue = read(
+  "components/data-filter/utils/is-empty-data-filter-value.ts",
 );
 const packageJson = read("components/data-filter/package.json");
 const dataFilterDocs = read("apps/docs/content/docs/form/data-filter.mdx");
@@ -161,10 +185,16 @@ assert.ok(
 );
 assert.ok(defaultDatePickerField.includes("<Calendar"));
 assert.ok(defaultDatePickerField.includes('mode="single"'));
+assert.ok(defaultDatePickerField.includes('operator === "$between"'));
+assert.ok(defaultDatePickerField.includes('mode="range"'));
+assert.ok(defaultDatePickerField.includes("selected={selectedRange}"));
 assert.ok(defaultDatePickerField.includes("selected={selected}"));
 assert.ok(defaultDatePickerField.includes("defaultMonth={selected}"));
-assert.ok(defaultDatePickerField.includes("disabled={(date) =>"));
+assert.ok(defaultDatePickerField.includes("disabled={disabled}"));
 assert.ok(defaultNumberInputField.includes("<NumberInput"));
+assert.ok(defaultNumberInputField.includes('operator === "$between"'));
+assert.ok(defaultNumberInputField.includes("$gte"));
+assert.ok(defaultNumberInputField.includes("$lte"));
 assert.ok(defaultInputField.includes("<Input"));
 assert.ok(defaultField.includes('item.type === "select"'));
 assert.ok(defaultSelectField.includes('from "@/components/ui/combobox"'));
@@ -213,13 +243,28 @@ assert.ok(selectOption.includes("value: string;"));
 assert.ok(!selectOption.includes("icon"));
 assert.ok(inOperator.includes('"$in"'));
 assert.ok(notInOperator.includes('"$nin"'));
+assert.ok(betweenOperator.includes('"$between"'));
+assert.ok(numberInputOperator.includes("DataFilterBetweenOperator"));
+assert.ok(datePickerOperator.includes("DataFilterBetweenOperator"));
 assert.ok(selectOperator.includes("DataFilterInOperator"));
 assert.ok(selectOperator.includes("DataFilterNotInOperator"));
 assert.ok(selectOperators.includes('["$in", "$nin"]'));
+assert.ok(numberInputOperators.includes('"$between"'));
+assert.ok(datePickerOperators.includes('"$between"'));
 assert.ok(allOperators.includes('"$in"'));
 assert.ok(allOperators.includes('"$nin"'));
+assert.ok(allOperators.includes('"$between"'));
 assert.ok(operatorLabels.includes('$in: "contains"'));
 assert.ok(operatorLabels.includes('$nin: "does not contain"'));
+assert.ok(operatorLabels.includes('$between: "between"'));
+assert.ok(createCondition.includes('operator === "$between"'));
+assert.ok(createCondition.includes("$gte"));
+assert.ok(createCondition.includes("$lte"));
+assert.ok(getCondition.includes('$between"'));
+assert.ok(isEmptyDataFilterValue.includes('operator === "$between"'));
+assert.ok(isEmptyDataFilterValue.includes("getDataFilterBetweenValue"));
+assert.ok(tagItem.includes('operator === "$between"'));
+assert.ok(tagItem.includes("isEmptyDataFilterValue(fieldValue)"));
 assert.ok(!packageJson.includes('"@repo/date-picker": "workspace:*"'));
 assert.ok(!packageJson.includes('"@repo/select": "workspace:*"'));
 assert.ok(
@@ -242,3 +287,10 @@ assert.ok(
 );
 assert.ok(!dataFilterExample.includes("TagIcon"));
 assert.ok(!dataFilterExample.includes("icon:"));
+assert.ok(dataFilterExample.includes('field: "age"'));
+assert.ok(dataFilterExample.includes('defaultOperator: "$between"'));
+assert.ok(dataFilterExample.includes('field: "createdAt"'));
+assert.ok(dataFilterExample.includes('"2025-03-01T00:00:00.000Z"'));
+assert.ok(dataFilterExample.includes('"2025-03-15T00:00:00.000Z"'));
+assert.ok(dataFilterExample.includes("$gte: 18"));
+assert.ok(dataFilterExample.includes("$lte: 30"));

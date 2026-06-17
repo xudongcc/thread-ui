@@ -1,6 +1,8 @@
 import { DataFilter } from "../index";
 import type { DataFilterTagListProps } from "../interfaces/data-filter-tag-list-props";
 import type {
+  DataFilterDatePickerBetweenValue,
+  DataFilterDatePickerOperator,
   DataFilterItemBaseProps,
   DataFilterItemCheckboxProps,
   DataFilterItemDatePickerProps,
@@ -8,6 +10,8 @@ import type {
   DataFilterItemNumberInputProps,
   DataFilterItemProps,
   DataFilterItemSelectProps,
+  DataFilterNumberInputBetweenValue,
+  DataFilterNumberInputOperator,
   DataFilterOperator,
   DataFilterSearchProps,
   DataFilterSelectOperator,
@@ -89,6 +93,8 @@ const checkboxFilter: DataFilterItemCheckboxProps = {
 
 const selectOperator: DataFilterSelectOperator = "$in";
 const notInSelectOperator: DataFilterSelectOperator = "$nin";
+const betweenNumberInputOperator: DataFilterNumberInputOperator = "$between";
+const betweenDatePickerOperator: DataFilterDatePickerOperator = "$between";
 
 const _selectFilter: DataFilterItemSelectProps = {
   defaultOperator: selectOperator,
@@ -162,14 +168,18 @@ const inputFilter: DataFilterItemInputProps = {
 
 const numberInputFilter: DataFilterItemNumberInputProps = {
   decimalScale: 2,
-  defaultOperator: "$gte",
+  defaultOperator: betweenNumberInputOperator,
   field: "price",
   label: "Price",
   max: 100,
   min: 0,
-  operators: ["$eq", "$gte", "$lte"],
+  operators: ["$eq", "$gte", "$lte", betweenNumberInputOperator],
   render: ({ field: { value, onChange } }) => {
-    const nextValue: number | null | undefined = value;
+    const nextValue:
+      | DataFilterNumberInputBetweenValue
+      | number
+      | null
+      | undefined = value;
 
     return (
       <button
@@ -186,14 +196,19 @@ const numberInputFilter: DataFilterItemNumberInputProps = {
 };
 
 const datePickerFilter: DataFilterItemDatePickerProps = {
-  defaultOperator: "$lt",
+  defaultOperator: betweenDatePickerOperator,
   field: "publishedAt",
   label: "Published At",
   max: new Date("2025-12-31"),
   min: new Date("2025-01-01"),
-  operators: ["$eq", "$lt", "$lte"],
+  operators: ["$eq", "$lt", "$lte", betweenDatePickerOperator],
   render: ({ field: { value, onChange } }) => {
-    const nextValue: Date | string | null | undefined = value;
+    const nextValue:
+      | DataFilterDatePickerBetweenValue
+      | Date
+      | string
+      | null
+      | undefined = value;
 
     return (
       <button
@@ -228,9 +243,14 @@ const checkboxWithNullRenderFilter: DataFilterItemCheckboxProps = {
 };
 
 const values: DataFilterValues = {
+  age: { $gte: 18, $lte: 30 },
   amount: { $gte: 10 },
   archived: { $eq: null },
   createdAt: { $lt: "2024-06-01T00:00:00.000Z" },
+  publishedAt: {
+    $gte: "2024-06-01T00:00:00.000Z",
+    $lte: "2024-06-30T00:00:00.000Z",
+  },
   priority: { $in: ["high", "medium"] },
   status: { $fulltext: "active" },
   verified: { $eq: true },
@@ -419,6 +439,8 @@ export {
   DataFilterWithRenderersApi,
   DataFilterWithoutSearchApi,
   baseFilter,
+  betweenDatePickerOperator,
+  betweenNumberInputOperator,
   checkboxFilter,
   checkboxWithNullRenderFilter,
   datePickerFilter,

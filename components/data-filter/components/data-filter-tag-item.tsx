@@ -5,11 +5,13 @@ import { useState } from "react";
 import {
   createDataFilterCondition,
   formatRenderValue,
+  getDataFilterBetweenValue,
   getDataFilterCondition,
   getDataFilterOperatorLabel,
   getDataFilterOperators,
   getDefaultDataFilterOperator,
   isEmpty,
+  isEmptyDataFilterValue,
 } from "../utils";
 import { DataFilterDefaultField } from "./data-filter-default-field";
 import { DataFilterOperatorSelect } from "./data-filter-operator-select";
@@ -56,6 +58,14 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
   const renderValue = item.renderValue as
     | DataFilterItemBaseProps<unknown>["renderValue"]
     | undefined;
+  const formatDateValue = (value: unknown): unknown => {
+    const date =
+      value instanceof Date || typeof value === "string"
+        ? dayjs(value)
+        : undefined;
+
+    return date?.isValid() ? date.format("YYYY-MM-DD") : value;
+  };
 
   if (fieldValue !== prevFieldValue) {
     setPrevFieldValue(fieldValue);
@@ -63,13 +73,16 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
   }
 
   const getDefaultValue = (): unknown => {
-    if (item.type === "date-picker") {
-      const date =
-        rawValue instanceof Date || typeof rawValue === "string"
-          ? dayjs(rawValue)
-          : undefined;
+    if (item.type === "date-picker" && operator === "$between") {
+      const range = getDataFilterBetweenValue(rawValue);
 
-      return date?.isValid() ? date.format("YYYY-MM-DD") : rawValue;
+      return [formatDateValue(range.$gte), formatDateValue(range.$lte)]
+        .filter((value) => !isEmpty(value))
+        .join(" - ");
+    }
+
+    if (item.type === "date-picker") {
+      return formatDateValue(rawValue);
     }
 
     if (item.type === "checkbox") {
@@ -80,6 +93,14 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
       if (rawValue === false) {
         return "Unchecked";
       }
+    }
+
+    if (item.type === "number-input" && operator === "$between") {
+      const range = getDataFilterBetweenValue(rawValue);
+
+      return [range.$gte, range.$lte]
+        .filter((value) => !isEmpty(value))
+        .join(" - ");
     }
 
     if (item.type === "select") {
@@ -142,6 +163,7 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
     | DataFilterItemBaseProps<unknown>["render"]
     | undefined;
   const value = getValue();
+  const isFieldValueEmpty = isEmptyDataFilterValue(fieldValue);
   const shouldRenderContent = rawValue !== null;
   const labelValue = value
     ? `${label} ${getDataFilterOperatorLabel(operator)} ${value}`
@@ -150,11 +172,11 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
   return (
     <Popover
       key={field}
-      defaultOpen={isEmpty(rawValue)}
+      defaultOpen={isFieldValueEmpty}
       modal={true}
       onOpenChange={(open) => {
         // Remove empty filters when their popover closes.
-        if (!open && isEmpty(rawValue)) {
+        if (!open && isFieldValueEmpty) {
           onEmptyClose(field);
         }
       }}

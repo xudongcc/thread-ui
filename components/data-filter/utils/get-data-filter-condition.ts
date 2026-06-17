@@ -10,8 +10,20 @@ export const getDataFilterCondition = (
     !Array.isArray(value) &&
     !(value instanceof Date)
   ) {
-    const entry = Object.entries(value as Record<string, unknown>).find(
-      ([operator]) => isDataFilterOperator(operator),
+    const record = value as Record<string, unknown>;
+
+    if ("$gte" in record && "$lte" in record) {
+      return {
+        operator: "$between",
+        value: {
+          $gte: record.$gte,
+          $lte: record.$lte,
+        },
+      };
+    }
+
+    const entry = Object.entries(record).find(([operator]) =>
+      isDataFilterOperator(operator),
     );
 
     if (entry) {
