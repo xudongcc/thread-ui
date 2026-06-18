@@ -1,4 +1,4 @@
-import { DataFilter } from "../index";
+import { DataFilter, enUS, zhCN } from "../index";
 import {
   DataFilterDefaultCheckboxField,
   DataFilterDefaultDatePickerField,
@@ -17,6 +17,7 @@ import type {
   DataFilterItemNumberInputProps,
   DataFilterItemProps,
   DataFilterItemSelectProps,
+  DataFilterLocale,
   DataFilterNumberInputBetweenValue,
   DataFilterNumberInputOperator,
   DataFilterOperator,
@@ -501,6 +502,7 @@ const DataFilterApi = () => (
   <DataFilter
     filters={filters}
     loading={false}
+    locale={zhCN}
     search={search}
     sort={sort}
     value={value}
@@ -511,8 +513,16 @@ const DataFilterApi = () => (
   />
 );
 
+const dataFilterLocale: DataFilterLocale = {
+  addFilter: "Add condition",
+  operators: {
+    $fulltext: "matches",
+  },
+};
+
 const dataFilterProps: DataFilterProps = {
   filters,
+  locale: dataFilterLocale,
   loading: false,
   search,
   sort,
@@ -521,6 +531,16 @@ const dataFilterProps: DataFilterProps = {
     const typedValue: DataFilterValue = nextValue;
     void typedValue;
   },
+};
+
+const _dataFilterWithStringLocaleProps: DataFilterProps = {
+  filters,
+  locale: "zh-CN",
+};
+
+const _dataFilterWithEnglishPresetProps: DataFilterProps = {
+  filters,
+  locale: enUS,
 };
 
 const DataFilterSearchOnlyApi = () => (

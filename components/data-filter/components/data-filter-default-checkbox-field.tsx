@@ -1,4 +1,5 @@
 import { CheckIcon } from "lucide-react";
+import { useDataFilterContext } from "./data-filter-context";
 import type { FC } from "react";
 
 interface DataFilterDefaultCheckboxFieldProps {
@@ -9,11 +10,13 @@ interface DataFilterDefaultCheckboxFieldProps {
 export const DataFilterDefaultCheckboxField: FC<
   DataFilterDefaultCheckboxFieldProps
 > = ({ value, onChange }) => {
+  const { locale } = useDataFilterContext();
+
   return (
     <div className="grid">
       {[
-        { label: "Unchecked", value: false },
-        { label: "Checked", value: true },
+        { label: locale.unchecked, value: false },
+        { label: locale.checked, value: true },
       ].map((option) => {
         const selected = value === option.value;
 

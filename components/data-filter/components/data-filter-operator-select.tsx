@@ -4,6 +4,7 @@ import {
   getDataFilterOperatorLabel,
   getDataFilterOperators,
 } from "../utils";
+import { useDataFilterContext } from "./data-filter-context";
 import type { FC } from "react";
 
 import type { DataFilterItemProps, DataFilterOperator } from "../types";
@@ -32,13 +33,14 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
   value,
   onChange,
 }) => {
+  const { locale } = useDataFilterContext();
   const operators = getDataFilterOperators(item);
   const selectedOperatorLabel =
     value === null && operator === "$eq"
-      ? "is empty"
+      ? locale.isEmpty
       : value === null && operator === "$ne"
-        ? "is not empty"
-        : getDataFilterOperatorLabel(operator);
+        ? locale.isNotEmpty
+        : getDataFilterOperatorLabel(operator, locale);
 
   const getNextValue = (nextOperator: string) => {
     if (value === null) {
@@ -67,7 +69,6 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
       <DropdownMenuTrigger
         render={
           <Button size="xs" type="button" variant="ghost">
-            <span>{item.label}</span>
             <span>{selectedOperatorLabel}</span>
             <ChevronDown />
           </Button>
@@ -83,7 +84,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
                 onChange(itemOperator, getNextValue(itemOperator));
               }}
             >
-              {getDataFilterOperatorLabel(itemOperator)}
+              {getDataFilterOperatorLabel(itemOperator, locale)}
             </DropdownMenuItem>
           );
         })}
@@ -93,7 +94,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
             onChange("$eq", null);
           }}
         >
-          is empty
+          {locale.isEmpty}
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -101,7 +102,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
             onChange("$ne", null);
           }}
         >
-          is not empty
+          {locale.isNotEmpty}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

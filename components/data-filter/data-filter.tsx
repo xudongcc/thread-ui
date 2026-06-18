@@ -8,7 +8,11 @@ import {
 import type { FC } from "react";
 import type { DataFilterSearchProps } from "./components/data-filter-search";
 import type { DataFilterSortProps } from "./components/data-filter-sort";
-import type { DataFilterItemProps, DataFilterValue } from "./types";
+import type {
+  DataFilterItemProps,
+  DataFilterLocaleInput,
+  DataFilterValue,
+} from "./types";
 import { cn } from "@/lib/utils";
 
 export interface DataFilterProps {
@@ -17,6 +21,7 @@ export interface DataFilterProps {
   filters: Array<DataFilterItemProps>;
   search?: false | DataFilterSearchProps;
   sort?: false | DataFilterSortProps;
+  locale?: DataFilterLocaleInput;
   value?: DataFilterValue;
   defaultValue?: DataFilterValue;
   onChange?: (value: DataFilterValue) => void;
@@ -72,6 +77,7 @@ const DataFilterContent: FC<DataFilterContentProps> = ({
 export const DataFilter: FC<DataFilterProps> = ({
   defaultValue,
   filters,
+  locale = "en-US",
   onChange,
   value,
   ...props
@@ -80,6 +86,7 @@ export const DataFilter: FC<DataFilterProps> = ({
     <DataFilterProvider
       defaultValue={defaultValue}
       filters={filters}
+      locale={locale}
       value={value}
       onChange={onChange}
     >

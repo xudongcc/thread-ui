@@ -1,8 +1,9 @@
 import { dataFilterOperatorLabels } from "./data-filter-operator-labels";
-import type { DataFilterOperator } from "../types";
+import type { DataFilterLocale, DataFilterOperator } from "../types";
 
 export const getDataFilterOperatorLabel = (
   operator: DataFilterOperator,
+  locale?: DataFilterLocale,
 ): string => {
-  return dataFilterOperatorLabels[operator];
+  return locale?.operators?.[operator] ?? dataFilterOperatorLabels[operator];
 };

@@ -38,7 +38,7 @@ interface DataFilterTagItemProps {
 
 export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
   const { field, label } = item;
-  const { filterValues, setFilterValue, hideFilter, removeFilter } =
+  const { filterValues, locale, setFilterValue, hideFilter, removeFilter } =
     useDataFilterContext();
   const fieldValue = filterValues[field];
   const operators = getDataFilterOperators(item);
@@ -63,6 +63,7 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
     return getDataFilterDefaultRenderValue({
       field,
       item,
+      locale,
       operator,
       value: rawValue,
     });
@@ -70,7 +71,7 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
 
   const getValue = (): string | undefined => {
     if (rawValue === null) {
-      return "empty";
+      return undefined;
     }
 
     if (isFieldValueEmpty || isEmpty(rawValue)) {
@@ -109,10 +110,16 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
     | undefined;
   const isFieldValueEmpty = isEmptyDataFilterValue(fieldValue);
   const value = getValue();
+  const operatorLabel =
+    rawValue === null && operator === "$eq"
+      ? locale.isEmpty
+      : rawValue === null && operator === "$ne"
+        ? locale.isNotEmpty
+        : getDataFilterOperatorLabel(operator, locale);
   const shouldRenderContent = rawValue !== null;
   const labelValue = value
-    ? `${label} ${getDataFilterOperatorLabel(operator)} ${value}`
-    : `${label} ${getDataFilterOperatorLabel(operator)}`;
+    ? `${label} ${operatorLabel} ${value}`
+    : `${label} ${operatorLabel}`;
 
   return (
     <Popover
@@ -163,7 +170,12 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
             onChange={handleOperatorChange}
           />
 
-          <Button size="icon-xs" variant="ghost" onClick={remove}>
+          <Button
+            aria-label={locale.removeFilter}
+            size="icon-xs"
+            variant="ghost"
+            onClick={remove}
+          >
             <Trash2 />
           </Button>
         </div>

@@ -4,6 +4,7 @@ import { StrictMode, createElement, useEffect, useRef, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { DataFilter } from "../data-filter";
+import { zhCN } from "../locales";
 import type { DataFilterItemProps, DataFilterValue } from "../types";
 
 interface AutoCommitFieldProps {
@@ -163,6 +164,150 @@ const pressEnter = (
 };
 
 describe("DataFilter", () => {
+  it("uses the provided locale for built-in labels", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataFilter
+        locale={zhCN}
+        filters={[
+          {
+            defaultOperator: "$eq",
+            field: "archived",
+            label: "归档",
+            type: "checkbox",
+          },
+          {
+            defaultOperator: "$between",
+            field: "amount",
+            label: "金额",
+            operators: ["$between"],
+            type: "number-input",
+          },
+          {
+            defaultOperator: "$eq",
+            field: "name",
+            label: "名称",
+            type: "input",
+          },
+          {
+            defaultOperator: "$fulltext",
+            field: "owner",
+            label: "负责人",
+            type: "input",
+          },
+        ]}
+        value={{
+          filter: {
+            amount: {
+              $between: [10, 20],
+            },
+            archived: {
+              $eq: true,
+            },
+            name: {
+              $eq: null,
+            },
+          },
+          query: "",
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "添加筛选" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "归档 等于 已选中" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "名称 为空" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "金额 介于 10 - 20" }));
+
+    expect(screen.getByRole("button", { name: "介于" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "金额 介于" })).toBeNull();
+    expect(screen.getByLabelText("金额 最小值")).toBeTruthy();
+    expect(screen.getByLabelText("金额 最大值")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "归档 等于 已选中" }));
+
+    expect(screen.getByRole("button", { name: "未选中" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "已选中" })).toBeTruthy();
+  });
+
+  it("merges partial locale overrides with the default English locale", () => {
+    render(
+      <DataFilter
+        filters={[
+          {
+            defaultOperator: "$fulltext",
+            field: "name",
+            label: "Name",
+            type: "input",
+          },
+          {
+            defaultOperator: "$eq",
+            field: "owner",
+            label: "Owner",
+            type: "input",
+          },
+        ]}
+        locale={{
+          addFilter: "Add condition",
+          operators: {
+            $fulltext: "matches",
+          },
+        }}
+        value={{
+          filter: {
+            name: {
+              $fulltext: "Acme",
+            },
+          },
+          query: "",
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Add condition" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Name matches Acme" }),
+    ).toBeTruthy();
+  });
+
+  it("resolves string locale presets and passes them to date filter calendars", async () => {
+    const user = userEvent.setup();
+    const selectedDate = "2025-03-15T00:00:00.000Z";
+    const localizedDate = new Date(selectedDate).toLocaleDateString("zh-CN");
+    render(
+      <DataFilter
+        locale="zh-CN"
+        filters={[
+          {
+            defaultOperator: "$eq",
+            field: "createdAt",
+            label: "创建日期",
+            type: "date-picker",
+          },
+        ]}
+        value={{
+          filter: {
+            createdAt: {
+              $eq: selectedDate,
+            },
+          },
+          query: "",
+        }}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "创建日期 等于 2025-03-15" }),
+    );
+
+    expect(
+      document.querySelector(`[data-day="${localizedDate}"]`),
+    ).toBeTruthy();
+  });
+
   it("does not emit controlled value changes from inside state updaters", () => {
     const consoleError = vi
       .spyOn(console, "error")

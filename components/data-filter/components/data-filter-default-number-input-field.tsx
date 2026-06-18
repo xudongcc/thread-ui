@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDataFilterContext } from "./data-filter-context";
 import type { FC } from "react";
 import type {
   DataFilterItemNumberInputProps,
@@ -121,6 +122,8 @@ const CommitNumberInput: FC<CommitNumberInputProps> = ({
 export const DataFilterDefaultNumberInputField: FC<
   DataFilterDefaultNumberInputFieldProps
 > = ({ item, operator, value, onChange }) => {
+  const { locale } = useDataFilterContext();
+
   if (operator === "$between") {
     const [min, max]: DataFilterNumberInputBetweenValue = Array.isArray(value)
       ? value
@@ -129,7 +132,7 @@ export const DataFilterDefaultNumberInputField: FC<
     return (
       <div className="grid gap-2 px-2 pb-2">
         <CommitNumberInput
-          ariaLabel={`${item.label} minimum`}
+          ariaLabel={locale.minimumAriaLabel(item.label)}
           item={item}
           value={min}
           onCommit={(nextMin) => {
@@ -138,7 +141,7 @@ export const DataFilterDefaultNumberInputField: FC<
         />
 
         <CommitNumberInput
-          ariaLabel={`${item.label} maximum`}
+          ariaLabel={locale.maximumAriaLabel(item.label)}
           item={item}
           value={max}
           onCommit={(nextMax) => {

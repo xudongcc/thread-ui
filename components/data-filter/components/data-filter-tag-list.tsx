@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const DataFilterTagList: FC = () => {
-  const { visibleFilters, hiddenFilters, setFilterVisible } =
+  const { locale, visibleFilters, hiddenFilters, setFilterVisible } =
     useDataFilterContext();
 
   return (
@@ -26,7 +26,7 @@ export const DataFilterTagList: FC = () => {
           <DropdownMenuTrigger
             render={
               <Button size="xs" type="button" variant="secondary">
-                <span>Add Filter</span>
+                <span>{locale.addFilter}</span>
                 <Plus />
               </Button>
             }

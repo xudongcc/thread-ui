@@ -16,6 +16,7 @@ pnpm dlx shadcn@latest add @thread-ui/data-filter
 ```tsx
 import {
   DataFilter,
+  zhCN,
   type DataFilterItemProps,
   type DataFilterValue,
 } from "@/components/thread-ui/data-filter";
@@ -96,7 +97,38 @@ const value: DataFilterValue = {
 <DataFilter filters={filters} value={value} onChange={(v) => console.log(v)} />;
 ```
 
+## Localization
+
+`DataFilter` supports a DayPicker-style `locale` prop. Pass a locale code to use a built-in preset, or import a preset from the component locale exports.
+
+```tsx
+import { DataFilter, zhCN } from "@/components/thread-ui/data-filter";
+
+<DataFilter filters={filters} locale="zh-CN" />;
+<DataFilter filters={filters} locale={zhCN} />;
+```
+
+The built-in date picker receives the preset calendar locale automatically. You can also provide partial overrides, which are merged with the default English locale.
+
+```tsx
+<DataFilter
+  filters={filters}
+  locale={{
+    addFilter: "Add condition",
+    operators: {
+      $fulltext: "matches",
+    },
+  }}
+/>
+```
+
 ## Examples
+
+### Locale
+
+Use the `zhCN` preset to localize built-in labels, operator text, checkbox states, number range aria labels, and the date picker calendar.
+
+<Preview path="data-filter-locale" />
 
 ### Standalone Search
 
@@ -130,7 +162,16 @@ The root component props for the data filter.
 
 <AutoTypeTable
   path="../../components/data-filter/data-filter.tsx"
-  type={`Pick<DataFilterProps, 'className' | 'loading' | 'filters' | 'search' | 'sort' | 'value' | 'defaultValue' | 'onChange'>`}
+  type={`Pick<DataFilterProps, 'className' | 'loading' | 'filters' | 'search' | 'sort' | 'locale' | 'value' | 'defaultValue' | 'onChange'>`}
+/>
+
+### DataFilterLocale
+
+Locale configuration for built-in labels, operator text, checkbox text, number range aria labels, and the nested date picker calendar.
+
+<AutoTypeTable
+  path="../../components/data-filter/types/data-filter-locale.ts"
+  type={`Pick<DataFilterLocale, 'code' | 'calendar' | 'addFilter' | 'removeFilter' | 'empty' | 'isEmpty' | 'isNotEmpty' | 'checked' | 'unchecked' | 'operators' | 'minimumAriaLabel' | 'maximumAriaLabel'>`}
 />
 
 ### DataFilterItemBaseProps
