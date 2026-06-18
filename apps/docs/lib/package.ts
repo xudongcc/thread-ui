@@ -38,27 +38,42 @@ export const getPackage = async (packageName: string) => {
     : join(rootDir, "components", packageName);
   const packagePath = join(packageDir, "package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf-8"));
+  const packageDependencies = (packageJson.dependencies || {}) as Record<
+    string,
+    string
+  >;
+  const packageDevDependencies = (packageJson.devDependencies || {}) as Record<
+    string,
+    string
+  >;
+  const toDependencySpecifier = (
+    dependency: string,
+    version: string | undefined,
+  ) => (version ? `${dependency}@${version}` : dependency);
 
-  const repoDependencies = Object.keys(packageJson.dependencies || {}).filter(
+  const repoDependencies = Object.keys(packageDependencies).filter(
     (dep) => dep.startsWith("@repo") && dep !== "@repo/shadcn-ui",
   );
 
-  const dependencies = Object.keys(packageJson.dependencies || {}).filter(
-    (dep) =>
-      !["react", "react-dom", "@repo/shadcn-ui", ...repoDependencies].includes(
-        dep,
-      ),
-  );
+  const dependencies = Object.keys(packageDependencies)
+    .filter(
+      (dep) =>
+        ![
+          "react",
+          "react-dom",
+          "@repo/shadcn-ui",
+          ...repoDependencies,
+        ].includes(dep),
+    )
+    .map((dep) => toDependencySpecifier(dep, packageDependencies[dep]));
 
-  const devDependencies = Object.keys(packageJson.devDependencies || {}).filter(
-    (dep) =>
-      ![
-        "@repo/tsconfig",
-        "@types/react",
-        "@types/react-dom",
-        "typescript",
-      ].includes(dep),
-  );
+  const devDependencies = Object.keys(packageDevDependencies)
+    .filter(
+      (dep) =>
+        !dep.startsWith("@repo/") &&
+        !["@types/react", "@types/react-dom", "typescript"].includes(dep),
+    )
+    .map((dep) => toDependencySpecifier(dep, packageDevDependencies[dep]));
 
   const packageFiles = await getPackageFiles(packageDir);
   const sourceFiles = packageFiles.filter((file) => {
