@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { ComponentProps } from "react";
 import type { Locale as DayPickerLocale } from "react-day-picker";
 import type { TFunction } from "i18next";
 
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
-import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 
 type ShadcnCalendarProps = ComponentProps<typeof ShadcnCalendar>;
 type WithoutCalendarLocale<T> = T extends unknown ? Omit<T, "locale"> : never;
@@ -189,7 +189,7 @@ const buildDayPickerLocale = (
 };
 
 export const Calendar = (props: CalendarProps) => {
-  const { i18n, t } = useThreadUITranslation();
+  const { i18n, t } = useTranslation("thread-ui");
   const language = i18n.resolvedLanguage ?? i18n.language;
   const calendarLocale = useMemo(() => {
     return buildDayPickerLocale(t, language);

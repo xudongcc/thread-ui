@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   Column,
   ColumnDef,
@@ -22,7 +23,6 @@ import type {
 } from "@tanstack/react-table";
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 
-import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 import { Empty } from "@/components/thread-ui/empty";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -111,7 +111,7 @@ export function DataTable<TData extends RowData, TValue = unknown>({
   rowActions,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
-  const { t } = useThreadUITranslation();
+  const { t } = useTranslation("thread-ui");
   const hasRowSelection = !!onRowSelectionChange;
   const hasRowActions = !!rowActions;
 

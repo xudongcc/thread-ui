@@ -26,7 +26,9 @@ const example = read(examplePath);
 
 assert.match(source, /^"use client";/);
 assert.ok(source.includes("Calendar as ShadcnCalendar"));
-assert.ok(source.includes("useThreadUITranslation"));
+assert.ok(source.includes('import { useTranslation } from "react-i18next";'));
+assert.ok(source.includes('useTranslation("thread-ui")'));
+assert.ok(!source.includes("useThreadUITranslation"));
 assert.ok(source.includes("useMemo"));
 assert.ok(source.includes("buildDayPickerLocale"));
 assert.ok(source.includes("ComponentProps<typeof ShadcnCalendar>"));
@@ -40,6 +42,7 @@ assert.equal(packageJson.name, "@repo/calendar");
 assert.equal(packageJson.private, true);
 assert.equal(packageJson.dependencies["@repo/app-provider"], "workspace:*");
 assert.ok(packageJson.dependencies["react-day-picker"]);
+assert.ok(packageJson.dependencies["react-i18next"]);
 assert.ok(packageJson.dependencies.react);
 assert.ok(packageJson.dependencies["react-dom"]);
 

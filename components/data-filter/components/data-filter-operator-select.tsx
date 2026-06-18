@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   getDataFilterBetweenValue,
   getDataFilterOperatorLabel,
@@ -7,7 +8,6 @@ import {
 import type { FC } from "react";
 
 import type { DataFilterItemProps, DataFilterOperator } from "../types";
-import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,7 +33,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
   value,
   onChange,
 }) => {
-  const { t } = useThreadUITranslation();
+  const { t } = useTranslation("thread-ui");
   const operators = getDataFilterOperators(item);
   const selectedOperatorLabel =
     value === null && operator === "$eq"

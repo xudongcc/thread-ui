@@ -1,6 +1,6 @@
 import { CheckIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { FC } from "react";
-import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 
 interface DataFilterDefaultCheckboxFieldProps {
   value?: boolean;
@@ -10,7 +10,7 @@ interface DataFilterDefaultCheckboxFieldProps {
 export const DataFilterDefaultCheckboxField: FC<
   DataFilterDefaultCheckboxFieldProps
 > = ({ value, onChange }) => {
-  const { t } = useThreadUITranslation();
+  const { t } = useTranslation("thread-ui");
 
   return (
     <div className="grid">

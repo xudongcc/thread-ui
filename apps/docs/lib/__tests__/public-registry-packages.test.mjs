@@ -13,7 +13,23 @@ const registryPackages = [
   },
   {
     name: "data-table",
+    dependencies: ["react-i18next"],
     repoDependencies: ["@repo/app-provider", "@repo/empty"],
+  },
+  {
+    name: "calendar",
+    dependencies: ["react-i18next"],
+    repoDependencies: ["@repo/app-provider"],
+  },
+  {
+    name: "data-filter",
+    dependencies: ["react-i18next"],
+    repoDependencies: [
+      "@repo/app-provider",
+      "@repo/calendar",
+      "@repo/number-input",
+      "@repo/radio-group",
+    ],
   },
   {
     name: "locales",
@@ -72,6 +88,13 @@ for (const registryPackage of registryPackages) {
         packageJson.dependencies?.[dependency],
         "workspace:*",
         `${registryPackage.name} should declare ${dependency} so registry dependencies are emitted`,
+      );
+    }
+
+    for (const dependency of registryPackage.dependencies ?? []) {
+      assert.ok(
+        packageJson.dependencies?.[dependency],
+        `${registryPackage.name} should declare ${dependency}`,
       );
     }
   });

@@ -166,7 +166,11 @@ assert.ok(sort.includes("interface DataFilterSortViewProps"));
 assert.ok(sort.includes("getDataFilterSortOptionByKey"));
 assert.ok(sort.includes('className="w-64 p-0"'));
 assert.ok(operatorSelect.includes("interface DataFilterOperatorSelectProps"));
-assert.ok(operatorSelect.includes("useThreadUITranslation"));
+assert.ok(
+  operatorSelect.includes('import { useTranslation } from "react-i18next";'),
+);
+assert.ok(operatorSelect.includes('useTranslation("thread-ui")'));
+assert.ok(!operatorSelect.includes("useThreadUITranslation"));
 assert.ok(
   !operatorSelect.includes("export interface DataFilterOperatorSelectProps"),
 );
@@ -187,7 +191,9 @@ assert.ok(filterContext.includes("serializeDataFilterValueFilter"));
 assert.ok(dataFilter.includes("<DataFilterProvider"));
 assert.ok(!tagList.includes("<DataFilterProvider"));
 assert.ok(!tagList.includes("DataFilterConnectedTagItem"));
-assert.ok(tagList.includes("useThreadUITranslation"));
+assert.ok(tagList.includes('import { useTranslation } from "react-i18next";'));
+assert.ok(tagList.includes('useTranslation("thread-ui")'));
+assert.ok(!tagList.includes("useThreadUITranslation"));
 assert.ok(tagList.includes('import { Button } from "@/components/ui/button";'));
 assert.ok(
   tagList.includes('<Button size="xs" type="button" variant="secondary">'),
@@ -198,7 +204,9 @@ assert.ok(
 );
 assert.ok(tagItem.includes("interface DataFilterTagItemProps"));
 assert.ok(tagItem.includes("useDataFilterContext"));
-assert.ok(tagItem.includes("useThreadUITranslation"));
+assert.ok(tagItem.includes('import { useTranslation } from "react-i18next";'));
+assert.ok(tagItem.includes('useTranslation("thread-ui")'));
+assert.ok(!tagItem.includes("useThreadUITranslation"));
 assert.ok(tagItem.includes("item: DataFilterItemProps;"));
 assert.ok(!tagItem.includes("value: unknown;"));
 assert.ok(!tagItem.includes("onEmptyClose"));
@@ -243,7 +251,13 @@ assert.ok(
     "interface DataFilterDefaultCheckboxFieldProps",
   ),
 );
-assert.ok(defaultCheckboxField.includes("useThreadUITranslation"));
+assert.ok(
+  defaultCheckboxField.includes(
+    'import { useTranslation } from "react-i18next";',
+  ),
+);
+assert.ok(defaultCheckboxField.includes('useTranslation("thread-ui")'));
+assert.ok(!defaultCheckboxField.includes("useThreadUITranslation"));
 assert.ok(!defaultCheckboxField.includes("DataFilterItemCheckboxProps"));
 assert.ok(!defaultCheckboxField.includes("item:"));
 assert.ok(!defaultCheckboxField.includes("value: unknown;"));
@@ -293,7 +307,13 @@ assert.ok(
     "interface DataFilterDefaultNumberInputFieldProps",
   ),
 );
-assert.ok(defaultNumberInputField.includes("useThreadUITranslation"));
+assert.ok(
+  defaultNumberInputField.includes(
+    'import { useTranslation } from "react-i18next";',
+  ),
+);
+assert.ok(defaultNumberInputField.includes('useTranslation("thread-ui")'));
+assert.ok(!defaultNumberInputField.includes("useThreadUITranslation"));
 assert.ok(!defaultNumberInputField.includes("value: unknown;"));
 assert.ok(defaultNumberInputField.includes('operator === "$between"'));
 assert.ok(defaultNumberInputField.includes("const [min, max]"));
@@ -395,6 +415,7 @@ assert.ok(tagItem.includes("isEmptyDataFilterValue(fieldValue)"));
 assert.ok(!packageJson.includes('"@repo/date-picker": "workspace:*"'));
 assert.ok(!packageJson.includes('"@repo/select": "workspace:*"'));
 assert.ok(packageJson.includes('"@repo/app-provider": "workspace:*"'));
+assert.ok(packageJson.includes('"react-i18next":'));
 assert.ok(
   dataFilterExample.includes(
     'className="max-h-full w-full space-y-4 overflow-y-auto rounded-lg border p-4"',

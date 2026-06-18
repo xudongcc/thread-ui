@@ -1,6 +1,6 @@
 import { createInstance } from "i18next";
 
-import { AppProvider, useThreadUITranslation } from "../index";
+import { AppProvider } from "../index";
 import type { AppProviderProps } from "../index";
 
 const i18n = createInstance();
@@ -20,4 +20,4 @@ const appProviderProps: AppProviderProps = {
   },
 };
 
-export { AppProviderApi, appProviderProps, useThreadUITranslation };
+export { AppProviderApi, appProviderProps };

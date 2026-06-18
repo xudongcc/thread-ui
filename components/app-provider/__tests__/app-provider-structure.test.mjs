@@ -30,7 +30,7 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.match(source, /^"use client";/);
 assert.match(source, /export type AppProviderProps/);
-assert.match(source, /export const useThreadUITranslation/);
+assert.doesNotMatch(source, /useThreadUITranslation/);
 assert.doesNotMatch(source, /export const useThreadTranslation/);
 assert.match(source, /export const AppProvider/);
 assert.match(source, /I18nextProvider/);
@@ -38,7 +38,7 @@ assert.match(source, /AlertDialogProvider/);
 assert.match(source, /ToastProvider/);
 assert.match(source, /i18n: I18nInstance/);
 assert.match(source, /toast\?: ToastProviderProps/);
-assert.match(source, /useTranslation\("thread-ui"\)/);
+assert.doesNotMatch(source, /useTranslation/);
 assert.match(source, /<I18nextProvider i18n=\{i18n\}>/);
 assert.match(source, /<ToastProvider \{\.\.\.toast\}>/);
 

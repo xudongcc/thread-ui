@@ -1,5 +1,6 @@
 import { ChevronDown, Trash2 } from "lucide-react";
 
+import { useTranslation } from "react-i18next";
 import {
   createDataFilterCondition,
   getDataFilterCondition,
@@ -19,7 +20,6 @@ import type {
   DataFilterOperator,
 } from "../types";
 import type { FC } from "react";
-import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -39,7 +39,7 @@ interface DataFilterTagItemProps {
 
 export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
   const { field, label } = item;
-  const { t } = useThreadUITranslation();
+  const { t } = useTranslation("thread-ui");
   const {
     filterValues,
     selectOptionCache,

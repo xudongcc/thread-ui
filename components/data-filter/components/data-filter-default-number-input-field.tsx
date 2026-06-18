@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { FC } from "react";
 import type {
   DataFilterItemNumberInputProps,
   DataFilterNumberInputBetweenValue,
   DataFilterOperator,
 } from "../types";
-import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 import { NumberInput } from "@/components/thread-ui/number-input";
 
 type DataFilterDefaultNumberInputFieldValue =
@@ -122,7 +122,7 @@ const CommitNumberInput: FC<CommitNumberInputProps> = ({
 export const DataFilterDefaultNumberInputField: FC<
   DataFilterDefaultNumberInputFieldProps
 > = ({ item, operator, value, onChange }) => {
-  const { t } = useThreadUITranslation();
+  const { t } = useTranslation("thread-ui");
 
   if (operator === "$between") {
     const [min, max]: DataFilterNumberInputBetweenValue = Array.isArray(value)
