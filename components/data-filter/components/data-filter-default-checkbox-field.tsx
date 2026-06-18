@@ -1,7 +1,10 @@
 import { CheckIcon } from "lucide-react";
 import type { FC } from "react";
 
-import type { DataFilterDefaultCheckboxFieldProps } from "../interfaces/data-filter-default-checkbox-field-props";
+interface DataFilterDefaultCheckboxFieldProps {
+  value?: boolean;
+  onChange: (value: boolean) => void;
+}
 
 export const DataFilterDefaultCheckboxField: FC<
   DataFilterDefaultCheckboxFieldProps

@@ -3,32 +3,34 @@
 import { useState } from "react";
 import type {
   DataFilterItemProps,
-  DataFilterValues,
+  DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 import { DataFilter } from "@/components/thread-ui/data-filter";
 
 export default function DataFilterExample() {
-  const [values, setValues] = useState<DataFilterValues>({
-    amount: {
-      $gte: 2450.75,
+  const [value, setValue] = useState<DataFilterValue>({
+    filter: {
+      amount: {
+        $gte: 2450.75,
+      },
+      age: {
+        $between: [18, 30],
+      },
+      createdAt: {
+        $between: ["2025-03-01T00:00:00.000Z", "2025-03-15T00:00:00.000Z"],
+      },
+      customer: {
+        $fulltext: "Acme",
+      },
+      archived: {
+        $eq: true,
+      },
+      tags: {
+        $in: ["cloudflare", "vector-database", "llm"],
+      },
     },
-    age: {
-      $gte: 18,
-      $lte: 30,
-    },
-    createdAt: {
-      $gte: "2025-03-01T00:00:00.000Z",
-      $lte: "2025-03-15T00:00:00.000Z",
-    },
-    customer: {
-      $fulltext: "Acme",
-    },
-    archived: {
-      $eq: true,
-    },
-    tags: {
-      $in: ["cloudflare", "vector-database", "llm"],
-    },
+    orderBy: { field: "createdAt", direction: "DESC" },
+    query: "Acme",
   });
 
   const filters: DataFilterItemProps[] = [
@@ -105,10 +107,9 @@ export default function DataFilterExample() {
     <div className="max-h-full w-full space-y-4 overflow-y-auto rounded-lg border p-4">
       <DataFilter
         filters={filters}
-        values={values}
+        value={value}
         search={{
           placeholder: "Search anything...",
-          onChange: (val) => console.log("Search:", val),
         }}
         sort={{
           options: [
@@ -125,15 +126,13 @@ export default function DataFilterExample() {
               directionLabel: "Oldest first",
             },
           ],
-          selected: { field: "createdAt", direction: "DESC" },
-          onChange: (val) => console.log("Sort:", val),
         }}
-        onChange={setValues}
+        onChange={setValue}
       />
 
       <div className="bg-muted mt-4 rounded-md p-4 text-sm">
-        <strong>Current Values:</strong>
-        <pre>{JSON.stringify(values, null, 2)}</pre>
+        <strong>Current Value:</strong>
+        <pre>{JSON.stringify(value, null, 2)}</pre>
       </div>
     </div>
   );

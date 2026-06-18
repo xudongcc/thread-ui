@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type {
   DataFilterItemProps,
-  DataFilterValues,
+  DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 import { DataFilter } from "@/components/thread-ui/data-filter";
 import { Select } from "@/components/thread-ui/select";
@@ -20,7 +20,10 @@ const formatDate = (value: Date | string) => {
 };
 
 export default function DataFilterCustomExample() {
-  const [values, setValues] = useState<DataFilterValues>({});
+  const [value, setValue] = useState<DataFilterValue>({
+    filter: {},
+    query: "",
+  });
 
   const filters: DataFilterItemProps[] = [
     {
@@ -94,10 +97,10 @@ export default function DataFilterCustomExample() {
 
   return (
     <div className="w-full space-y-4 rounded-lg border p-4">
-      <DataFilter filters={filters} values={values} onChange={setValues} />
+      <DataFilter filters={filters} value={value} onChange={setValue} />
       <div className="bg-muted mt-4 rounded-md p-4 text-sm">
         <strong>Filter Output:</strong>
-        <pre>{JSON.stringify(values, null, 2)}</pre>
+        <pre>{JSON.stringify(value, null, 2)}</pre>
       </div>
     </div>
   );

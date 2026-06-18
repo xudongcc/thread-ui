@@ -8,7 +8,10 @@ export const isEmptyDataFilterValue = (value: unknown): boolean => {
   if (condition.operator === "$between") {
     const range = getDataFilterBetweenValue(condition.value);
 
-    return isEmpty(range.$gte) && isEmpty(range.$lte);
+    return (
+      range.some((value) => isEmpty(value)) ||
+      range.some((value) => value === null)
+    );
   }
 
   return isEmpty(condition.value);

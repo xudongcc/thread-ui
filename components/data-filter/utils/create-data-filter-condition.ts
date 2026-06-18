@@ -9,8 +9,7 @@ export const createDataFilterCondition = (
     const range = getDataFilterBetweenValue(value);
 
     return {
-      $gte: range.$gte,
-      $lte: range.$lte,
+      $between: range,
     };
   }
 

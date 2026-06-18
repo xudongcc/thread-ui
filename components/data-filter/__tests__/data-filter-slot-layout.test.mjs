@@ -1,9 +1,27 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(path, "utf8");
+const contextPath = "components/data-filter/components/data-filter-context.tsx";
+const interfacesPath = "components/data-filter/interfaces";
+const obsoletePropsPaths = [
+  "components/data-filter/interfaces/data-filter-default-checkbox-field-props.ts",
+  "components/data-filter/interfaces/data-filter-default-date-picker-field-props.ts",
+  "components/data-filter/interfaces/data-filter-default-field-props.ts",
+  "components/data-filter/interfaces/data-filter-default-input-field-props.ts",
+  "components/data-filter/interfaces/data-filter-default-number-input-field-props.ts",
+  "components/data-filter/interfaces/data-filter-default-select-field-props.ts",
+  "components/data-filter/interfaces/data-filter-operator-select-props.ts",
+  "components/data-filter/interfaces/data-filter-props.ts",
+  "components/data-filter/interfaces/data-filter-search-props.ts",
+  "components/data-filter/interfaces/data-filter-sort-props.ts",
+  "components/data-filter/interfaces/data-filter-tag-item-props.ts",
+  "components/data-filter/interfaces/data-filter-tag-list-props.ts",
+];
 
+const dataFilterIndex = read("components/data-filter/index.tsx");
 const dataFilter = read("components/data-filter/data-filter.tsx");
+const typesIndex = read("components/data-filter/types/index.ts");
 const search = read("components/data-filter/components/data-filter-search.tsx");
 const sort = read("components/data-filter/components/data-filter-sort.tsx");
 const operatorSelect = read(
@@ -12,6 +30,7 @@ const operatorSelect = read(
 const tagList = read(
   "components/data-filter/components/data-filter-tag-list.tsx",
 );
+const filterContext = existsSync(contextPath) ? read(contextPath) : "";
 const tagItem = read(
   "components/data-filter/components/data-filter-tag-item.tsx",
 );
@@ -33,20 +52,14 @@ const defaultNumberInputField = read(
 const defaultSelectField = read(
   "components/data-filter/components/data-filter-default-select-field.tsx",
 );
-const defaultCheckboxFieldProps = read(
-  "components/data-filter/interfaces/data-filter-default-checkbox-field-props.ts",
-);
-const defaultDatePickerFieldProps = read(
-  "components/data-filter/interfaces/data-filter-default-date-picker-field-props.ts",
-);
 const selectProps = read(
-  "components/data-filter/interfaces/data-filter-item-select-props.ts",
+  "components/data-filter/types/data-filter-item-select-props.ts",
 );
 const selectOptions = read(
-  "components/data-filter/interfaces/data-filter-select-options.ts",
+  "components/data-filter/types/data-filter-select-options.ts",
 );
 const selectOption = read(
-  "components/data-filter/interfaces/data-filter-select-option.ts",
+  "components/data-filter/types/data-filter-select-option.ts",
 );
 const selectOperator = read(
   "components/data-filter/types/data-filter-select-operator.ts",
@@ -81,6 +94,12 @@ const allOperators = read(
 const operatorLabels = read(
   "components/data-filter/utils/data-filter-operator-labels.ts",
 );
+const dateValue = read(
+  "components/data-filter/utils/data-filter-date-value.ts",
+);
+const defaultRenderValue = read(
+  "components/data-filter/utils/get-data-filter-default-render-value.ts",
+);
 const createCondition = read(
   "components/data-filter/utils/create-data-filter-condition.ts",
 );
@@ -110,16 +129,56 @@ assert.ok(
 assert.ok(
   dataFilter.includes("*:data-[slot=data-filter-tag-list]:col-span-full"),
 );
+assert.ok(dataFilter.includes("export interface DataFilterProps"));
+assert.ok(dataFilterIndex.includes("DataFilterProps"));
+assert.ok(dataFilterIndex.includes("DataFilterSearchProps"));
+assert.ok(dataFilterIndex.includes("DataFilterSortProps"));
+assert.ok(!dataFilterIndex.includes("./interfaces"));
+assert.ok(
+  !existsSync(interfacesPath),
+  `${interfacesPath} was merged into types`,
+);
+for (const obsoletePropsPath of obsoletePropsPaths) {
+  assert.ok(!existsSync(obsoletePropsPath), `${obsoletePropsPath} was removed`);
+}
+assert.ok(typesIndex.includes("./data-filter-item-base-props"));
+assert.ok(typesIndex.includes("./data-filter-item-props"));
+assert.ok(typesIndex.includes("./data-filter-render-context"));
+assert.ok(typesIndex.includes("./data-filter-select-options"));
+assert.ok(typesIndex.includes("./data-filter-sort-options"));
+assert.ok(typesIndex.includes("./data-filter-sort-value"));
+assert.ok(typesIndex.includes("./data-filter-value"));
+assert.ok(!typesIndex.includes("./data-filter-values"));
 
 assert.ok(search.includes('data-slot="data-filter-search"'));
+assert.ok(search.includes("export interface DataFilterSearchProps"));
+assert.ok(search.includes("placeholder?: string;"));
+assert.ok(!search.includes("disabled?:"));
+assert.ok(!search.includes("className?:"));
 assert.ok(sort.includes('data-slot="data-filter-sort"'));
+assert.ok(sort.includes("export interface DataFilterSortProps"));
+assert.ok(sort.includes("interface DataFilterSortViewProps"));
+assert.ok(sort.includes("getDataFilterSortOptionByKey"));
 assert.ok(sort.includes('className="w-64 p-0"'));
+assert.ok(operatorSelect.includes("interface DataFilterOperatorSelectProps"));
+assert.ok(
+  !operatorSelect.includes("export interface DataFilterOperatorSelectProps"),
+);
 assert.ok(
   operatorSelect.includes(
     '<DropdownMenuContent align="start" className="w-64">',
   ),
 );
 assert.ok(tagList.includes('data-slot="data-filter-tag-list"'));
+assert.ok(existsSync(contextPath));
+assert.ok(filterContext.includes("createContext"));
+assert.ok(filterContext.includes("DataFilterProvider"));
+assert.ok(filterContext.includes("useDataFilterContext"));
+assert.ok(filterContext.includes("normalizeDataFilterValue"));
+assert.ok(filterContext.includes("serializeDataFilterValueFilter"));
+assert.ok(dataFilter.includes("<DataFilterProvider"));
+assert.ok(!tagList.includes("<DataFilterProvider"));
+assert.ok(!tagList.includes("DataFilterConnectedTagItem"));
 assert.ok(tagList.includes('import { Button } from "@/components/ui/button";'));
 assert.ok(
   tagList.includes('<Button size="xs" type="button" variant="secondary">'),
@@ -128,6 +187,11 @@ assert.ok(tagList.includes('<DropdownMenuContent className="w-64">'));
 assert.ok(
   tagItem.includes('className="grid w-fit max-w-64 min-w-48 gap-1 p-1"'),
 );
+assert.ok(tagItem.includes("interface DataFilterTagItemProps"));
+assert.ok(tagItem.includes("useDataFilterContext"));
+assert.ok(tagItem.includes("item: DataFilterItemProps;"));
+assert.ok(!tagItem.includes("value: unknown;"));
+assert.ok(!tagItem.includes("onEmptyClose"));
 assert.ok(!tagItem.includes("min-w-56"));
 assert.ok(tagItem.includes('data-slot="data-filter-tag-item-header"'));
 assert.ok(tagItem.includes("const shouldRenderContent = rawValue !== null;"));
@@ -144,8 +208,14 @@ assert.ok(tagItem.includes('className="truncate"'));
 assert.ok(tagItem.includes("{labelValue}</TooltipContent>"));
 
 assert.ok(defaultField.includes("<DataFilterDefaultNumberInputField"));
+assert.ok(defaultField.includes("interface DataFilterDefaultFieldProps"));
 assert.ok(defaultField.includes("<DataFilterDefaultDatePickerField"));
 assert.ok(defaultField.includes("<DataFilterDefaultCheckboxField"));
+assert.ok(
+  !defaultField.includes(
+    "<DataFilterDefaultCheckboxField\n        item={item}",
+  ),
+);
 assert.ok(defaultField.includes("<DataFilterDefaultSelectField"));
 assert.ok(defaultField.includes("<DataFilterDefaultInputField"));
 assert.ok(!defaultField.includes('from "@/components/ui/input"'));
@@ -158,6 +228,14 @@ assert.ok(
     "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none",
   ),
 );
+assert.ok(
+  defaultCheckboxField.includes(
+    "interface DataFilterDefaultCheckboxFieldProps",
+  ),
+);
+assert.ok(!defaultCheckboxField.includes("DataFilterItemCheckboxProps"));
+assert.ok(!defaultCheckboxField.includes("item:"));
+assert.ok(!defaultCheckboxField.includes("value: unknown;"));
 assert.ok(
   defaultCheckboxField.includes(
     "pointer-events-none absolute right-2 flex size-4 items-center justify-center",
@@ -184,6 +262,12 @@ assert.ok(
   ),
 );
 assert.ok(defaultDatePickerField.includes("<Calendar"));
+assert.ok(
+  defaultDatePickerField.includes(
+    "interface DataFilterDefaultDatePickerFieldProps",
+  ),
+);
+assert.ok(!defaultDatePickerField.includes("value: unknown;"));
 assert.ok(defaultDatePickerField.includes('mode="single"'));
 assert.ok(defaultDatePickerField.includes('operator === "$between"'));
 assert.ok(defaultDatePickerField.includes('mode="range"'));
@@ -192,12 +276,27 @@ assert.ok(defaultDatePickerField.includes("selected={selected}"));
 assert.ok(defaultDatePickerField.includes("defaultMonth={selected}"));
 assert.ok(defaultDatePickerField.includes("disabled={disabled}"));
 assert.ok(defaultNumberInputField.includes("<NumberInput"));
+assert.ok(
+  defaultNumberInputField.includes(
+    "interface DataFilterDefaultNumberInputFieldProps",
+  ),
+);
+assert.ok(!defaultNumberInputField.includes("value: unknown;"));
 assert.ok(defaultNumberInputField.includes('operator === "$between"'));
-assert.ok(defaultNumberInputField.includes("$gte"));
-assert.ok(defaultNumberInputField.includes("$lte"));
+assert.ok(defaultNumberInputField.includes("const [min, max]"));
+assert.ok(defaultNumberInputField.includes("onChange([floatValue, max])"));
+assert.ok(defaultNumberInputField.includes("onChange([min, floatValue])"));
 assert.ok(defaultInputField.includes("<Input"));
+assert.ok(
+  defaultInputField.includes("interface DataFilterDefaultInputFieldProps"),
+);
+assert.ok(!defaultInputField.includes("value: unknown;"));
 assert.ok(defaultField.includes('item.type === "select"'));
 assert.ok(defaultSelectField.includes('from "@/components/ui/combobox"'));
+assert.ok(
+  defaultSelectField.includes("interface DataFilterDefaultSelectFieldProps"),
+);
+assert.ok(!defaultSelectField.includes("value: unknown;"));
 assert.ok(defaultSelectField.includes("<Combobox"));
 assert.ok(defaultSelectField.includes("<ComboboxChips"));
 assert.ok(!defaultSelectField.includes("min-h-20"));
@@ -220,16 +319,15 @@ assert.ok(!defaultSelectField.includes("option?.icon"));
 assert.ok(defaultSelectField.includes('typeof item.options === "function"'));
 assert.ok(defaultSelectField.includes("useEffect"));
 assert.ok(defaultSelectField.includes("requestId"));
+assert.ok(defaultSelectField.includes("debouncedSearchQuery"));
+assert.ok(defaultSelectField.includes("setLoading"));
+assert.ok(defaultSelectField.includes("Failed to load options"));
 assert.ok(defaultSelectField.includes("onInputValueChange={setSearchQuery}"));
 assert.ok(
   defaultSelectField.includes("filter={isRemoteOptions ? null : undefined}"),
 );
 
 assert.ok(selectProps.includes('type: "select";'));
-assert.ok(defaultCheckboxFieldProps.includes("DataFilterItemCheckboxProps"));
-assert.ok(
-  defaultDatePickerFieldProps.includes("DataFilterItemDatePickerProps"),
-);
 assert.ok(selectProps.includes("Array<string> | null"));
 assert.ok(selectProps.includes("options: DataFilterSelectOptions;"));
 assert.ok(selectProps.includes("DataFilterSelectOptions"));
@@ -257,13 +355,18 @@ assert.ok(allOperators.includes('"$between"'));
 assert.ok(operatorLabels.includes('$in: "contains"'));
 assert.ok(operatorLabels.includes('$nin: "does not contain"'));
 assert.ok(operatorLabels.includes('$between: "between"'));
+assert.ok(dateValue.includes("getDataFilterDateRangeValue"));
+assert.ok(dateValue.includes("toISOString"));
+assert.ok(defaultRenderValue.includes("getDataFilterDefaultRenderValue"));
+assert.ok(defaultRenderValue.includes("formatDataFilterDateValue"));
 assert.ok(createCondition.includes('operator === "$between"'));
-assert.ok(createCondition.includes("$gte"));
-assert.ok(createCondition.includes("$lte"));
+assert.ok(createCondition.includes("$between: range"));
 assert.ok(getCondition.includes('$between"'));
+assert.ok(getCondition.includes('"$between" in record'));
+assert.ok(getCondition.includes('"$gte" in record && "$lte" in record'));
 assert.ok(isEmptyDataFilterValue.includes('operator === "$between"'));
 assert.ok(isEmptyDataFilterValue.includes("getDataFilterBetweenValue"));
-assert.ok(tagItem.includes('operator === "$between"'));
+assert.ok(tagItem.includes("getDataFilterDefaultRenderValue"));
 assert.ok(tagItem.includes("isEmptyDataFilterValue(fieldValue)"));
 assert.ok(!packageJson.includes('"@repo/date-picker": "workspace:*"'));
 assert.ok(!packageJson.includes('"@repo/select": "workspace:*"'));
@@ -273,6 +376,7 @@ assert.ok(
   ),
 );
 assert.ok(dataFilterDocs.includes("### DataFilterItemSelectProps"));
+assert.ok(dataFilterDocs.includes("### DataFilterValue"));
 assert.ok(dataFilterDocs.includes("### Async Select Options"));
 assert.ok(
   dataFilterDocs.includes('<Preview path="data-filter-async-select" />'),
@@ -285,6 +389,37 @@ assert.ok(
     "async `(query) => Promise<DataFilterSelectOption[]>` function",
   ),
 );
+assert.ok(
+  dataFilterDocs.includes(
+    'path="../../components/data-filter/data-filter.tsx"',
+  ),
+);
+assert.ok(
+  dataFilterDocs.includes(
+    'path="../../components/data-filter/components/data-filter-search.tsx"',
+  ),
+);
+assert.ok(
+  dataFilterDocs.includes(
+    'path="../../components/data-filter/components/data-filter-sort.tsx"',
+  ),
+);
+assert.ok(!dataFilterDocs.includes("interfaces/data-filter-props.ts"));
+assert.ok(!dataFilterDocs.includes("interfaces/data-filter-search-props.ts"));
+assert.ok(!dataFilterDocs.includes("interfaces/data-filter-sort-props.ts"));
+assert.ok(!dataFilterDocs.includes("components/data-filter/interfaces/"));
+assert.ok(!dataFilterDocs.includes("'icon'"));
+assert.ok(!dataFilterDocs.includes("'values'"));
+assert.ok(
+  dataFilterDocs.includes(
+    'path="../../components/data-filter/types/data-filter-item-base-props.ts"',
+  ),
+);
+assert.ok(
+  dataFilterDocs.includes(
+    'path="../../components/data-filter/types/data-filter-sort-options.ts"',
+  ),
+);
 assert.ok(!dataFilterExample.includes("TagIcon"));
 assert.ok(!dataFilterExample.includes("icon:"));
 assert.ok(dataFilterExample.includes('field: "age"'));
@@ -292,5 +427,4 @@ assert.ok(dataFilterExample.includes('defaultOperator: "$between"'));
 assert.ok(dataFilterExample.includes('field: "createdAt"'));
 assert.ok(dataFilterExample.includes('"2025-03-01T00:00:00.000Z"'));
 assert.ok(dataFilterExample.includes('"2025-03-15T00:00:00.000Z"'));
-assert.ok(dataFilterExample.includes("$gte: 18"));
-assert.ok(dataFilterExample.includes("$lte: 30"));
+assert.ok(dataFilterExample.includes("$between: [18, 30]"));

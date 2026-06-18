@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FC } from "react";
 
-import type { DataFilterDefaultSelectFieldProps } from "../interfaces/data-filter-default-select-field-props";
-import type { DataFilterSelectOption } from "../interfaces/data-filter-select-option";
+import type {
+  DataFilterItemSelectProps,
+  DataFilterSelectOption,
+} from "../types";
 import {
   Combobox,
   ComboboxChip,
@@ -12,17 +14,73 @@ import {
   ComboboxList,
   ComboboxValue,
 } from "@/components/ui/combobox";
+import { Spinner } from "@/components/ui/spinner";
+
+type DataFilterDefaultSelectFieldValue = Array<string> | string | undefined;
+type DataFilterDefaultSelectFieldChangeValue = Array<string> | undefined;
+
+interface DataFilterDefaultSelectFieldProps {
+  item: DataFilterItemSelectProps;
+  value: DataFilterDefaultSelectFieldValue;
+  onChange: (value: DataFilterDefaultSelectFieldChangeValue) => void;
+}
 
 export const DataFilterDefaultSelectField: FC<
   DataFilterDefaultSelectFieldProps
 > = ({ item, value, onChange }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [remoteOptions, setRemoteOptions] = useState<
     Array<DataFilterSelectOption>
   >([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [selectedOptionCache, setSelectedOptionCache] = useState<
+    Record<string, DataFilterSelectOption>
+  >({});
   const latestRequestId = useRef(0);
   const isRemoteOptions = typeof item.options === "function";
   const options = Array.isArray(item.options) ? item.options : remoteOptions;
+  const selectedValues = useMemo(() => {
+    return Array.isArray(value)
+      ? value
+      : typeof value === "string"
+        ? [value]
+        : [];
+  }, [value]);
+  const cacheSelectedOptions = useCallback(
+    (
+      nextSelectedValues: Array<string>,
+      nextOptions: Array<DataFilterSelectOption>,
+    ) => {
+      setSelectedOptionCache((currentCache) => {
+        const nextCache = { ...currentCache };
+
+        for (const option of nextOptions) {
+          if (nextSelectedValues.includes(option.value)) {
+            nextCache[option.value] = option;
+          }
+        }
+
+        return nextCache;
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!isRemoteOptions) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [isRemoteOptions, searchQuery]);
 
   useEffect(() => {
     if (typeof item.options !== "function") {
@@ -34,47 +92,64 @@ export const DataFilterDefaultSelectField: FC<
     let cancelled = false;
 
     latestRequestId.current = requestId;
+    queueMicrotask(() => {
+      if (!cancelled && latestRequestId.current === requestId) {
+        setLoading(true);
+        setError(false);
+      }
+    });
 
-    void loadOptions(searchQuery)
+    void loadOptions(debouncedSearchQuery)
       .then((nextOptions) => {
         if (!cancelled && latestRequestId.current === requestId) {
           setRemoteOptions(nextOptions);
+          cacheSelectedOptions(selectedValues, nextOptions);
+          setError(false);
         }
       })
       .catch(() => {
         if (!cancelled && latestRequestId.current === requestId) {
           setRemoteOptions([]);
+          setError(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled && latestRequestId.current === requestId) {
+          setLoading(false);
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [item.options, searchQuery]);
+  }, [
+    cacheSelectedOptions,
+    debouncedSearchQuery,
+    item.options,
+    selectedValues,
+  ]);
 
-  const selectedValues = Array.isArray(value)
-    ? value.filter((optionValue): optionValue is string => {
-        return typeof optionValue === "string";
-      })
-    : typeof value === "string"
-      ? [value]
-      : [];
   const optionValues = options.map((option) => option.value);
+  const items = Array.from(new Set([...optionValues, ...selectedValues]));
   const getOption = (optionValue: string) => {
-    return options.find((option) => option.value === optionValue);
+    return (
+      options.find((option) => option.value === optionValue) ??
+      selectedOptionCache[optionValue]
+    );
   };
 
   return (
     <Combobox
       multiple
       filter={isRemoteOptions ? null : undefined}
-      items={optionValues}
+      items={items}
       value={selectedValues}
       itemToStringValue={(optionValue) => {
         return getOption(optionValue)?.label ?? optionValue;
       }}
       onInputValueChange={setSearchQuery}
       onValueChange={(nextValues) => {
+        cacheSelectedOptions(nextValues, options);
         onChange(nextValues.length > 0 ? nextValues : undefined);
       }}
     >
@@ -109,6 +184,19 @@ export const DataFilterDefaultSelectField: FC<
             );
           }}
         </ComboboxList>
+
+        {loading && (
+          <div className="text-muted-foreground flex items-center justify-center gap-2 px-2 py-2 text-sm">
+            <Spinner />
+            Loading
+          </div>
+        )}
+
+        {!loading && options.length === 0 && (
+          <div className="text-muted-foreground px-2 py-2 text-center text-sm">
+            {error ? "Failed to load options" : "No options found"}
+          </div>
+        )}
       </div>
     </Combobox>
   );

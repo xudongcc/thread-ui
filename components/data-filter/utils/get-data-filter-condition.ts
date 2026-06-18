@@ -1,4 +1,5 @@
 import { isDataFilterOperator } from "./is-data-filter-operator";
+import { getDataFilterBetweenValue } from "./get-data-filter-between-value";
 import type { DataFilterOperator } from "../types";
 
 export const getDataFilterCondition = (
@@ -12,13 +13,17 @@ export const getDataFilterCondition = (
   ) {
     const record = value as Record<string, unknown>;
 
+    if ("$between" in record) {
+      return {
+        operator: "$between",
+        value: getDataFilterBetweenValue(record.$between),
+      };
+    }
+
     if ("$gte" in record && "$lte" in record) {
       return {
         operator: "$between",
-        value: {
-          $gte: record.$gte,
-          $lte: record.$lte,
-        },
+        value: getDataFilterBetweenValue(record),
       };
     }
 

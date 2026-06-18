@@ -4,7 +4,7 @@ import { useState } from "react";
 import type {
   DataFilterItemProps,
   DataFilterSelectOption,
-  DataFilterValues,
+  DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 import { DataFilter } from "@/components/thread-ui/data-filter";
 
@@ -57,19 +57,22 @@ const filters: Array<DataFilterItemProps> = [
 ];
 
 export default function DataFilterAsyncSelectExample() {
-  const [values, setValues] = useState<DataFilterValues>({
-    tags: {
-      $in: ["cloudflare", "llm"],
+  const [value, setValue] = useState<DataFilterValue>({
+    filter: {
+      tags: {
+        $in: ["cloudflare", "llm"],
+      },
     },
+    query: "",
   });
 
   return (
     <div className="max-h-full w-full space-y-4 overflow-y-auto rounded-lg border p-4">
-      <DataFilter filters={filters} values={values} onChange={setValues} />
+      <DataFilter filters={filters} value={value} onChange={setValue} />
 
       <div className="bg-muted mt-4 rounded-md p-4 text-sm">
-        <strong>Current Values:</strong>
-        <pre>{JSON.stringify(values, null, 2)}</pre>
+        <strong>Current Value:</strong>
+        <pre>{JSON.stringify(value, null, 2)}</pre>
       </div>
     </div>
   );

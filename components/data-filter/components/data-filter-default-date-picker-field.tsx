@@ -1,42 +1,45 @@
-import dayjs from "dayjs";
-import { getDataFilterBetweenValue } from "../utils";
+import {
+  getDataFilterDate,
+  getDataFilterDateDisabled,
+  getDataFilterDateRange,
+  getDataFilterDateRangeValue,
+} from "../utils";
 import type { FC } from "react";
 
-import type { DataFilterDefaultDatePickerFieldProps } from "../interfaces/data-filter-default-date-picker-field-props";
+import type {
+  DataFilterDatePickerBetweenValue,
+  DataFilterItemDatePickerProps,
+  DataFilterOperator,
+} from "../types";
 import { Calendar } from "@/components/ui/calendar";
 
-const getDate = (value: unknown): Date | undefined => {
-  if (value instanceof Date) {
-    return value;
-  }
+type DataFilterDefaultDatePickerFieldValue =
+  | DataFilterDatePickerBetweenValue
+  | Date
+  | string
+  | undefined;
 
-  if (typeof value !== "string") {
-    return undefined;
-  }
-
-  const date = dayjs(value);
-
-  return date.isValid() ? date.toDate() : undefined;
-};
+interface DataFilterDefaultDatePickerFieldProps {
+  item: DataFilterItemDatePickerProps;
+  operator: DataFilterOperator;
+  value: DataFilterDefaultDatePickerFieldValue;
+  onChange: (value: DataFilterDefaultDatePickerFieldValue) => void;
+}
 
 export const DataFilterDefaultDatePickerField: FC<
   DataFilterDefaultDatePickerFieldProps
 > = ({ item, operator, value, onChange }) => {
-  const min = getDate(item.min);
-  const max = getDate(item.max);
-  const selected = getDate(value);
-  const disabled = (date: Date) => {
-    return (
-      (typeof min !== "undefined" && dayjs(date).isBefore(min, "day")) ||
-      (typeof max !== "undefined" && dayjs(date).isAfter(max, "day"))
-    );
-  };
+  const selected = getDataFilterDate(value);
+  const disabled = getDataFilterDateDisabled({
+    min: item.min,
+    max: item.max,
+  });
 
   if (operator === "$between") {
-    const range = getDataFilterBetweenValue(value);
+    const [from, to] = getDataFilterDateRange(value);
     const selectedRange = {
-      from: getDate(range.$gte),
-      to: getDate(range.$lte),
+      from,
+      to,
     };
 
     return (
@@ -47,10 +50,7 @@ export const DataFilterDefaultDatePickerField: FC<
         mode="range"
         selected={selectedRange}
         onSelect={(dateRange) => {
-          onChange({
-            $gte: dateRange?.from?.toISOString(),
-            $lte: dateRange?.to?.toISOString(),
-          });
+          onChange(getDataFilterDateRangeValue(dateRange));
         }}
       />
     );

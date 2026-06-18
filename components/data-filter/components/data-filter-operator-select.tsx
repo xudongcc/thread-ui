@@ -6,7 +6,7 @@ import {
 } from "../utils";
 import type { FC } from "react";
 
-import type { DataFilterOperatorSelectProps } from "../interfaces";
+import type { DataFilterItemProps, DataFilterOperator } from "../types";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,6 +14,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const isUpperBoundOperator = (operator: DataFilterOperator) => {
+  return operator === "$lt" || operator === "$lte";
+};
+
+interface DataFilterOperatorSelectProps {
+  item: DataFilterItemProps;
+  operator: DataFilterOperator;
+  value: unknown;
+  onChange: (operator: DataFilterOperator, value: unknown) => void;
+}
 
 export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
   item,
@@ -35,21 +46,17 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
     }
 
     if (operator === "$between") {
-      const range = getDataFilterBetweenValue(value);
+      const [min, max] = getDataFilterBetweenValue(value);
 
       return nextOperator === "$lt" || nextOperator === "$lte"
-        ? (range.$lte ?? range.$gte)
-        : (range.$gte ?? range.$lte);
+        ? (max ?? min)
+        : (min ?? max);
     }
 
     if (nextOperator === "$between") {
-      return operator === "$lt" || operator === "$lte"
-        ? {
-            $lte: value,
-          }
-        : {
-            $gte: value,
-          };
+      return isUpperBoundOperator(operator)
+        ? [undefined, value]
+        : [value, undefined];
     }
 
     return value;

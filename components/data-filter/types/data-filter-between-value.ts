@@ -1,4 +1,4 @@
-export type DataFilterBetweenValue<TValue = unknown> = {
-  $gte?: TValue;
-  $lte?: TValue;
-};
+export type DataFilterBetweenValue<TValue = unknown> = [
+  TValue | undefined,
+  TValue | undefined,
+];

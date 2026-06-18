@@ -1,24 +1,24 @@
 import { ChevronDown, Trash2 } from "lucide-react";
-import dayjs from "dayjs";
-import { useState } from "react";
 
 import {
   createDataFilterCondition,
-  formatRenderValue,
-  getDataFilterBetweenValue,
   getDataFilterCondition,
+  getDataFilterDefaultRenderValue,
   getDataFilterOperatorLabel,
   getDataFilterOperators,
   getDefaultDataFilterOperator,
   isEmpty,
   isEmptyDataFilterValue,
 } from "../utils";
+import { useDataFilterContext } from "./data-filter-context";
 import { DataFilterDefaultField } from "./data-filter-default-field";
 import { DataFilterOperatorSelect } from "./data-filter-operator-select";
-import type { DataFilterItemBaseProps } from "../interfaces/data-filter-item-base-props";
-import type { DataFilterTagItemProps } from "../interfaces/data-filter-tag-item-props";
+import type {
+  DataFilterItemBaseProps,
+  DataFilterItemProps,
+  DataFilterOperator,
+} from "../types";
 import type { FC } from "react";
-import type { DataFilterOperator } from "../types";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -32,14 +32,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
-  item,
-  value: fieldValue,
-  onChange,
-  onEmptyClose,
-  onRemove,
-}) => {
+interface DataFilterTagItemProps {
+  item: DataFilterItemProps;
+}
+
+export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
   const { field, label } = item;
+  const { filterValues, setFilterValue, hideFilter, removeFilter } =
+    useDataFilterContext();
+  const fieldValue = filterValues[field];
   const operators = getDataFilterOperators(item);
   const getOperator = (value: unknown): DataFilterOperator => {
     const condition = getDataFilterCondition(value);
@@ -52,83 +53,28 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
       ? condition.operator
       : getDefaultDataFilterOperator(item);
   };
-  const [operator, setOperator] = useState(() => getOperator(fieldValue));
-  const [prevFieldValue, setPrevFieldValue] = useState(fieldValue);
+  const operator = getOperator(fieldValue);
   const rawValue = getDataFilterCondition(fieldValue).value;
   const renderValue = item.renderValue as
     | DataFilterItemBaseProps<unknown>["renderValue"]
     | undefined;
-  const formatDateValue = (value: unknown): unknown => {
-    const date =
-      value instanceof Date || typeof value === "string"
-        ? dayjs(value)
-        : undefined;
-
-    return date?.isValid() ? date.format("YYYY-MM-DD") : value;
-  };
-
-  if (fieldValue !== prevFieldValue) {
-    setPrevFieldValue(fieldValue);
-    setOperator(getOperator(fieldValue));
-  }
 
   const getDefaultValue = (): unknown => {
-    if (item.type === "date-picker" && operator === "$between") {
-      const range = getDataFilterBetweenValue(rawValue);
-
-      return [formatDateValue(range.$gte), formatDateValue(range.$lte)]
-        .filter((value) => !isEmpty(value))
-        .join(" - ");
-    }
-
-    if (item.type === "date-picker") {
-      return formatDateValue(rawValue);
-    }
-
-    if (item.type === "checkbox") {
-      if (rawValue === true) {
-        return "Checked";
-      }
-
-      if (rawValue === false) {
-        return "Unchecked";
-      }
-    }
-
-    if (item.type === "number-input" && operator === "$between") {
-      const range = getDataFilterBetweenValue(rawValue);
-
-      return [range.$gte, range.$lte]
-        .filter((value) => !isEmpty(value))
-        .join(" - ");
-    }
-
-    if (item.type === "select") {
-      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
-      const options = Array.isArray(item.options) ? item.options : [];
-
-      return values
-        .map((optionValue) => {
-          return (
-            options.find((option) => option.value === optionValue)?.label ??
-            optionValue
-          );
-        })
-        .join(", ");
-    }
-
-    return formatRenderValue({
-      [field]: rawValue,
-    })[field];
+    return getDataFilterDefaultRenderValue({
+      field,
+      item,
+      operator,
+      value: rawValue,
+    });
   };
 
   const getValue = (): string | undefined => {
-    if (isEmpty(rawValue)) {
-      return undefined;
-    }
-
     if (rawValue === null) {
       return "empty";
+    }
+
+    if (isFieldValueEmpty || isEmpty(rawValue)) {
+      return undefined;
     }
 
     return String(
@@ -147,23 +93,22 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
     nextOperator: DataFilterOperator,
     value: unknown,
   ) => {
-    setOperator(nextOperator);
-    onChange(field, createDataFilterCondition(nextOperator, value));
+    setFilterValue(field, createDataFilterCondition(nextOperator, value));
   };
 
   const handleValueChange = (value: unknown) => {
-    onChange(field, createDataFilterCondition(operator, value));
+    setFilterValue(field, createDataFilterCondition(operator, value));
   };
 
   const remove = () => {
-    onRemove(field);
+    removeFilter(field);
   };
 
   const render = item.render as
     | DataFilterItemBaseProps<unknown>["render"]
     | undefined;
-  const value = getValue();
   const isFieldValueEmpty = isEmptyDataFilterValue(fieldValue);
+  const value = getValue();
   const shouldRenderContent = rawValue !== null;
   const labelValue = value
     ? `${label} ${getDataFilterOperatorLabel(operator)} ${value}`
@@ -177,7 +122,7 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({
       onOpenChange={(open) => {
         // Remove empty filters when their popover closes.
         if (!open && isFieldValueEmpty) {
-          onEmptyClose(field);
+          hideFilter(field);
         }
       }}
     >

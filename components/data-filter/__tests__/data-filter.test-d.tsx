@@ -1,5 +1,12 @@
 import { DataFilter } from "../index";
-import type { DataFilterTagListProps } from "../interfaces/data-filter-tag-list-props";
+import {
+  DataFilterDefaultCheckboxField,
+  DataFilterDefaultDatePickerField,
+  DataFilterDefaultInputField,
+  DataFilterDefaultNumberInputField,
+  DataFilterDefaultSelectField,
+  DataFilterTagItem,
+} from "../components";
 import type {
   DataFilterDatePickerBetweenValue,
   DataFilterDatePickerOperator,
@@ -13,12 +20,13 @@ import type {
   DataFilterNumberInputBetweenValue,
   DataFilterNumberInputOperator,
   DataFilterOperator,
+  DataFilterProps,
   DataFilterSearchProps,
   DataFilterSelectOperator,
   DataFilterSelectOption,
   DataFilterSortProps,
   DataFilterSortValue,
-  DataFilterValues,
+  DataFilterValue,
 } from "../index";
 
 const filters: DataFilterItemProps[] = [
@@ -95,6 +103,11 @@ const selectOperator: DataFilterSelectOperator = "$in";
 const notInSelectOperator: DataFilterSelectOperator = "$nin";
 const betweenNumberInputOperator: DataFilterNumberInputOperator = "$between";
 const betweenDatePickerOperator: DataFilterDatePickerOperator = "$between";
+const numberInputBetweenTuple: DataFilterNumberInputBetweenValue = [10, 20];
+const datePickerBetweenTuple: DataFilterDatePickerBetweenValue = [
+  "2024-06-01T00:00:00.000Z",
+  "2024-06-30T00:00:00.000Z",
+];
 
 const _selectFilter: DataFilterItemSelectProps = {
   defaultOperator: selectOperator,
@@ -155,6 +168,13 @@ const invalidSelectOptionWithIcon: DataFilterSelectOption = {
 const baseFilter: DataFilterItemBaseProps = {
   field: "base",
   label: "Base",
+};
+
+const invalidBaseFilterWithIcon: DataFilterItemBaseProps = {
+  field: "base-icon",
+  // @ts-expect-error filter items do not support icon.
+  icon: <span />,
+  label: "Base Icon",
 };
 
 const inputFilter: DataFilterItemInputProps = {
@@ -242,27 +262,181 @@ const checkboxWithNullRenderFilter: DataFilterItemCheckboxProps = {
   type: "checkbox",
 };
 
-const values: DataFilterValues = {
-  age: { $gte: 18, $lte: 30 },
-  amount: { $gte: 10 },
-  archived: { $eq: null },
-  createdAt: { $lt: "2024-06-01T00:00:00.000Z" },
-  publishedAt: {
-    $gte: "2024-06-01T00:00:00.000Z",
-    $lte: "2024-06-30T00:00:00.000Z",
+const value: DataFilterValue = {
+  filter: {
+    age: { $between: numberInputBetweenTuple },
+    amount: { $gte: 10 },
+    archived: { $eq: null },
+    createdAt: { $lt: "2024-06-01T00:00:00.000Z" },
+    publishedAt: {
+      $between: datePickerBetweenTuple,
+    },
+    priority: { $in: ["high", "medium"] },
+    status: { $fulltext: "active" },
+    verified: { $eq: true },
   },
-  priority: { $in: ["high", "medium"] },
-  status: { $fulltext: "active" },
-  verified: { $eq: true },
+  orderBy: {
+    direction: "DESC",
+    field: "createdAt",
+  },
+  query: "active",
 };
 
 const operator: DataFilterOperator = "$fulltext";
 
+const DataFilterTagItemApi = () => <DataFilterTagItem item={inputFilter} />;
+
+const InvalidDataFilterTagItemWithForwardedValue = () => (
+  <DataFilterTagItem
+    item={inputFilter}
+    // @ts-expect-error tag items read their value from data-filter context.
+    value={{ $fulltext: "active" }}
+  />
+);
+
+const DataFilterDefaultInputFieldApi = () => (
+  <DataFilterDefaultInputField
+    item={inputFilter}
+    value="active"
+    onChange={(value) => {
+      const nextValue: string | undefined = value;
+      void nextValue;
+    }}
+  />
+);
+
+const InvalidDataFilterDefaultInputFieldValue = () => (
+  <DataFilterDefaultInputField
+    item={inputFilter}
+    // @ts-expect-error input default field only accepts string values.
+    value={123}
+    onChange={() => undefined}
+  />
+);
+
+const DataFilterDefaultNumberInputFieldApi = () => (
+  <DataFilterDefaultNumberInputField
+    item={numberInputFilter}
+    operator="$between"
+    value={numberInputBetweenTuple}
+    onChange={(value) => {
+      const nextValue: DataFilterNumberInputBetweenValue | number | undefined =
+        value;
+      void nextValue;
+    }}
+  />
+);
+
+const InvalidDataFilterDefaultNumberInputFieldValue = () => (
+  <DataFilterDefaultNumberInputField
+    item={numberInputFilter}
+    operator="$eq"
+    // @ts-expect-error number-input default field only accepts number values.
+    value="10"
+    onChange={() => undefined}
+  />
+);
+
+const DataFilterDefaultDatePickerFieldApi = () => (
+  <DataFilterDefaultDatePickerField
+    item={datePickerFilter}
+    operator="$between"
+    value={datePickerBetweenTuple}
+    onChange={(value) => {
+      const nextValue:
+        | DataFilterDatePickerBetweenValue
+        | Date
+        | string
+        | undefined = value;
+      void nextValue;
+    }}
+  />
+);
+
+const InvalidDataFilterDefaultDatePickerFieldValue = () => (
+  <DataFilterDefaultDatePickerField
+    item={datePickerFilter}
+    operator="$eq"
+    // @ts-expect-error date-picker default field only accepts date values.
+    value={10}
+    onChange={() => undefined}
+  />
+);
+
+const DataFilterDefaultCheckboxFieldApi = () => (
+  <DataFilterDefaultCheckboxField
+    value={true}
+    onChange={(value) => {
+      const nextValue: boolean = value;
+      void nextValue;
+    }}
+  />
+);
+
+const InvalidDataFilterDefaultCheckboxFieldItem = () => (
+  <DataFilterDefaultCheckboxField
+    // @ts-expect-error checkbox default field does not receive item config.
+    item={checkboxFilter}
+    value={true}
+    onChange={() => undefined}
+  />
+);
+
+const DataFilterDefaultSelectFieldApi = () => (
+  <DataFilterDefaultSelectField
+    item={_selectFilter}
+    value={["bug"]}
+    onChange={(value) => {
+      const nextValue: Array<string> | undefined = value;
+      void nextValue;
+    }}
+  />
+);
+
+const DataFilterDefaultSelectFieldLegacyValueApi = () => (
+  <DataFilterDefaultSelectField
+    item={_selectFilter}
+    value="bug"
+    onChange={() => undefined}
+  />
+);
+
+const InvalidDataFilterDefaultSelectFieldValue = () => (
+  <DataFilterDefaultSelectField
+    item={_selectFilter}
+    // @ts-expect-error select default field only accepts string or string array values.
+    value={10}
+    onChange={() => undefined}
+  />
+);
+
 const search: DataFilterSearchProps = {
-  disabled: false,
   placeholder: "Search...",
+};
+
+const invalidSearchWithDisabled: DataFilterSearchProps = {
+  // @ts-expect-error disabled is controlled by the root component.
+  disabled: false,
+};
+
+const invalidSearchWithValue: DataFilterSearchProps = {
+  // @ts-expect-error search value is stored in DataFilterValue.query.
   value: "query",
+};
+
+const invalidSearchWithChange: DataFilterSearchProps = {
+  // @ts-expect-error search changes are emitted through root onChange.
   onChange: () => undefined,
+};
+
+const invalidSearchWithLoading: DataFilterSearchProps = {
+  // @ts-expect-error loading is a root DataFilter prop.
+  loading: false,
+};
+
+const invalidSearchWithClassName: DataFilterSearchProps = {
+  // @ts-expect-error className is not a search config prop.
+  className: "w-full",
 };
 
 const invalidSearchWithPrefix: DataFilterSearchProps = {
@@ -309,7 +483,17 @@ const sort: DataFilterSortProps = {
       fieldLabel: "Created Date",
     },
   ],
+};
+
+const invalidSortWithSelected: DataFilterSortProps = {
+  options: [],
+  // @ts-expect-error selected sort is stored in DataFilterValue.orderBy.
   selected: sortValue,
+};
+
+const invalidSortWithChange: DataFilterSortProps = {
+  options: [],
+  // @ts-expect-error sort changes are emitted through root onChange.
   onChange: () => undefined,
 };
 
@@ -319,18 +503,52 @@ const DataFilterApi = () => (
     loading={false}
     search={search}
     sort={sort}
-    values={values}
-    onChange={() => undefined}
+    value={value}
+    onChange={(nextValue) => {
+      const typedValue: DataFilterValue = nextValue;
+      void typedValue;
+    }}
   />
 );
+
+const dataFilterProps: DataFilterProps = {
+  filters,
+  loading: false,
+  search,
+  sort,
+  value,
+  onChange: (nextValue) => {
+    const typedValue: DataFilterValue = nextValue;
+    void typedValue;
+  },
+};
 
 const DataFilterSearchOnlyApi = () => (
   <DataFilter filters={[]} search={search} />
 );
 
 const DataFilterWithoutSearchApi = () => (
-  // @ts-expect-error search is always visible and cannot be false.
   <DataFilter filters={filters} search={false} />
+);
+
+const DataFilterWithoutSortApi = () => (
+  <DataFilter filters={filters} sort={false} />
+);
+
+const InvalidDataFilterWithValues = () => (
+  <DataFilter
+    filters={filters}
+    // @ts-expect-error values was replaced by value.
+    values={value.filter}
+  />
+);
+
+const InvalidDataFilterWithOnValueChange = () => (
+  <DataFilter
+    filters={filters}
+    // @ts-expect-error use onChange instead.
+    onValueChange={() => undefined}
+  />
 );
 
 const DataFilterWithRenderersApi = () => (
@@ -342,16 +560,6 @@ const DataFilterWithRenderersApi = () => (
     }}
   />
 );
-
-const tagListProps: DataFilterTagListProps = {
-  filters,
-  values,
-  onChange: (nextValues) => {
-    const changedValues: DataFilterValues = nextValues;
-
-    return changedValues;
-  },
-};
 
 const invalidSortValue: DataFilterSortValue = {
   field: "createdAt",
@@ -435,8 +643,16 @@ const invalidCheckboxFilterWithFullText: DataFilterItemCheckboxProps = {
 
 export {
   DataFilterApi,
+  DataFilterDefaultCheckboxFieldApi,
+  DataFilterDefaultDatePickerFieldApi,
+  DataFilterDefaultInputFieldApi,
+  DataFilterDefaultNumberInputFieldApi,
+  DataFilterDefaultSelectFieldApi,
+  DataFilterDefaultSelectFieldLegacyValueApi,
   DataFilterSearchOnlyApi,
+  DataFilterTagItemApi,
   DataFilterWithRenderersApi,
+  DataFilterWithoutSortApi,
   DataFilterWithoutSearchApi,
   baseFilter,
   betweenDatePickerOperator,
@@ -444,18 +660,35 @@ export {
   checkboxFilter,
   checkboxWithNullRenderFilter,
   datePickerFilter,
+  dataFilterProps,
   inputFilter,
+  invalidBaseFilterWithIcon,
   invalidCheckboxFilterWithFullText,
   invalidDateFilterType,
+  InvalidDataFilterWithOnValueChange,
+  InvalidDataFilterWithValues,
+  InvalidDataFilterDefaultCheckboxFieldItem,
+  InvalidDataFilterDefaultDatePickerFieldValue,
+  InvalidDataFilterDefaultInputFieldValue,
+  InvalidDataFilterDefaultNumberInputFieldValue,
+  InvalidDataFilterDefaultSelectFieldValue,
+  InvalidDataFilterTagItemWithForwardedValue,
   invalidFilter,
   invalidFilterWithoutType,
+  invalidSearchWithChange,
+  invalidSearchWithClassName,
+  invalidSearchWithDisabled,
   invalidSearchWithBlur,
   invalidSearchWithLeading,
+  invalidSearchWithLoading,
   invalidSearchWithPrefix,
   invalidSearchWithSuffix,
   invalidSearchWithSubmit,
   invalidSearchWithTrailing,
+  invalidSearchWithValue,
   invalidSelectOptionWithIcon,
+  invalidSortWithChange,
+  invalidSortWithSelected,
   invalidSortValue,
   invalidInputFilterWithComparison,
   invalidInputFilterWithRange,
@@ -464,5 +697,5 @@ export {
   invalidStringFilterType,
   numberInputFilter,
   operator,
-  tagListProps,
+  value,
 };
