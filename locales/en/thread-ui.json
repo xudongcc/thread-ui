@@ -45,6 +45,20 @@
     "minimumAriaLabel": "{{label}} minimum",
     "maximumAriaLabel": "{{label}} maximum"
   },
+  "dataTable": {
+    "allSelected": "All selected",
+    "emptyDescription": "Try changing the filters or search term.",
+    "emptyTitle": "No items found",
+    "nextPage": "Next page",
+    "openRowActions": "Open row actions",
+    "previousPage": "Previous page",
+    "selectAll": "Select all",
+    "selectAllRows": "Select all rows",
+    "selectAllRowsOnPage": "Select all {{count}} on page",
+    "selectedRows": "{{count}} selected",
+    "selectRow": "Select row",
+    "unselectAll": "Unselect all"
+  },
   "calendar": {
     "code": "en-US",
     "options": {

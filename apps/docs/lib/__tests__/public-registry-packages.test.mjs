@@ -13,7 +13,7 @@ const registryPackages = [
   },
   {
     name: "data-table",
-    repoDependencies: ["@repo/empty"],
+    repoDependencies: ["@repo/app-provider", "@repo/empty"],
   },
   {
     name: "locales",

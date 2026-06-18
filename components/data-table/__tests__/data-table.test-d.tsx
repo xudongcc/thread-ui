@@ -12,3 +12,12 @@ export const dataTableWithEmptyProp = (
     empty={<div>No custom items</div>}
   />
 );
+
+export const dataTableWithUnsupportedLocaleProp = (
+  <DataTable<Item>
+    columns={[{ id: "name", header: "Name", accessorKey: "name" }]}
+    data={[]}
+    // @ts-expect-error locale is provided by AppProvider.
+    locale="zh"
+  />
+);

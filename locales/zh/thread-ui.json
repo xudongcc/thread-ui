@@ -45,6 +45,20 @@
     "minimumAriaLabel": "{{label}} 最小值",
     "maximumAriaLabel": "{{label}} 最大值"
   },
+  "dataTable": {
+    "allSelected": "已全选",
+    "emptyDescription": "调整筛选或搜索条件后重试。",
+    "emptyTitle": "没有找到项目",
+    "nextPage": "下一页",
+    "openRowActions": "打开行操作",
+    "previousPage": "上一页",
+    "selectAll": "选择全部",
+    "selectAllRows": "选择所有行",
+    "selectAllRowsOnPage": "选择本页全部 {{count}} 行",
+    "selectedRows": "已选择 {{count}} 行",
+    "selectRow": "选择行",
+    "unselectAll": "取消全选"
+  },
   "calendar": {
     "code": "zh",
     "options": {
