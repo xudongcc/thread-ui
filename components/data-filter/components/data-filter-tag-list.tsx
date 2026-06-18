@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { useDataFilterContext } from "./data-filter-context";
 import { DataFilterTagItem } from "./data-filter-tag-item";
 import type { FC } from "react";
+import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const DataFilterTagList: FC = () => {
-  const { locale, visibleFilters, hiddenFilters, setFilterVisible } =
+  const { t } = useThreadUITranslation();
+  const { visibleFilters, hiddenFilters, setFilterVisible } =
     useDataFilterContext();
 
   return (
@@ -26,7 +28,7 @@ export const DataFilterTagList: FC = () => {
           <DropdownMenuTrigger
             render={
               <Button size="xs" type="button" variant="secondary">
-                <span>{locale.addFilter}</span>
+                <span>{t("dataFilter.addFilter")}</span>
                 <Plus />
               </Button>
             }

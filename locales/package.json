@@ -1,0 +1,10 @@
+{
+  "name": "@repo/locales",
+  "description": "Thread UI i18next translation resources.",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./en/thread-ui.json": "./en/thread-ui.json",
+    "./zh/thread-ui.json": "./zh/thread-ui.json"
+  }
+}

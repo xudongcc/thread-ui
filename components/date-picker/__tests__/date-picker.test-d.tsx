@@ -16,4 +16,12 @@ const datePickerProps: DatePickerProps = {
   onSelect: () => undefined,
 };
 
+const _InvalidDatePickerWithLocale = () => (
+  <DatePicker
+    // @ts-expect-error locale is provided by AppProvider.
+    locale={{ code: "zh" }}
+    render={<button type="button">Pick a date</button>}
+  />
+);
+
 export { DatePickerApi, datePickerProps };

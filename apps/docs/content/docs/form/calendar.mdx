@@ -1,0 +1,51 @@
+---
+title: Calendar
+description: A localized calendar component powered by AppProvider.
+---
+
+<Preview path="calendar" />
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/calendar
+```
+
+## Usage
+
+```tsx
+import { Calendar } from "@/components/thread-ui/calendar";
+```
+
+```tsx
+<Calendar
+  captionLayout="dropdown"
+  mode="single"
+  selected={selected}
+  onSelect={setSelected}
+/>
+```
+
+## Localization
+
+`Calendar` reads the active i18next language from `AppProvider` and passes the matching DayPicker locale to the underlying shadcn calendar. The public API does not accept a local override.
+
+```tsx
+import { Calendar } from "@/components/thread-ui/calendar";
+import { AppProvider } from "@/components/thread-ui/app-provider";
+
+<AppProvider i18n={i18n}>
+  <Calendar mode="single" />
+</AppProvider>;
+```
+
+## API Reference
+
+### CalendarProps
+
+Extends the shadcn calendar props, with localization owned by `AppProvider`.
+
+<AutoTypeTable
+  path="../../components/calendar/index.tsx"
+  type={`Pick<CalendarProps, 'className' | 'captionLayout' | 'numberOfMonths' | 'showOutsideDays' | 'disabled'>`}
+/>

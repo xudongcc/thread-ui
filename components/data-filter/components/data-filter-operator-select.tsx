@@ -4,10 +4,10 @@ import {
   getDataFilterOperatorLabel,
   getDataFilterOperators,
 } from "../utils";
-import { useDataFilterContext } from "./data-filter-context";
 import type { FC } from "react";
 
 import type { DataFilterItemProps, DataFilterOperator } from "../types";
+import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,14 +33,14 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
   value,
   onChange,
 }) => {
-  const { locale } = useDataFilterContext();
+  const { t } = useThreadUITranslation();
   const operators = getDataFilterOperators(item);
   const selectedOperatorLabel =
     value === null && operator === "$eq"
-      ? locale.isEmpty
+      ? t("dataFilter.isEmpty")
       : value === null && operator === "$ne"
-        ? locale.isNotEmpty
-        : getDataFilterOperatorLabel(operator, locale);
+        ? t("dataFilter.isNotEmpty")
+        : getDataFilterOperatorLabel(operator, t);
 
   const getNextValue = (nextOperator: string) => {
     if (value === null) {
@@ -84,7 +84,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
                 onChange(itemOperator, getNextValue(itemOperator));
               }}
             >
-              {getDataFilterOperatorLabel(itemOperator, locale)}
+              {getDataFilterOperatorLabel(itemOperator, t)}
             </DropdownMenuItem>
           );
         })}
@@ -94,7 +94,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
             onChange("$eq", null);
           }}
         >
-          {locale.isEmpty}
+          {t("dataFilter.isEmpty")}
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -102,7 +102,7 @@ export const DataFilterOperatorSelect: FC<DataFilterOperatorSelectProps> = ({
             onChange("$ne", null);
           }}
         >
-          {locale.isNotEmpty}
+          {t("dataFilter.isNotEmpty")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

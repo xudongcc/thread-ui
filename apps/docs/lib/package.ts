@@ -31,7 +31,11 @@ const getPackageFiles = async (dir: string): Promise<Array<string>> => {
 };
 
 export const getPackage = async (packageName: string) => {
-  const packageDir = join(process.cwd(), "..", "..", "components", packageName);
+  const rootDir = join(process.cwd(), "..", "..");
+  const isLocalesPackage = packageName === "locales";
+  const packageDir = isLocalesPackage
+    ? join(rootDir, "locales")
+    : join(rootDir, "components", packageName);
   const packagePath = join(packageDir, "package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf-8"));
 
@@ -57,9 +61,17 @@ export const getPackage = async (packageName: string) => {
   );
 
   const packageFiles = await getPackageFiles(packageDir);
-  const sourceFiles = packageFiles.filter(
-    (file) => file.endsWith(".ts") || file.endsWith(".tsx"),
-  );
+  const sourceFiles = packageFiles.filter((file) => {
+    const fileName = relative(packageDir, file);
+
+    if (isLocalesPackage && fileName === "package.json") {
+      return false;
+    }
+
+    return (
+      file.endsWith(".ts") || file.endsWith(".tsx") || file.endsWith(".json")
+    );
+  });
   const cssFiles = packageFiles.filter((file) => file.endsWith(".css"));
 
   const files: RegistryItem["files"] = [];
@@ -67,12 +79,20 @@ export const getPackage = async (packageName: string) => {
   for (const filePath of sourceFiles) {
     const fileName = relative(packageDir, filePath);
     const content = await fs.readFile(filePath, "utf-8");
+    const isLocaleResource =
+      fileName.endsWith(".json") &&
+      (isLocalesPackage || fileName.startsWith("locales/"));
+    const localeTarget = isLocalesPackage
+      ? `~/public/locales/${fileName}`
+      : `~/public/${fileName}`;
 
     files.push({
-      type: "registry:ui",
+      type: isLocaleResource ? "registry:file" : "registry:ui",
       path: fileName,
       content,
-      target: `components/thread-ui/${packageName}/${fileName}`,
+      target: isLocaleResource
+        ? localeTarget
+        : `components/thread-ui/${packageName}/${fileName}`,
     });
   }
 
@@ -158,7 +178,9 @@ export const getPackage = async (packageName: string) => {
     });
   }
 
-  let type: RegistryItem["type"] = "registry:ui";
+  let type: RegistryItem["type"] = isLocalesPackage
+    ? "registry:item"
+    : "registry:ui";
 
   if (!Object.keys(files).length && Object.keys(css).length) {
     type = "registry:style";

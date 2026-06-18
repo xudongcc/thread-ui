@@ -4,7 +4,6 @@ import {
   getDataFilterDateRange,
   getDataFilterDateRangeValue,
 } from "../utils";
-import { useDataFilterContext } from "./data-filter-context";
 import type { FC } from "react";
 
 import type {
@@ -12,7 +11,7 @@ import type {
   DataFilterItemDatePickerProps,
   DataFilterOperator,
 } from "../types";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar } from "@/components/thread-ui/calendar";
 
 type DataFilterDefaultDatePickerFieldValue =
   | DataFilterDatePickerBetweenValue
@@ -30,7 +29,6 @@ interface DataFilterDefaultDatePickerFieldProps {
 export const DataFilterDefaultDatePickerField: FC<
   DataFilterDefaultDatePickerFieldProps
 > = ({ item, operator, value, onChange }) => {
-  const { locale } = useDataFilterContext();
   const selected = getDataFilterDate(value);
   const disabled = getDataFilterDateDisabled({
     min: item.min,
@@ -49,7 +47,6 @@ export const DataFilterDefaultDatePickerField: FC<
         className="p-0 px-2 pb-2"
         defaultMonth={selectedRange.from ?? selectedRange.to}
         disabled={disabled}
-        locale={locale.calendar}
         mode="range"
         selected={selectedRange}
         onSelect={(dateRange) => {
@@ -64,7 +61,6 @@ export const DataFilterDefaultDatePickerField: FC<
       className="p-0 px-2 pb-2"
       defaultMonth={selected}
       disabled={disabled}
-      locale={locale.calendar}
       mode="single"
       selected={selected}
       onSelect={(date) => {

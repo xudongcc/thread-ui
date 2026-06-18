@@ -16,7 +16,6 @@ pnpm dlx shadcn@latest add @thread-ui/data-filter
 ```tsx
 import {
   DataFilter,
-  zhCN,
   type DataFilterItemProps,
   type DataFilterValue,
 } from "@/components/thread-ui/data-filter";
@@ -99,34 +98,61 @@ const value: DataFilterValue = {
 
 ## Localization
 
-`DataFilter` supports a DayPicker-style `locale` prop. Pass a locale code to use a built-in preset, or import a preset from the component locale exports.
+`DataFilter` reads its built-in labels from `AppProvider`. Register the `thread-ui` namespace on your i18next instance and pass that instance to `AppProvider`.
 
 ```tsx
-import { DataFilter, zhCN } from "@/components/thread-ui/data-filter";
+import { createInstance } from "i18next";
+import HttpBackend from "i18next-http-backend";
+import { initReactI18next } from "react-i18next";
+import { AppProvider } from "@/components/thread-ui/app-provider";
+import { DataFilter } from "@/components/thread-ui/data-filter";
 
-<DataFilter filters={filters} locale="zh-CN" />;
-<DataFilter filters={filters} locale={zhCN} />;
+const i18n = createInstance();
+
+void i18n
+  .use(HttpBackend)
+  .use(initReactI18next)
+  .init({
+    fallbackLng: "en",
+    backend: {
+      loadPath: "/locales/{{lng}}/{{ns}}.json",
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+    lng: "zh",
+    ns: ["thread-ui"],
+  });
+
+<AppProvider i18n={i18n}>
+  <DataFilter filters={filters} />
+</AppProvider>;
 ```
 
-The built-in date picker receives the preset calendar locale automatically. You can also provide partial overrides, which are merged with the default English locale.
+The built-in date picker uses the shared `Calendar`, which reads calendar labels from the `thread-ui` i18next namespace. Override component copy by merging resources into that namespace.
 
 ```tsx
-<DataFilter
-  filters={filters}
-  locale={{
-    addFilter: "Add condition",
-    operators: {
-      $fulltext: "matches",
+void i18n.addResourceBundle(
+  "en",
+  "thread-ui",
+  {
+    dataFilter: {
+      addFilter: "Add condition",
+      operators: {
+        $fulltext: "matches",
+      },
     },
-  }}
-/>
+  },
+  true,
+  true,
+);
 ```
 
 ## Examples
 
 ### Locale
 
-Use the `zhCN` preset to localize built-in labels, operator text, checkbox states, number range aria labels, and the date picker calendar.
+Use a `zh` i18next resource to localize built-in labels, operator text, checkbox states, number range aria labels, and the date picker calendar.
 
 <Preview path="data-filter-locale" />
 
@@ -162,16 +188,7 @@ The root component props for the data filter.
 
 <AutoTypeTable
   path="../../components/data-filter/data-filter.tsx"
-  type={`Pick<DataFilterProps, 'className' | 'loading' | 'filters' | 'search' | 'sort' | 'locale' | 'value' | 'defaultValue' | 'onChange'>`}
-/>
-
-### DataFilterLocale
-
-Locale configuration for built-in labels, operator text, checkbox text, number range aria labels, and the nested date picker calendar.
-
-<AutoTypeTable
-  path="../../components/data-filter/types/data-filter-locale.ts"
-  type={`Pick<DataFilterLocale, 'code' | 'calendar' | 'addFilter' | 'removeFilter' | 'empty' | 'isEmpty' | 'isNotEmpty' | 'checked' | 'unchecked' | 'operators' | 'minimumAriaLabel' | 'maximumAriaLabel'>`}
+  type={`Pick<DataFilterProps, 'className' | 'loading' | 'filters' | 'search' | 'sort' | 'value' | 'defaultValue' | 'onChange'>`}
 />
 
 ### DataFilterItemBaseProps

@@ -1,32 +1,30 @@
-import { resolveDataFilterLocale } from "../locales";
 import { formatDataFilterDateValue } from "./data-filter-date-value";
 import { formatRenderValue } from "./format-render-value";
 import { getDataFilterBetweenValue } from "./get-data-filter-between-value";
 import { isEmpty } from "./is-empty";
 import type {
   DataFilterItemProps,
-  DataFilterLocale,
   DataFilterOperator,
   DataFilterSelectOption,
 } from "../types";
 
 export const getDataFilterDefaultRenderValue = ({
+  checkedLabel,
   field,
   item,
-  locale,
   operator,
   selectOptionCache,
+  uncheckedLabel,
   value,
 }: {
+  checkedLabel: string;
   field: string;
   item: DataFilterItemProps;
-  locale?: DataFilterLocale;
   operator: DataFilterOperator;
   selectOptionCache?: Record<string, DataFilterSelectOption>;
+  uncheckedLabel: string;
   value: unknown;
 }): unknown => {
-  const resolvedLocale = resolveDataFilterLocale(locale);
-
   if (item.type === "date-picker" && operator === "$between") {
     const range = getDataFilterBetweenValue(value);
 
@@ -42,11 +40,11 @@ export const getDataFilterDefaultRenderValue = ({
 
   if (item.type === "checkbox") {
     if (value === true) {
-      return resolvedLocale.checked;
+      return checkedLabel;
     }
 
     if (value === false) {
-      return resolvedLocale.unchecked;
+      return uncheckedLabel;
     }
   }
 

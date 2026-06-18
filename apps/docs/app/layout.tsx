@@ -3,8 +3,7 @@ import "./global.css";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 
-import { AlertDialogProvider } from "@/components/thread-ui/alert-dialog";
-import { ToastProvider } from "@/components/thread-ui/toast";
+import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -25,9 +24,7 @@ export default function Layout({ children }: LayoutProps<"/">) {
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >
         <RootProvider>
-          {children}
-          <AlertDialogProvider />
-          <ToastProvider />
+          <Providers>{children}</Providers>
         </RootProvider>
       </body>
     </html>

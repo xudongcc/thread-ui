@@ -1,11 +1,71 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render as renderWithTestingLibrary,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createInstance } from "i18next";
 import { StrictMode, createElement, useEffect, useRef, useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import en from "@repo/locales/en/thread-ui.json";
+import zh from "@repo/locales/zh/thread-ui.json";
 import { DataFilter } from "../data-filter";
-import { zhCN } from "../locales";
 import type { DataFilterItemProps, DataFilterValue } from "../types";
+import type { ReactElement } from "react";
+import { AppProvider } from "@/components/thread-ui/app-provider";
+
+const createResources = () => ({
+  en: {
+    "thread-ui": structuredClone(en),
+  },
+  zh: {
+    "thread-ui": structuredClone(zh),
+  },
+});
+
+const createI18n = (language = "en") => {
+  const i18n = createInstance();
+
+  void i18n.init({
+    fallbackLng: "en",
+    interpolation: {
+      escapeValue: false,
+    },
+    initAsync: false,
+    lng: language,
+    ns: ["thread-ui"],
+    resources: createResources(),
+  });
+
+  return i18n;
+};
+
+const render = (
+  ui: ReactElement,
+  { language = "en" }: { language?: string } = {},
+) => {
+  return renderWithTestingLibrary(
+    <AppProvider i18n={createI18n(language)}>{ui}</AppProvider>,
+  );
+};
+
+beforeAll(() => {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+});
 
 interface AutoCommitFieldProps {
   value: string | null | undefined;
@@ -164,12 +224,11 @@ const pressEnter = (
 };
 
 describe("DataFilter", () => {
-  it("uses the provided locale for built-in labels", async () => {
+  it("uses AppProvider translations for built-in labels", async () => {
     const user = userEvent.setup();
 
     render(
       <DataFilter
-        locale={zhCN}
         filters={[
           {
             defaultOperator: "$eq",
@@ -212,6 +271,7 @@ describe("DataFilter", () => {
           query: "",
         }}
       />,
+      { language: "zh" },
     );
 
     expect(screen.getByRole("button", { name: "添加筛选" })).toBeTruthy();
@@ -233,38 +293,51 @@ describe("DataFilter", () => {
     expect(screen.getByRole("button", { name: "已选中" })).toBeTruthy();
   });
 
-  it("merges partial locale overrides with the default English locale", () => {
-    render(
-      <DataFilter
-        filters={[
-          {
-            defaultOperator: "$fulltext",
-            field: "name",
-            label: "Name",
-            type: "input",
-          },
-          {
-            defaultOperator: "$eq",
-            field: "owner",
-            label: "Owner",
-            type: "input",
-          },
-        ]}
-        locale={{
+  it("uses AppProvider resource overrides with the default English locale", () => {
+    const customI18n = createI18n();
+
+    customI18n.addResourceBundle(
+      "en",
+      "thread-ui",
+      {
+        dataFilter: {
           addFilter: "Add condition",
           operators: {
             $fulltext: "matches",
           },
-        }}
-        value={{
-          filter: {
-            name: {
-              $fulltext: "Acme",
+        },
+      },
+      true,
+      true,
+    );
+
+    renderWithTestingLibrary(
+      <AppProvider i18n={customI18n}>
+        <DataFilter
+          filters={[
+            {
+              defaultOperator: "$fulltext",
+              field: "name",
+              label: "Name",
+              type: "input",
             },
-          },
-          query: "",
-        }}
-      />,
+            {
+              defaultOperator: "$eq",
+              field: "owner",
+              label: "Owner",
+              type: "input",
+            },
+          ]}
+          value={{
+            filter: {
+              name: {
+                $fulltext: "Acme",
+              },
+            },
+            query: "",
+          }}
+        />
+      </AppProvider>,
     );
 
     expect(screen.getByRole("button", { name: "Add condition" })).toBeTruthy();
@@ -273,13 +346,13 @@ describe("DataFilter", () => {
     ).toBeTruthy();
   });
 
-  it("resolves string locale presets and passes them to date filter calendars", async () => {
+  it("passes the AppProvider language calendar locale to date filter calendars", async () => {
     const user = userEvent.setup();
     const selectedDate = "2025-03-15T00:00:00.000Z";
-    const localizedDate = new Date(selectedDate).toLocaleDateString("zh-CN");
+    const localizedDate = new Date(selectedDate).toLocaleDateString("zh");
+
     render(
       <DataFilter
-        locale="zh-CN"
         filters={[
           {
             defaultOperator: "$eq",
@@ -297,6 +370,7 @@ describe("DataFilter", () => {
           query: "",
         }}
       />,
+      { language: "zh" },
     );
 
     await user.click(

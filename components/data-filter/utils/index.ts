@@ -19,7 +19,6 @@ export { dataFilterDefaultDatePickerOperators } from "./data-filter-default-date
 export { dataFilterDefaultInputOperators } from "./data-filter-default-input-operators";
 export { dataFilterDefaultNumberInputOperators } from "./data-filter-default-number-input-operators";
 export { dataFilterDefaultSelectOperators } from "./data-filter-default-select-operators";
-export { dataFilterOperatorLabels } from "./data-filter-operator-labels";
 export { flattenObject } from "./flatten-object";
 export { formatRenderValue } from "./format-render-value";
 export { getDataFilterBetweenValue } from "./get-data-filter-between-value";

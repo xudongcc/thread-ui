@@ -15,15 +15,12 @@ import {
   normalizeDataFilterValue,
   serializeDataFilterValueFilter,
 } from "../utils";
-import { resolveDataFilterLocale } from "../locales";
 import type { FC, ReactNode } from "react";
 import type {
   DataFilterItemProps,
-  DataFilterLocaleInput,
   DataFilterSelectOption,
   DataFilterSortValue,
   DataFilterValue,
-  ResolvedDataFilterLocale,
 } from "../types";
 
 type DataFilterGroups = {
@@ -33,7 +30,6 @@ type DataFilterGroups = {
 
 type DataFilterContextValue = DataFilterGroups & {
   value: DataFilterValue;
-  locale: ResolvedDataFilterLocale;
   selectOptionCache: Record<string, Record<string, DataFilterSelectOption>>;
   filterValues: Record<string, unknown>;
   cacheSelectOptions: (
@@ -51,7 +47,6 @@ type DataFilterContextValue = DataFilterGroups & {
 interface DataFilterProviderProps {
   children: ReactNode;
   filters: Array<DataFilterItemProps>;
-  locale: DataFilterLocaleInput;
   value?: DataFilterValue;
   defaultValue?: DataFilterValue;
   onChange?: (value: DataFilterValue) => void;
@@ -132,7 +127,6 @@ export const useDataFilterContext = () => {
 export const DataFilterProvider: FC<DataFilterProviderProps> = ({
   children,
   filters,
-  locale,
   value: controlledValue,
   defaultValue,
   onChange,
@@ -143,10 +137,6 @@ export const DataFilterProvider: FC<DataFilterProviderProps> = ({
   );
   const rawValue = isControlled ? controlledValue : uncontrolledValue;
   const value = useMemo(() => normalizeDataFilterValue(rawValue), [rawValue]);
-  const resolvedLocale = useMemo(
-    () => resolveDataFilterLocale(locale),
-    [locale],
-  );
   const [filterValues, setFilterValues] = useState<Record<string, unknown>>(
     () => hydrateDataFilterValueFilter(value.filter),
   );
@@ -374,7 +364,6 @@ export const DataFilterProvider: FC<DataFilterProviderProps> = ({
     () => ({
       ...filterGroups,
       value,
-      locale: resolvedLocale,
       selectOptionCache,
       filterValues,
       cacheSelectOptions,
@@ -388,7 +377,6 @@ export const DataFilterProvider: FC<DataFilterProviderProps> = ({
     [
       filterGroups,
       value,
-      resolvedLocale,
       selectOptionCache,
       filterValues,
       cacheSelectOptions,

@@ -19,6 +19,7 @@ import type {
   DataFilterOperator,
 } from "../types";
 import type { FC } from "react";
+import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -38,9 +39,9 @@ interface DataFilterTagItemProps {
 
 export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
   const { field, label } = item;
+  const { t } = useThreadUITranslation();
   const {
     filterValues,
-    locale,
     selectOptionCache,
     setFilterValue,
     hideFilter,
@@ -69,9 +70,10 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
     return getDataFilterDefaultRenderValue({
       field,
       item,
-      locale,
+      checkedLabel: t("dataFilter.checked"),
       operator,
       selectOptionCache: selectOptionCache[field],
+      uncheckedLabel: t("dataFilter.unchecked"),
       value: rawValue,
     });
   };
@@ -119,10 +121,10 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
   const value = getValue();
   const operatorLabel =
     rawValue === null && operator === "$eq"
-      ? locale.isEmpty
+      ? t("dataFilter.isEmpty")
       : rawValue === null && operator === "$ne"
-        ? locale.isNotEmpty
-        : getDataFilterOperatorLabel(operator, locale);
+        ? t("dataFilter.isNotEmpty")
+        : getDataFilterOperatorLabel(operator, t);
   const shouldRenderContent = rawValue !== null;
   const labelValue = value
     ? `${label} ${operatorLabel} ${value}`
@@ -178,7 +180,7 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
           />
 
           <Button
-            aria-label={locale.removeFilter}
+            aria-label={t("dataFilter.removeFilter")}
             size="icon-xs"
             variant="ghost"
             onClick={remove}

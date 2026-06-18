@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ComponentProps, FC } from "react";
 
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar } from "@/components/thread-ui/calendar";
 import {
   Popover,
   PopoverContent,

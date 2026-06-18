@@ -1,6 +1,6 @@
 import { CheckIcon } from "lucide-react";
-import { useDataFilterContext } from "./data-filter-context";
 import type { FC } from "react";
+import { useThreadUITranslation } from "@/components/thread-ui/app-provider";
 
 interface DataFilterDefaultCheckboxFieldProps {
   value?: boolean;
@@ -10,13 +10,13 @@ interface DataFilterDefaultCheckboxFieldProps {
 export const DataFilterDefaultCheckboxField: FC<
   DataFilterDefaultCheckboxFieldProps
 > = ({ value, onChange }) => {
-  const { locale } = useDataFilterContext();
+  const { t } = useThreadUITranslation();
 
   return (
     <div className="grid">
       {[
-        { label: locale.unchecked, value: false },
-        { label: locale.checked, value: true },
+        { label: t("dataFilter.unchecked"), value: false },
+        { label: t("dataFilter.checked"), value: true },
       ].map((option) => {
         const selected = value === option.value;
 

@@ -91,8 +91,8 @@ const datePickerOperators = read(
 const allOperators = read(
   "components/data-filter/utils/data-filter-all-operators.ts",
 );
-const operatorLabels = read(
-  "components/data-filter/utils/data-filter-operator-labels.ts",
+const getOperatorLabel = read(
+  "components/data-filter/utils/get-data-filter-operator-label.ts",
 );
 const dateValue = read(
   "components/data-filter/utils/data-filter-date-value.ts",
@@ -130,9 +130,14 @@ assert.ok(
   dataFilter.includes("*:data-[slot=data-filter-tag-list]:col-span-full"),
 );
 assert.ok(dataFilter.includes("export interface DataFilterProps"));
+assert.ok(!dataFilter.includes("DataFilterLocaleInput"));
+assert.ok(!dataFilter.includes("locale?:"));
+assert.ok(!dataFilter.includes("locale={locale}"));
 assert.ok(dataFilterIndex.includes("DataFilterProps"));
 assert.ok(dataFilterIndex.includes("DataFilterSearchProps"));
 assert.ok(dataFilterIndex.includes("DataFilterSortProps"));
+assert.ok(!dataFilterIndex.includes("enUS"));
+assert.ok(!dataFilterIndex.includes("@repo/locales"));
 assert.ok(!dataFilterIndex.includes("./interfaces"));
 assert.ok(
   !existsSync(interfacesPath),
@@ -161,6 +166,7 @@ assert.ok(sort.includes("interface DataFilterSortViewProps"));
 assert.ok(sort.includes("getDataFilterSortOptionByKey"));
 assert.ok(sort.includes('className="w-64 p-0"'));
 assert.ok(operatorSelect.includes("interface DataFilterOperatorSelectProps"));
+assert.ok(operatorSelect.includes("useThreadUITranslation"));
 assert.ok(
   !operatorSelect.includes("export interface DataFilterOperatorSelectProps"),
 );
@@ -174,11 +180,14 @@ assert.ok(existsSync(contextPath));
 assert.ok(filterContext.includes("createContext"));
 assert.ok(filterContext.includes("DataFilterProvider"));
 assert.ok(filterContext.includes("useDataFilterContext"));
+assert.ok(!filterContext.includes("useThreadUITranslation"));
+assert.ok(!filterContext.includes("resolveDataFilterLocale"));
 assert.ok(filterContext.includes("normalizeDataFilterValue"));
 assert.ok(filterContext.includes("serializeDataFilterValueFilter"));
 assert.ok(dataFilter.includes("<DataFilterProvider"));
 assert.ok(!tagList.includes("<DataFilterProvider"));
 assert.ok(!tagList.includes("DataFilterConnectedTagItem"));
+assert.ok(tagList.includes("useThreadUITranslation"));
 assert.ok(tagList.includes('import { Button } from "@/components/ui/button";'));
 assert.ok(
   tagList.includes('<Button size="xs" type="button" variant="secondary">'),
@@ -189,6 +198,7 @@ assert.ok(
 );
 assert.ok(tagItem.includes("interface DataFilterTagItemProps"));
 assert.ok(tagItem.includes("useDataFilterContext"));
+assert.ok(tagItem.includes("useThreadUITranslation"));
 assert.ok(tagItem.includes("item: DataFilterItemProps;"));
 assert.ok(!tagItem.includes("value: unknown;"));
 assert.ok(!tagItem.includes("onEmptyClose"));
@@ -233,6 +243,7 @@ assert.ok(
     "interface DataFilterDefaultCheckboxFieldProps",
   ),
 );
+assert.ok(defaultCheckboxField.includes("useThreadUITranslation"));
 assert.ok(!defaultCheckboxField.includes("DataFilterItemCheckboxProps"));
 assert.ok(!defaultCheckboxField.includes("item:"));
 assert.ok(!defaultCheckboxField.includes("value: unknown;"));
@@ -258,10 +269,11 @@ assert.ok(
 );
 assert.ok(
   defaultDatePickerField.includes(
-    'import { Calendar } from "@/components/ui/calendar";',
+    'import { Calendar } from "@/components/thread-ui/calendar";',
   ),
 );
 assert.ok(defaultDatePickerField.includes("<Calendar"));
+assert.ok(!defaultDatePickerField.includes("locale={locale.calendar}"));
 assert.ok(
   defaultDatePickerField.includes(
     "interface DataFilterDefaultDatePickerFieldProps",
@@ -281,6 +293,7 @@ assert.ok(
     "interface DataFilterDefaultNumberInputFieldProps",
   ),
 );
+assert.ok(defaultNumberInputField.includes("useThreadUITranslation"));
 assert.ok(!defaultNumberInputField.includes("value: unknown;"));
 assert.ok(defaultNumberInputField.includes('operator === "$between"'));
 assert.ok(defaultNumberInputField.includes("const [min, max]"));
@@ -362,9 +375,10 @@ assert.ok(datePickerOperators.includes('"$between"'));
 assert.ok(allOperators.includes('"$in"'));
 assert.ok(allOperators.includes('"$nin"'));
 assert.ok(allOperators.includes('"$between"'));
-assert.ok(operatorLabels.includes('$in: "contains"'));
-assert.ok(operatorLabels.includes('$nin: "does not contain"'));
-assert.ok(operatorLabels.includes('$between: "between"'));
+assert.ok(getOperatorLabel.includes('"dataFilter.operators.$eq"'));
+assert.ok(getOperatorLabel.includes('"dataFilter.operators.$between"'));
+assert.ok(!getOperatorLabel.includes("defaultValue"));
+assert.ok(!getOperatorLabel.includes("dataFilter.operators." + "$" + "{"));
 assert.ok(dateValue.includes("getDataFilterDateRangeValue"));
 assert.ok(dateValue.includes("toISOString"));
 assert.ok(defaultRenderValue.includes("getDataFilterDefaultRenderValue"));
@@ -380,6 +394,7 @@ assert.ok(tagItem.includes("getDataFilterDefaultRenderValue"));
 assert.ok(tagItem.includes("isEmptyDataFilterValue(fieldValue)"));
 assert.ok(!packageJson.includes('"@repo/date-picker": "workspace:*"'));
 assert.ok(!packageJson.includes('"@repo/select": "workspace:*"'));
+assert.ok(packageJson.includes('"@repo/app-provider": "workspace:*"'));
 assert.ok(
   dataFilterExample.includes(
     'className="max-h-full w-full space-y-4 overflow-y-auto rounded-lg border p-4"',
@@ -410,6 +425,12 @@ assert.ok(
     'path="../../components/data-filter/data-filter.tsx"',
   ),
 );
+assert.ok(!dataFilterDocs.includes("'locale'"));
+assert.ok(!dataFilterDocs.includes("### DataFilterLocale"));
+assert.ok(
+  dataFilterDocs.includes('from "@/components/thread-ui/app-provider";'),
+);
+assert.ok(dataFilterDocs.includes("AppProvider"));
 assert.ok(
   dataFilterDocs.includes(
     'path="../../components/data-filter/components/data-filter-search.tsx"',
