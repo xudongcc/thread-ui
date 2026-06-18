@@ -51,3 +51,26 @@ test("public registry dependencies keep package versions", async () => {
     process.chdir(previousCwd);
   }
 });
+
+test("public registry files do not include internal package metadata", async () => {
+  const previousCwd = process.cwd();
+  process.chdir(docsDir);
+
+  try {
+    for (const packageName of ["data-filter", "data-table", "calendar"]) {
+      const registryPackage = await getPackage(packageName);
+      const filePaths = registryPackage.files?.map((file) => file.path) ?? [];
+
+      assert.ok(
+        !filePaths.includes("package.json"),
+        `${packageName} should not install package.json into consuming apps`,
+      );
+      assert.ok(
+        !filePaths.includes("tsconfig.json"),
+        `${packageName} should not install tsconfig.json into consuming apps`,
+      );
+    }
+  } finally {
+    process.chdir(previousCwd);
+  }
+});

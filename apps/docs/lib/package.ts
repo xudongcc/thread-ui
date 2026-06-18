@@ -83,6 +83,13 @@ export const getPackage = async (packageName: string) => {
       return false;
     }
 
+    if (
+      !isLocalesPackage &&
+      ["package.json", "tsconfig.json"].includes(fileName)
+    ) {
+      return false;
+    }
+
     return (
       file.endsWith(".ts") || file.endsWith(".tsx") || file.endsWith(".json")
     );
