@@ -22,6 +22,7 @@ import type {
   DataFilterNumberInputOperator,
   DataFilterOperator,
   DataFilterProps,
+  DataFilterResolveSelectedOptions,
   DataFilterSearchProps,
   DataFilterSelectOperator,
   DataFilterSelectOption,
@@ -109,6 +110,16 @@ const datePickerBetweenTuple: DataFilterDatePickerBetweenValue = [
   "2024-06-01T00:00:00.000Z",
   "2024-06-30T00:00:00.000Z",
 ];
+const resolveSelectedOptions: DataFilterResolveSelectedOptions = async (
+  values,
+) => {
+  const selectedValues: Array<string> = values;
+
+  return selectedValues.map((value) => ({
+    label: value,
+    value,
+  }));
+};
 
 const _selectFilter: DataFilterItemSelectProps = {
   defaultOperator: selectOperator,
@@ -147,6 +158,7 @@ const _remoteSelectFilter: DataFilterItemSelectProps = {
 
     return [{ label: typedQuery, value: typedQuery }];
   },
+  resolveSelectedOptions,
   type: "select",
 };
 

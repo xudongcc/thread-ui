@@ -38,8 +38,14 @@ interface DataFilterTagItemProps {
 
 export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
   const { field, label } = item;
-  const { filterValues, locale, setFilterValue, hideFilter, removeFilter } =
-    useDataFilterContext();
+  const {
+    filterValues,
+    locale,
+    selectOptionCache,
+    setFilterValue,
+    hideFilter,
+    removeFilter,
+  } = useDataFilterContext();
   const fieldValue = filterValues[field];
   const operators = getDataFilterOperators(item);
   const getOperator = (value: unknown): DataFilterOperator => {
@@ -65,6 +71,7 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
       item,
       locale,
       operator,
+      selectOptionCache: selectOptionCache[field],
       value: rawValue,
     });
   };

@@ -144,7 +144,7 @@ The Search bar provides an anchor for the `sort` control menu, allowing users to
 
 ### Async Select Options
 
-Select filters can load options from an async function. The function receives the current query and returns matching options.
+Select filters can load options from an async function. The function receives the current query and returns matching options. When stored values may not appear in the current result page, provide `resolveSelectedOptions` to fetch selected option labels by value.
 
 <Preview path="data-filter-async-select" />
 
@@ -238,11 +238,11 @@ Configuration for a built-in checkbox-style boolean filter.
 
 ### DataFilterItemSelectProps
 
-Configuration for a built-in multi-select filter. `options` accepts a static array or an async `(query) => Promise<DataFilterSelectOption[]>` function for remote search.
+Configuration for a built-in multi-select filter. `options` accepts a static array or an async `(query) => Promise<DataFilterSelectOption[]>` function for remote search. Use `resolveSelectedOptions` to resolve selected values that are not present in the current options.
 
 <AutoTypeTable
   path="../../components/data-filter/types/data-filter-item-select-props.ts"
-  type={`Pick<DataFilterItemSelectProps, 'type' | 'options' | 'placeholder'>`}
+  type={`Pick<DataFilterItemSelectProps, 'type' | 'options' | 'resolveSelectedOptions' | 'placeholder'>`}
 />
 
 ### DataFilterSearchProps

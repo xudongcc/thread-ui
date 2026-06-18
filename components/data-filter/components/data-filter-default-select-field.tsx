@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FC } from "react";
 
+import { useDataFilterContext } from "./data-filter-context";
+import type { FC } from "react";
 import type {
   DataFilterItemSelectProps,
   DataFilterSelectOption,
@@ -25,9 +26,12 @@ interface DataFilterDefaultSelectFieldProps {
   onChange: (value: DataFilterDefaultSelectFieldChangeValue) => void;
 }
 
+const emptyOptionCache: Record<string, DataFilterSelectOption> = {};
+
 export const DataFilterDefaultSelectField: FC<
   DataFilterDefaultSelectFieldProps
 > = ({ item, value, onChange }) => {
+  const { cacheSelectOptions, selectOptionCache } = useDataFilterContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [remoteOptions, setRemoteOptions] = useState<
@@ -35,12 +39,10 @@ export const DataFilterDefaultSelectField: FC<
   >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [selectedOptionCache, setSelectedOptionCache] = useState<
-    Record<string, DataFilterSelectOption>
-  >({});
   const latestRequestId = useRef(0);
   const isRemoteOptions = typeof item.options === "function";
   const options = Array.isArray(item.options) ? item.options : remoteOptions;
+  const fieldOptionCache = selectOptionCache[item.field] ?? emptyOptionCache;
   const selectedValues = useMemo(() => {
     return Array.isArray(value)
       ? value
@@ -48,25 +50,29 @@ export const DataFilterDefaultSelectField: FC<
         ? [value]
         : [];
   }, [value]);
-  const cacheSelectedOptions = useCallback(
-    (
-      nextSelectedValues: Array<string>,
-      nextOptions: Array<DataFilterSelectOption>,
-    ) => {
-      setSelectedOptionCache((currentCache) => {
-        const nextCache = { ...currentCache };
-
-        for (const option of nextOptions) {
-          if (nextSelectedValues.includes(option.value)) {
-            nextCache[option.value] = option;
-          }
-        }
-
-        return nextCache;
-      });
+  const cacheOptions = useCallback(
+    (nextOptions: Array<DataFilterSelectOption>) => {
+      cacheSelectOptions(item.field, nextOptions);
     },
-    [],
+    [cacheSelectOptions, item.field],
   );
+  const getOption = useCallback(
+    (optionValue: string) => {
+      return (
+        options.find((option) => option.value === optionValue) ??
+        fieldOptionCache[optionValue]
+      );
+    },
+    [fieldOptionCache, options],
+  );
+
+  useEffect(() => {
+    if (isRemoteOptions) {
+      return;
+    }
+
+    cacheOptions(options);
+  }, [cacheOptions, isRemoteOptions, options]);
 
   useEffect(() => {
     if (!isRemoteOptions) {
@@ -103,7 +109,7 @@ export const DataFilterDefaultSelectField: FC<
       .then((nextOptions) => {
         if (!cancelled && latestRequestId.current === requestId) {
           setRemoteOptions(nextOptions);
-          cacheSelectedOptions(selectedValues, nextOptions);
+          cacheOptions(nextOptions);
           setError(false);
         }
       })
@@ -122,21 +128,10 @@ export const DataFilterDefaultSelectField: FC<
     return () => {
       cancelled = true;
     };
-  }, [
-    cacheSelectedOptions,
-    debouncedSearchQuery,
-    item.options,
-    selectedValues,
-  ]);
+  }, [cacheOptions, debouncedSearchQuery, item.options]);
 
   const optionValues = options.map((option) => option.value);
   const items = Array.from(new Set([...optionValues, ...selectedValues]));
-  const getOption = (optionValue: string) => {
-    return (
-      options.find((option) => option.value === optionValue) ??
-      selectedOptionCache[optionValue]
-    );
-  };
 
   return (
     <Combobox
@@ -149,7 +144,7 @@ export const DataFilterDefaultSelectField: FC<
       }}
       onInputValueChange={setSearchQuery}
       onValueChange={(nextValues) => {
-        cacheSelectedOptions(nextValues, options);
+        cacheOptions(options);
         onChange(nextValues.length > 0 ? nextValues : undefined);
       }}
     >

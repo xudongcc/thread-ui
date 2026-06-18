@@ -7,6 +7,7 @@ import type {
   DataFilterItemProps,
   DataFilterLocale,
   DataFilterOperator,
+  DataFilterSelectOption,
 } from "../types";
 
 export const getDataFilterDefaultRenderValue = ({
@@ -14,12 +15,14 @@ export const getDataFilterDefaultRenderValue = ({
   item,
   locale,
   operator,
+  selectOptionCache,
   value,
 }: {
   field: string;
   item: DataFilterItemProps;
   locale?: DataFilterLocale;
   operator: DataFilterOperator;
+  selectOptionCache?: Record<string, DataFilterSelectOption>;
   value: unknown;
 }): unknown => {
   const resolvedLocale = resolveDataFilterLocale(locale);
@@ -59,8 +62,14 @@ export const getDataFilterDefaultRenderValue = ({
 
     return values
       .map((optionValue) => {
+        const cachedOption =
+          typeof optionValue === "string"
+            ? selectOptionCache?.[optionValue]
+            : undefined;
+
         return (
           options.find((option) => option.value === optionValue)?.label ??
+          cachedOption?.label ??
           optionValue
         );
       })

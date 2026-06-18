@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode, createElement, useEffect, useRef, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -306,6 +306,55 @@ describe("DataFilter", () => {
     expect(
       document.querySelector(`[data-day="${localizedDate}"]`),
     ).toBeTruthy();
+  });
+
+  it("resolves labels for selected async select values missing from search results", async () => {
+    const user = userEvent.setup();
+    const loadOptions = vi.fn(async () => {
+      return [{ label: "Cloudflare", value: "cloudflare" }];
+    });
+    const resolveSelectedOptions = vi.fn(async (values: Array<string>) => {
+      return values.map((nextValue) => ({
+        label: nextValue === "postgresql" ? "PostgreSQL" : nextValue,
+        value: nextValue,
+      }));
+    });
+
+    render(
+      <DataFilter
+        filters={[
+          {
+            defaultOperator: "$in",
+            field: "tags",
+            label: "Tags",
+            options: loadOptions,
+            resolveSelectedOptions,
+            type: "select",
+          },
+        ]}
+        value={{
+          filter: {
+            tags: {
+              $in: ["postgresql"],
+            },
+          },
+          query: "",
+        }}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Tags contains PostgreSQL" }),
+    ).toBeTruthy();
+    await waitFor(() => {
+      expect(resolveSelectedOptions).toHaveBeenCalledWith(["postgresql"]);
+    });
+
+    await user.click(screen.getByRole("button", { name: /Tags contains/ }));
+
+    expect((await screen.findAllByText("PostgreSQL")).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("does not emit controlled value changes from inside state updaters", () => {

@@ -284,8 +284,8 @@ assert.ok(
 assert.ok(!defaultNumberInputField.includes("value: unknown;"));
 assert.ok(defaultNumberInputField.includes('operator === "$between"'));
 assert.ok(defaultNumberInputField.includes("const [min, max]"));
-assert.ok(defaultNumberInputField.includes("onChange([floatValue, max])"));
-assert.ok(defaultNumberInputField.includes("onChange([min, floatValue])"));
+assert.ok(defaultNumberInputField.includes("onChange([nextMin, max])"));
+assert.ok(defaultNumberInputField.includes("onChange([min, nextMax])"));
 assert.ok(defaultInputField.includes("<Input"));
 assert.ok(
   defaultInputField.includes("interface DataFilterDefaultInputFieldProps"),
@@ -330,12 +330,22 @@ assert.ok(
 assert.ok(selectProps.includes('type: "select";'));
 assert.ok(selectProps.includes("Array<string> | null"));
 assert.ok(selectProps.includes("options: DataFilterSelectOptions;"));
+assert.ok(
+  selectProps.includes(
+    "resolveSelectedOptions?: DataFilterResolveSelectedOptions;",
+  ),
+);
 assert.ok(selectProps.includes("DataFilterSelectOptions"));
+assert.ok(selectProps.includes("DataFilterResolveSelectedOptions"));
 assert.ok(
   selectOptions.includes(
     "(query: string) => Promise<Array<DataFilterSelectOption>>",
   ),
 );
+assert.ok(
+  selectOptions.includes("export type DataFilterResolveSelectedOptions"),
+);
+assert.ok(selectOptions.includes("values: Array<string>"));
 assert.ok(selectOption.includes("label: string;"));
 assert.ok(selectOption.includes("value: string;"));
 assert.ok(!selectOption.includes("icon"));
@@ -382,6 +392,11 @@ assert.ok(
   dataFilterDocs.includes('<Preview path="data-filter-async-select" />'),
 );
 assert.ok(asyncSelectExample.includes("options: loadTagOptions"));
+assert.ok(
+  asyncSelectExample.includes(
+    "resolveSelectedOptions: resolveSelectedTagOptions",
+  ),
+);
 assert.ok(asyncSelectExample.includes("Promise"));
 assert.ok(asyncSelectExample.includes("setTimeout"));
 assert.ok(
@@ -389,6 +404,7 @@ assert.ok(
     "async `(query) => Promise<DataFilterSelectOption[]>` function",
   ),
 );
+assert.ok(dataFilterDocs.includes("`resolveSelectedOptions`"));
 assert.ok(
   dataFilterDocs.includes(
     'path="../../components/data-filter/data-filter.tsx"',

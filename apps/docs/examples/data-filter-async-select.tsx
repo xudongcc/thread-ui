@@ -45,6 +45,18 @@ const loadTagOptions = async (
     .slice(0, 8);
 };
 
+const resolveSelectedTagOptions = async (
+  values: Array<string>,
+): Promise<Array<DataFilterSelectOption>> => {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 350);
+  });
+
+  return tagOptions.filter((option) => {
+    return values.includes(option.value);
+  });
+};
+
 const filters: Array<DataFilterItemProps> = [
   {
     defaultOperator: "$in",
@@ -52,6 +64,7 @@ const filters: Array<DataFilterItemProps> = [
     label: "Tags",
     options: loadTagOptions,
     placeholder: "Search tags...",
+    resolveSelectedOptions: resolveSelectedTagOptions,
     type: "select",
   },
 ];
@@ -60,7 +73,7 @@ export default function DataFilterAsyncSelectExample() {
   const [value, setValue] = useState<DataFilterValue>({
     filter: {
       tags: {
-        $in: ["cloudflare", "llm"],
+        $in: ["cloudflare", "postgresql"],
       },
     },
     query: "",

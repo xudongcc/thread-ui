@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -19,6 +20,7 @@ import type { FC, ReactNode } from "react";
 import type {
   DataFilterItemProps,
   DataFilterLocaleInput,
+  DataFilterSelectOption,
   DataFilterSortValue,
   DataFilterValue,
   ResolvedDataFilterLocale,
@@ -32,7 +34,12 @@ type DataFilterGroups = {
 type DataFilterContextValue = DataFilterGroups & {
   value: DataFilterValue;
   locale: ResolvedDataFilterLocale;
+  selectOptionCache: Record<string, Record<string, DataFilterSelectOption>>;
   filterValues: Record<string, unknown>;
+  cacheSelectOptions: (
+    field: string,
+    options: Array<DataFilterSelectOption>,
+  ) => void;
   setQuery: (query: string) => void;
   setOrderBy: (orderBy: DataFilterSortValue) => void;
   setFilterValue: (field: string, value: unknown) => void;
@@ -100,6 +107,18 @@ const isIncompleteBetweenValue = (value: unknown) => {
   return hasValue && isEmptyDataFilterValue(value);
 };
 
+const getSelectValues = (value: unknown) => {
+  const rawValue = getDataFilterCondition(value).value;
+
+  if (Array.isArray(rawValue)) {
+    return rawValue.filter((optionValue): optionValue is string => {
+      return typeof optionValue === "string";
+    });
+  }
+
+  return typeof rawValue === "string" ? [rawValue] : [];
+};
+
 export const useDataFilterContext = () => {
   const context = useContext(DataFilterContext);
 
@@ -137,6 +156,11 @@ export const DataFilterProvider: FC<DataFilterProviderProps> = ({
   const [filterGroups, setFilterGroups] = useState(() => {
     return getFilterGroups(filters, value.filter, visibleFields);
   });
+  const [selectOptionCache, setSelectOptionCache] = useState<
+    Record<string, Record<string, DataFilterSelectOption>>
+  >({});
+  const requestedSelectResolveKeysRef = useRef<Record<string, string>>({});
+  const isMountedRef = useRef(false);
 
   useEffect(() => {
     const hydratedValues = hydrateDataFilterValueFilter(value.filter);
@@ -209,6 +233,91 @@ export const DataFilterProvider: FC<DataFilterProviderProps> = ({
     [createNextValue, emitValueChange, filterValues],
   );
 
+  const cacheSelectOptions = useCallback(
+    (field: string, options: Array<DataFilterSelectOption>) => {
+      if (options.length === 0) {
+        return;
+      }
+
+      setSelectOptionCache((currentCache) => {
+        const currentFieldCache = currentCache[field] ?? {};
+        const nextFieldCache = { ...currentFieldCache };
+        let changed = false;
+
+        for (const option of options) {
+          const currentOption = currentFieldCache[option.value];
+
+          if (
+            currentOption?.label === option.label &&
+            currentOption.value === option.value
+          ) {
+            continue;
+          }
+
+          nextFieldCache[option.value] = option;
+          changed = true;
+        }
+
+        if (!changed) {
+          return currentCache;
+        }
+
+        return {
+          ...currentCache,
+          [field]: nextFieldCache,
+        };
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    for (const item of filters) {
+      if (item.type !== "select" || !item.resolveSelectedOptions) {
+        continue;
+      }
+
+      const values = getSelectValues(filterValues[item.field]);
+      const fieldCache = selectOptionCache[item.field] ?? {};
+      const missingValues = values.filter((optionValue) => {
+        return !fieldCache[optionValue];
+      });
+
+      if (missingValues.length === 0) {
+        continue;
+      }
+
+      const missingValuesKey = missingValues.join("\0");
+
+      if (
+        requestedSelectResolveKeysRef.current[item.field] === missingValuesKey
+      ) {
+        continue;
+      }
+
+      requestedSelectResolveKeysRef.current[item.field] = missingValuesKey;
+
+      void item
+        .resolveSelectedOptions(missingValues)
+        .then((nextOptions) => {
+          if (isMountedRef.current) {
+            cacheSelectOptions(item.field, nextOptions);
+          }
+        })
+        .catch(() => {
+          // Keep unresolved selected values visible as their raw value.
+        });
+    }
+  }, [cacheSelectOptions, filters, filterValues, selectOptionCache]);
+
   const setFilterValue = useCallback(
     (field: string, value: unknown) => {
       const nextValues = {
@@ -266,7 +375,9 @@ export const DataFilterProvider: FC<DataFilterProviderProps> = ({
       ...filterGroups,
       value,
       locale: resolvedLocale,
+      selectOptionCache,
       filterValues,
+      cacheSelectOptions,
       setQuery,
       setOrderBy,
       setFilterValue,
@@ -278,7 +389,9 @@ export const DataFilterProvider: FC<DataFilterProviderProps> = ({
       filterGroups,
       value,
       resolvedLocale,
+      selectOptionCache,
       filterValues,
+      cacheSelectOptions,
       setQuery,
       setOrderBy,
       setFilterValue,
