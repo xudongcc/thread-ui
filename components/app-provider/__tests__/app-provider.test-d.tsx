@@ -20,4 +20,17 @@ const appProviderProps: AppProviderProps = {
   },
 };
 
-export { AppProviderApi, appProviderProps };
+const InheritedAppProviderApi = () => (
+  <AppProvider toast={{ limit: 5 }}>
+    <div>App</div>
+  </AppProvider>
+);
+
+const inheritedAppProviderProps: AppProviderProps = {};
+
+export {
+  AppProviderApi,
+  InheritedAppProviderApi,
+  appProviderProps,
+  inheritedAppProviderProps,
+};

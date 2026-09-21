@@ -36,7 +36,7 @@ assert.match(source, /export const AppProvider/);
 assert.match(source, /I18nextProvider/);
 assert.match(source, /AlertDialogProvider/);
 assert.match(source, /ToastProvider/);
-assert.match(source, /i18n: I18nInstance/);
+assert.match(source, /i18n\?: I18nInstance/);
 assert.match(source, /toast\?: ToastProviderProps/);
 assert.doesNotMatch(source, /useTranslation/);
 assert.match(source, /<I18nextProvider i18n=\{i18n\}>/);

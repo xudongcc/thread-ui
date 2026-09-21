@@ -1,6 +1,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
+import { I18nextProvider } from "react-i18next";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
@@ -174,3 +175,50 @@ it("localizes selected option removal and preserves the filter update", async ()
     expect.objectContaining({ filter: { tags: { $in: ["beta"] } } }),
   );
 });
+
+it.each([false, true])(
+  "uses the inherited instance unless an explicit instance is provided (override=%s)",
+  async (override) => {
+    const outer = createI18n();
+    const inner = createI18n();
+    await inner.changeLanguage("en");
+    const active = override ? inner : outer;
+    render(
+      <I18nextProvider i18n={outer}>
+        <AppProvider i18n={override ? inner : undefined}>
+          <PageBackAction />
+        </AppProvider>
+      </I18nextProvider>,
+    );
+    expect(
+      screen.getByRole("button", { name: override ? /Back$/ : /返回$/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("region", { name: override ? "Notifications" : "通知" }),
+    ).toBeTruthy();
+    let result!: Promise<boolean>;
+    act(() => {
+      result = alertDialog({ title: "Continue?" });
+    });
+    expect(
+      await screen.findByRole("button", {
+        name: override ? "Confirm" : "确认",
+      }),
+    ).toBeTruthy();
+    await act(() => active.changeLanguage(override ? "zh" : "en"));
+    expect(
+      screen.getByRole("button", { name: override ? "确认" : "Confirm" }),
+    ).toBeTruthy();
+    await userEvent.click(
+      screen.getByRole("button", { name: override ? "取消" : "Cancel" }),
+    );
+    await expect(result).resolves.toBe(false);
+    expect(
+      screen.getByRole("button", { name: override ? /返回$/ : /Back$/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("region", { name: override ? "通知" : "Notifications" }),
+    ).toBeTruthy();
+    expect((override ? outer : inner).language).toBe(override ? "zh" : "en");
+  },
+);
