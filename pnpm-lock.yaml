@@ -362,6 +362,15 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  components/common:
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   components/complex-filter:
     dependencies:
       lucide-react:
@@ -695,6 +704,9 @@ importers:
       '@repo/button':
         specifier: workspace:*
         version: link:../button
+      '@repo/common':
+        specifier: workspace:*
+        version: link:../common
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

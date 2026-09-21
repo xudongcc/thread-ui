@@ -12,6 +12,7 @@ import type {
 } from "react";
 import type { VariantProps } from "class-variance-authority";
 
+import type { DataAttributes } from "@/components/thread-ui/common";
 import { Button } from "@/components/thread-ui/button";
 import {
   DropdownMenu,
@@ -114,8 +115,8 @@ export type PageSecondaryActionProps = Pick<
   ComponentProps<typeof Button>,
   "children" | "className" | "disabled" | "title"
 > &
-  AriaAttributes & {
-    [attribute: `data-${string}`]: string | number | boolean | undefined;
+  AriaAttributes &
+  DataAttributes & {
     destructive?: boolean;
     icon?: ReactNode;
     onAction?: () => void;
