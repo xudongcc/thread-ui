@@ -4,6 +4,7 @@
 
 import { ChevronDown, Plus, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { FC, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -92,39 +93,16 @@ export interface ComplexFilterItem {
   operators?: Array<ComplexFilterOperator>;
 }
 
-export interface ComplexFilterI18n {
-  operators: Record<ComplexFilterOperator, string>;
-  logicals: Record<ComplexFilterLogical, string>;
-  addCondition: string;
-  addGroup: string;
-  selectField: string;
-  selectOperator: string;
-  selectValue: string;
-  clearAll: string;
-}
-
-export const defaultComplexFilterI18n: ComplexFilterI18n = {
-  operators: {
-    $eq: "Equal",
-    $ne: "Not equal",
-    $gt: "Greater than",
-    $gte: "Greater than or equal",
-    $lt: "Less than",
-    $lte: "Less than or equal",
-    $in: "Includes",
-    $nin: "Excludes",
-    $fulltext: "Contains",
-  },
-  logicals: {
-    $and: "AND",
-    $or: "OR",
-  },
-  addCondition: "Add condition",
-  addGroup: "Add group",
-  selectField: "Select field",
-  selectOperator: "Select operator",
-  selectValue: "Select value",
-  clearAll: "Clear all",
+const defaultOperatorLabels: Record<ComplexFilterOperator, string> = {
+  $eq: "Equals",
+  $ne: "Not equal",
+  $gt: "Greater than",
+  $gte: "Greater than or equal",
+  $lt: "Less than",
+  $lte: "Less than or equal",
+  $in: "Includes",
+  $nin: "Excludes",
+  $fulltext: "Contains",
 };
 
 function isFilterGroup(
@@ -188,7 +166,6 @@ function normalizeFilterValue(value: unknown): ComplexFilterValue {
 }
 
 export interface ComplexFilterConditionRowProps {
-  i18n: ComplexFilterI18n;
   filters: Array<ComplexFilterItem>;
   value: ComplexFilterCondition;
   onChange: (value: ComplexFilterCondition) => void;
@@ -196,12 +173,12 @@ export interface ComplexFilterConditionRowProps {
 }
 
 export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
-  i18n,
   filters,
   value,
   onChange,
   onRemove,
 }) => {
+  const { t } = useTranslation("thread-ui");
   const [field, operatorValuePair] = useMemo<
     [
       string | undefined,
@@ -245,10 +222,13 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
   const operatorItems = useMemo(
     () =>
       operators.map((operator) => ({
-        label: i18n.operators[operator],
+        label: t(
+          `complexFilter.operators.${operator}`,
+          defaultOperatorLabels[operator],
+        ),
         value: operator,
       })),
-    [i18n, operators],
+    [operators, t],
   );
 
   const handleFieldChange = (newField: string) => {
@@ -275,7 +255,9 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
         }}
       >
         <SelectTrigger className="min-w-[150px]">
-          <SelectValue placeholder={i18n.selectField} />
+          <SelectValue
+            placeholder={t("complexFilter.selectField", "Select field")}
+          />
         </SelectTrigger>
 
         <SelectContent>
@@ -296,13 +278,15 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
         }}
       >
         <SelectTrigger className="min-w-[150px]">
-          <SelectValue placeholder={i18n.selectOperator} />
+          <SelectValue
+            placeholder={t("complexFilter.selectOperator", "Select operator")}
+          />
         </SelectTrigger>
 
         <SelectContent>
-          {operators.map((operator) => (
-            <SelectItem key={operator} value={operator}>
-              {i18n.operators[operator]}
+          {operatorItems.map(({ value, label }) => (
+            <SelectItem key={value} value={value}>
+              {label}
             </SelectItem>
           ))}
         </SelectContent>
@@ -324,7 +308,6 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
 };
 
 export interface ComplexFilterGroupProps {
-  i18n: ComplexFilterI18n;
   filters: Array<ComplexFilterItem>;
   value: ComplexFilterGroupValue;
   onChange: (value: ComplexFilterGroupValue) => void;
@@ -332,12 +315,12 @@ export interface ComplexFilterGroupProps {
 }
 
 export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
-  i18n,
   filters,
   value,
   onChange,
   onRemove,
 }) => {
+  const { t } = useTranslation("thread-ui");
   const [logical, items]: [ComplexFilterLogical, Array<ComplexFilterValue>] =
     useMemo(() => {
       if (
@@ -407,7 +390,10 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
                     handleLogicalChange(newLogical);
                   }}
                 >
-                  {i18n.logicals[logical]}
+                  {t(
+                    `complexFilter.logicals.${logical}`,
+                    logical === ComplexFilterLogical.AND ? "AND" : "OR",
+                  )}
                 </Button>
 
                 <div
@@ -423,7 +409,6 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
                   {isFilterGroup(item) ? (
                     <ComplexFilterGroup
                       filters={filters}
-                      i18n={i18n}
                       value={item}
                       onChange={(newValue) => handleItemChange(index, newValue)}
                       onRemove={() => handleItemRemove(index)}
@@ -431,7 +416,6 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
                   ) : (
                     <ComplexFilterConditionRow
                       filters={filters}
-                      i18n={i18n}
                       value={item}
                       onChange={(newValue) => handleItemChange(index, newValue)}
                       onRemove={() => handleItemRemove(index)}
@@ -454,17 +438,17 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
                   variant="outline"
                 >
                   <Plus className="mr-1 size-4" />
-                  {i18n.addCondition}
+                  {t("complexFilter.addCondition", "Add condition")}
                   <ChevronDown className="ml-1 size-4" />
                 </Button>
               }
             />
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={handleAddCondition}>
-                {i18n.addCondition}
+                {t("complexFilter.addCondition", "Add condition")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleAddGroup}>
-                {i18n.addGroup}
+                {t("complexFilter.addGroup", "Add group")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -484,7 +468,6 @@ export interface ComplexFilterProps<
   TFormat extends ComplexFilterValueFormat = "object",
 > {
   filters: Array<ComplexFilterItem>;
-  i18n?: ComplexFilterI18n;
   showClearAll?: boolean;
   value?: ComplexFilterValueByFormat<TFormat>;
   onChange?: (value: ComplexFilterValueByFormat<TFormat>) => void;
@@ -493,12 +476,12 @@ export interface ComplexFilterProps<
 export const ComplexFilter = <
   TFormat extends ComplexFilterValueFormat = "object",
 >({
-  i18n = defaultComplexFilterI18n,
   filters,
   showClearAll = false,
   value,
   onChange,
 }: ComplexFilterProps<TFormat>) => {
+  const { t } = useTranslation("thread-ui");
   const [displayState, setDisplayState] = useState(() => {
     const displayValue =
       value === undefined
@@ -580,7 +563,6 @@ export const ComplexFilter = <
     <div className="space-y-4">
       <ComplexFilterGroup
         filters={filters}
-        i18n={i18n}
         value={internalDisplayValue}
         onChange={handleChange}
       />
@@ -593,7 +575,7 @@ export const ComplexFilter = <
             variant="ghost"
             onClick={handleClearAll}
           >
-            {i18n.clearAll}
+            {t("complexFilter.clearAll", "Clear all")}
           </Button>
         </div>
       )}

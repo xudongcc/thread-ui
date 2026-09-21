@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 import { FileIcon, UploadIcon, XIcon } from "lucide-react";
 import {
   createContext,
@@ -193,11 +195,18 @@ export const FileUpload: FC<FileUploadProps> = ({
   id,
   multiple,
   disabled,
-  placeholder = "Click to upload, drop files here, or paste files",
+  placeholder: placeholderProp,
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
   ...inputProps
 }) => {
+  const { t } = useTranslation("thread-ui");
+  const placeholder =
+    placeholderProp ??
+    t(
+      "fileUpload.placeholder",
+      "Click to upload, drop files here, or paste files",
+    );
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const inputRef = useRef<HTMLInputElement>(null);
