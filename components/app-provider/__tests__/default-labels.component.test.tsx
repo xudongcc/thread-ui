@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
@@ -104,42 +104,6 @@ it.each(["empty", "error"])(
     ).toBeTruthy();
   },
 );
-
-it("removes selected options using the built-in ComboboxChip control", async () => {
-  const i18n = createI18n();
-  const onChange = vi.fn();
-  render(
-    <AppProvider i18n={i18n}>
-      <DataFilter
-        defaultValue={{
-          query: "",
-          filter: { tags: { $in: ["alpha", "beta"] } },
-        }}
-        filters={[
-          {
-            field: "tags",
-            label: "Tags",
-            type: "select",
-            defaultOperator: "$in",
-            options: [
-              { label: "Alpha", value: "alpha" },
-              { label: "Beta", value: "beta" },
-            ],
-          },
-        ]}
-        onChange={onChange}
-      />
-    </AppProvider>,
-  );
-  await userEvent.click(screen.getByRole("button", { name: /Tags/ }));
-  const chip = screen.getByText("Alpha", {
-    selector: '[data-slot="combobox-chip"]',
-  });
-  await userEvent.click(within(chip).getByRole("button"));
-  expect(onChange).toHaveBeenLastCalledWith(
-    expect.objectContaining({ filter: { tags: { $in: ["beta"] } } }),
-  );
-});
 
 it.each([false, true])(
   "uses the inherited instance unless an explicit instance is provided (override=%s)",

@@ -13,7 +13,7 @@ assert.match(source, /compact: "max-w-2xl"/);
 assert.doesNotMatch(source, /export const PageSecondaryActions/);
 assert.match(pageActionsSource, /Children\.toArray\(children\)/);
 assert.match(pageActionsSource, /isPageSecondaryActionElement/);
-assert.match(pageActionsSource, /onClick=\{\(\) => onAction\?\.\(\)\}/);
+assert.match(pageActionsSource, /onClick=\{\(\) => action\.onAction\?\.\(\)\}/);
 assert.doesNotMatch(pageActionsSource, /onSelect=/);
 assert.match(
   pageActionsSource,
