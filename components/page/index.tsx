@@ -4,14 +4,15 @@ import { cva } from "class-variance-authority";
 import { ArrowLeftIcon, MoreHorizontalIcon } from "lucide-react";
 import { Children, isValidElement } from "react";
 import type {
+  AriaAttributes,
   ComponentProps,
   FC,
-  HTMLAttributes,
   ReactElement,
   ReactNode,
 } from "react";
 import type { VariantProps } from "class-variance-authority";
 
+import type { DataAttributes } from "@/components/thread-ui/common";
 import { Button } from "@/components/thread-ui/button";
 import {
   DropdownMenu,
@@ -61,9 +62,12 @@ export const PageHeader: FC<PageHeaderProps> = ({ className, ...props }) => {
   );
 };
 
-export interface PageActionProps extends HTMLAttributes<HTMLElement> {
-  loading?: boolean;
-}
+export type PageActionProps = Omit<
+  ComponentProps<typeof Button>,
+  "size" | "variant" | "className"
+> & {
+  className?: string;
+};
 
 export type PageBackActionProps = PageActionProps;
 
@@ -109,14 +113,17 @@ export const PagePrimaryAction: FC<PagePrimaryActionProps> = ({
   );
 };
 
-export type PageSecondaryActionProps = {
-  children: ReactNode;
-  className?: string;
-  destructive?: boolean;
-  disabled?: boolean;
-  icon?: ReactNode;
-  onAction?: () => void;
-};
+export type PageSecondaryActionProps = Pick<
+  PageActionProps,
+  "className" | "disabled" | "title"
+> &
+  AriaAttributes &
+  DataAttributes & {
+    children: ReactNode;
+    destructive?: boolean;
+    icon?: ReactNode;
+    onAction?: () => void;
+  };
 
 export const PageSecondaryAction: FC<PageSecondaryActionProps> = () => {
   return null;
@@ -194,32 +201,48 @@ export const PageActions: FC<PageActionsProps> = ({
   const overflowSecondaryActions =
     secondaryActions.length > 3 ? secondaryActions.slice(2) : [];
   const renderSecondaryButtons = (actions: typeof secondaryActions) =>
-    actions.map(({ key, props: action }, index) => (
-      <Button
-        key={key ?? index}
-        className={action.className}
-        data-slot="page-secondary-action"
-        disabled={action.disabled}
-        variant={action.destructive ? "destructive" : "secondary"}
-        onClick={() => action.onAction?.()}
-      >
-        {action.icon}
-        {action.children}
-      </Button>
-    ));
+    actions.map(
+      (
+        {
+          key,
+          props: { children, className, destructive, icon, onAction, ...props },
+        },
+        index,
+      ) => (
+        <Button
+          key={key ?? index}
+          {...props}
+          className={className}
+          data-slot="page-secondary-action"
+          variant={destructive ? "destructive" : "secondary"}
+          onClick={() => onAction?.()}
+        >
+          {icon}
+          {children}
+        </Button>
+      ),
+    );
   const renderSecondaryMenuItems = (actions: typeof secondaryActions) =>
-    actions.map(({ key, props: action }, index) => (
-      <DropdownMenuItem
-        key={key ?? index}
-        className={action.className}
-        disabled={action.disabled}
-        variant={action.destructive ? "destructive" : "default"}
-        onClick={() => action.onAction?.()}
-      >
-        {action.icon}
-        {action.children}
-      </DropdownMenuItem>
-    ));
+    actions.map(
+      (
+        {
+          key,
+          props: { children, className, destructive, icon, onAction, ...props },
+        },
+        index,
+      ) => (
+        <DropdownMenuItem
+          key={key ?? index}
+          {...props}
+          className={className}
+          variant={destructive ? "destructive" : "default"}
+          onClick={() => onAction?.()}
+        >
+          {icon}
+          {children}
+        </DropdownMenuItem>
+      ),
+    );
 
   return (
     <div

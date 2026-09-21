@@ -1,0 +1,10 @@
+{
+  "name": "@repo/common",
+  "description": "Shared types for Thread UI components.",
+  "version": "0.0.0",
+  "private": true,
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}
