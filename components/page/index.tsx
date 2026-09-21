@@ -214,7 +214,7 @@ export const PageActions: FC<PageActionsProps> = ({
         className={action.className}
         disabled={action.disabled}
         variant={action.destructive ? "destructive" : "default"}
-        onSelect={() => action.onAction?.()}
+        onClick={() => action.onAction?.()}
       >
         {action.icon}
         {action.children}
