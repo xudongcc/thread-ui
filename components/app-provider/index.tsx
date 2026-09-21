@@ -9,8 +9,7 @@ import { AlertDialogProvider } from "@/components/thread-ui/alert-dialog";
 import { ToastProvider } from "@/components/thread-ui/toast";
 
 export type AppProviderProps = PropsWithChildren<{
-  /** Override the inherited i18next instance when provided. */
-  i18n?: I18nInstance;
+  i18n: I18nInstance;
   toast?: ToastProviderProps;
 }>;
 
@@ -19,15 +18,11 @@ export const AppProvider: FC<AppProviderProps> = ({
   i18n,
   toast,
 }) => {
-  const content = (
-    <AlertDialogProvider>
-      <ToastProvider {...toast}>{children}</ToastProvider>
-    </AlertDialogProvider>
-  );
-
-  return i18n ? (
-    <I18nextProvider i18n={i18n}>{content}</I18nextProvider>
-  ) : (
-    content
+  return (
+    <I18nextProvider i18n={i18n}>
+      <AlertDialogProvider>
+        <ToastProvider {...toast}>{children}</ToastProvider>
+      </AlertDialogProvider>
+    </I18nextProvider>
   );
 };

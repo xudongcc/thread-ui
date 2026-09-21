@@ -93,16 +93,7 @@ dialog for routine status messages.
 ### Calling before the provider is mounted
 
 Mount the provider at a stable application boundary. In Thread UI,
-`AppProvider` includes the feedback providers for the application. Its `i18n`
-prop is optional: omit it to inherit the application's existing `I18nextProvider`,
-or pass an instance to override it for this subtree. Without an outer provider,
-react-i18next uses the application's globally initialized instance.
-
-```tsx
-<I18nextProvider i18n={i18n}>
-  <AppProvider>{children}</AppProvider>
-</I18nextProvider>
-```
+`AppProvider` includes the feedback providers for the application.
 
 ### Using functions for persistent UI
 

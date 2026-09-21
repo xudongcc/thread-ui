@@ -28,7 +28,7 @@ import { Calendar } from "@/components/thread-ui/calendar";
 
 ## Localization
 
-`Calendar` reads the active i18next language supplied to `AppProvider` or inherited from an outer `I18nextProvider` and passes the matching DayPicker locale to the underlying shadcn calendar. The public API does not accept a local override.
+`Calendar` reads the active i18next language from `AppProvider` and passes the matching DayPicker locale to the underlying shadcn calendar. The public API does not accept a local override.
 
 ```tsx
 import { Calendar } from "@/components/thread-ui/calendar";
