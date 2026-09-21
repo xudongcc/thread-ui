@@ -13,7 +13,6 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import type {
-  ChangeEvent,
   ClipboardEvent,
   ComponentProps,
   DragEvent,
@@ -21,9 +20,16 @@ import type {
   KeyboardEvent,
   MouseEvent,
   ReactNode,
-  RefObject,
 } from "react";
 
+import {
+  Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentMedia,
+  AttachmentTitle,
+} from "@/components/ui/attachment";
 import { cn } from "@/lib/utils";
 
 type FileUploadInputProps = Omit<
@@ -33,6 +39,7 @@ type FileUploadInputProps = Omit<
   | "defaultValue"
   | "onChange"
   | "placeholder"
+  | "title"
   | "type"
   | "value"
 >;
@@ -41,7 +48,11 @@ export interface FileUploadProps extends FileUploadInputProps {
   value?: File[];
   defaultValue?: File[];
   onChange?: (files: File[]) => void;
-  /** Text shown in the drop zone when no files are selected. */
+  /** Optional heading in the default dropzone. */
+  title?: ReactNode;
+  /** Default dropzone description; falls back to placeholder. */
+  description?: ReactNode;
+  /** Text shown in the dropzone when description is not provided. */
   placeholder?: string;
   className?: string;
   children?: ReactNode;
@@ -50,11 +61,11 @@ export interface FileUploadProps extends FileUploadInputProps {
 type FileUploadContextValue = {
   files: File[];
   inputProps: FileUploadInputProps;
-  inputId: string;
-  inputRef: RefObject<HTMLInputElement | null>;
   multiple?: boolean;
   disabled?: boolean;
   placeholder: string;
+  title?: ReactNode;
+  description?: ReactNode;
   ariaDescribedBy?: string;
   ariaInvalid?: ComponentProps<"input">["aria-invalid"];
   isDragging: boolean;
@@ -104,6 +115,39 @@ const useFileUploadContext = () => {
   }
 
   return context;
+};
+
+export type UseFileUploadReturn = Pick<
+  FileUploadContextValue,
+  | "files"
+  | "multiple"
+  | "disabled"
+  | "isDragging"
+  | "addFiles"
+  | "removeFile"
+  | "openFileDialog"
+>;
+
+/** Access file selection state and actions from a descendant of FileUpload. */
+export const useFileUpload = (): UseFileUploadReturn => {
+  const {
+    files,
+    multiple,
+    disabled,
+    isDragging,
+    addFiles,
+    removeFile,
+    openFileDialog,
+  } = useFileUploadContext();
+  return {
+    files,
+    multiple,
+    disabled,
+    isDragging,
+    addFiles,
+    removeFile,
+    openFileDialog,
+  };
 };
 
 const getClipboardFiles = (event: ClipboardEvent<HTMLDivElement>) => {
@@ -195,6 +239,8 @@ export const FileUpload: FC<FileUploadProps> = ({
   multiple,
   disabled,
   placeholder: placeholderProp,
+  title,
+  description,
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
   ...inputProps
@@ -219,7 +265,7 @@ export const FileUpload: FC<FileUploadProps> = ({
 
   const addFiles = useCallback(
     (nextFiles: File[]) => {
-      if (!nextFiles.length) {
+      if (disabled || !nextFiles.length) {
         return;
       }
 
@@ -233,11 +279,13 @@ export const FileUpload: FC<FileUploadProps> = ({
 
       onChange?.(normalizedFiles);
     },
-    [files, isControlled, multiple, onChange],
+    [disabled, files, isControlled, multiple, onChange],
   );
 
   const removeFile = useCallback(
     (index: number) => {
+      if (disabled) return;
+
       const nextFiles = files.filter((_, fileIndex) => fileIndex !== index);
 
       if (!isControlled) {
@@ -246,7 +294,7 @@ export const FileUpload: FC<FileUploadProps> = ({
 
       onChange?.(nextFiles);
     },
-    [files, isControlled, onChange],
+    [disabled, files, isControlled, onChange],
   );
 
   const openFileDialog = useCallback(() => {
@@ -261,11 +309,11 @@ export const FileUpload: FC<FileUploadProps> = ({
     () => ({
       files,
       inputProps,
-      inputId,
-      inputRef,
       multiple,
       disabled,
       placeholder,
+      title,
+      description,
       ariaDescribedBy,
       ariaInvalid,
       isDragging,
@@ -277,10 +325,11 @@ export const FileUpload: FC<FileUploadProps> = ({
     [
       files,
       inputProps,
-      inputId,
       multiple,
       disabled,
       placeholder,
+      title,
+      description,
       ariaDescribedBy,
       ariaInvalid,
       isDragging,
@@ -292,16 +341,31 @@ export const FileUpload: FC<FileUploadProps> = ({
 
   return (
     <FileUploadContext.Provider value={contextValue}>
-      {children === undefined ? (
-        <>
-          <FileUploadDropzone className={className} />
-          <FileUploadList />
-        </>
-      ) : (
-        <div className={className} data-slot="file-upload-root">
-          {children}
-        </div>
-      )}
+      <input
+        ref={inputRef}
+        hidden
+        {...inputProps}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
+        disabled={disabled}
+        id={inputId}
+        multiple={multiple}
+        type="file"
+        onChange={(event) => {
+          addFiles(Array.from(event.target.files ?? []));
+          event.target.value = "";
+        }}
+      />
+      <div className={cn("w-full", className)} data-slot="file-upload-root">
+        {children === undefined ? (
+          <>
+            <FileUploadDropzone />
+            <FileUploadList />
+          </>
+        ) : (
+          children
+        )}
+      </div>
     </FileUploadContext.Provider>
   );
 };
@@ -325,11 +389,10 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
 }) => {
   const {
     inputProps,
-    inputId,
-    inputRef,
-    multiple,
     disabled,
     placeholder: contextPlaceholder,
+    title,
+    description,
     ariaDescribedBy,
     ariaInvalid,
     isDragging,
@@ -342,11 +405,6 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
     () => ({ placeholder: resolvedPlaceholder }),
     [resolvedPlaceholder],
   );
-
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    addFiles(Array.from(event.target.files ?? []));
-    event.target.value = "";
-  };
 
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {
     onClick?.(event);
@@ -420,30 +478,21 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
 
   return (
     <>
-      <input
-        ref={inputRef}
-        hidden
-        {...inputProps}
-        aria-describedby={ariaDescribedBy}
-        aria-invalid={ariaInvalid}
-        disabled={disabled}
-        id={inputId}
-        multiple={multiple}
-        type="file"
-        onChange={handleInputChange}
-      />
-
       <FileUploadDropzoneContext.Provider value={dropzoneContextValue}>
         <div
           {...props}
-          aria-describedby={ariaDescribedBy}
+          aria-describedby={props["aria-describedby"] ?? ariaDescribedBy}
           aria-disabled={disabled}
           aria-invalid={ariaInvalid}
+          aria-label={props["aria-label"] ?? inputProps["aria-label"]}
           data-disabled={disabled}
           data-dragging={isDragging}
           data-slot="file-upload"
           role="button"
           tabIndex={disabled ? undefined : (tabIndex ?? 0)}
+          aria-labelledby={
+            props["aria-labelledby"] ?? inputProps["aria-labelledby"]
+          }
           className={cn(
             "border-input bg-background text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-center shadow-xs transition-[background-color,border-color,box-shadow] outline-none focus-visible:ring-[3px]",
             "data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5",
@@ -460,7 +509,13 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
           {children ?? (
             <>
               <FileUploadDropzoneIcon />
-              <FileUploadDropzoneDescription />
+              {title != null && (
+                <span className="text-sm font-medium">{title}</span>
+              )}
+              {title != null && " "}
+              <FileUploadDropzoneDescription>
+                {description}
+              </FileUploadDropzoneDescription>
             </>
           )}
         </div>
@@ -543,7 +598,6 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
   className,
   ...props
 }) => {
-  const { t } = useTranslation("thread-ui");
   const itemContext = useContext(FileUploadItemContext);
   const resolvedFile = file ?? itemContext?.file;
   const remove = onRemove ?? itemContext?.remove;
@@ -557,29 +611,10 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
   return (
     <li
       {...props}
+      className={cn("min-w-0", className)}
       data-slot="file-upload-item"
-      className={cn(
-        "bg-muted/50 flex min-h-9 items-center gap-2 rounded-md px-2.5 py-1.5 text-sm",
-        className,
-      )}
     >
-      <FileIcon className="text-muted-foreground size-4 shrink-0" />
-      <span className="min-w-0 flex-1 truncate">{resolvedFile.name}</span>
-      <button
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex size-7 shrink-0 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-[3px]"
-        type="button"
-        aria-label={t("fileUpload.removeFile", {
-          defaultValue: "Remove {{name}}",
-          interpolation: { escapeValue: false },
-          name: resolvedFile.name,
-        })}
-        onClick={(event) => {
-          event.stopPropagation();
-          remove?.();
-        }}
-      >
-        <XIcon className="size-4" />
-      </button>
+      <FileUploadAttachment file={resolvedFile} onRemove={remove} />
     </li>
   );
 };
@@ -628,14 +663,9 @@ export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
   mediaClassName,
   ...props
 }) => {
-  const { t } = useTranslation("thread-ui");
   const itemContext = useContext(FileUploadItemContext);
   const resolvedFile = file ?? itemContext?.file;
   const remove = onRemove ?? itemContext?.remove;
-  const previewType = resolvedFile ? getPreviewType(resolvedFile) : null;
-  const objectUrl = useObjectUrl(
-    previewType && resolvedFile ? resolvedFile : undefined,
-  );
 
   if (!resolvedFile) {
     throw new Error(
@@ -643,61 +673,88 @@ export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
     );
   }
 
-  if (!previewType || !objectUrl) {
-    return (
-      <FileUploadItem
-        {...props}
-        className={className}
-        file={resolvedFile}
-        onRemove={remove}
-      />
-    );
-  }
-
   return (
     <li
       {...props}
+      className={cn("min-w-0", className)}
       data-slot="file-upload-preview-item"
+    >
+      <FileUploadAttachment
+        preview
+        file={resolvedFile}
+        mediaClassName={mediaClassName}
+        onRemove={remove}
+      />
+    </li>
+  );
+};
+
+const FileUploadAttachment = ({
+  file,
+  preview = false,
+  mediaClassName,
+  onRemove,
+}: {
+  file: File;
+  preview?: boolean;
+  mediaClassName?: string;
+  onRemove?: () => void;
+}) => {
+  const { t } = useTranslation("thread-ui");
+  const context = useContext(FileUploadContext);
+  const previewType = preview ? getPreviewType(file) : null;
+  const objectUrl = useObjectUrl(previewType ? file : undefined);
+
+  return (
+    <Attachment
+      orientation={preview ? "vertical" : "horizontal"}
+      state="idle"
       className={cn(
-        "bg-muted/40 overflow-hidden rounded-md border text-sm shadow-xs",
-        className,
+        "w-full",
+        preview && "has-data-[slot=attachment-content]:w-full",
       )}
     >
-      <div className="relative aspect-square">
-        {previewType === "image" ? (
-          <img
-            alt={resolvedFile.name}
-            className={cn("h-full w-full object-cover", mediaClassName)}
-            src={objectUrl}
-          />
+      <AttachmentMedia variant={previewType === "image" ? "image" : "icon"}>
+        {previewType && objectUrl ? (
+          previewType === "image" ? (
+            <img
+              alt={file.name}
+              className={cn("h-full w-full object-cover", mediaClassName)}
+              src={objectUrl}
+            />
+          ) : (
+            <video
+              controls
+              playsInline
+              aria-label={file.name}
+              className={cn("h-full w-full object-cover", mediaClassName)}
+              src={objectUrl}
+            />
+          )
         ) : (
-          <video
-            controls
-            playsInline
-            aria-label={resolvedFile.name}
-            className={cn("h-full w-full object-cover", mediaClassName)}
-            src={objectUrl}
-          />
+          <FileIcon className="size-4" />
         )}
-        <button
-          className="bg-background/90 text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-md shadow-xs backdrop-blur transition-colors outline-none focus-visible:ring-[3px]"
+      </AttachmentMedia>
+      <AttachmentContent>
+        <AttachmentTitle title={file.name}>{file.name}</AttachmentTitle>
+      </AttachmentContent>
+      <AttachmentActions>
+        <AttachmentAction
+          disabled={context?.disabled}
           type="button"
           aria-label={t("fileUpload.removeFile", {
             defaultValue: "Remove {{name}}",
             interpolation: { escapeValue: false },
-            name: resolvedFile.name,
+            name: file.name,
           })}
           onClick={(event) => {
             event.stopPropagation();
-            remove?.();
+            onRemove?.();
           }}
         >
           <XIcon className="size-4" />
-        </button>
-      </div>
-      <div className="flex min-h-9 items-center px-2.5 py-1.5">
-        <span className="min-w-0 flex-1 truncate">{resolvedFile.name}</span>
-      </div>
-    </li>
+        </AttachmentAction>
+      </AttachmentActions>
+    </Attachment>
   );
 };

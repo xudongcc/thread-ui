@@ -2,14 +2,7 @@
 
 import { useId, useState } from "react";
 
-import {
-  FileUpload,
-  FileUploadDropzone,
-  FileUploadDropzoneDescription,
-  FileUploadDropzoneIcon,
-  FileUploadItem,
-  FileUploadList,
-} from "@/components/thread-ui/file-upload";
+import { FileUpload } from "@/components/thread-ui/file-upload";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 
 const Example = () => {
@@ -23,17 +16,11 @@ const Example = () => {
         multiple
         accept="image/*,.pdf"
         id={id}
+        title="Upload attachments"
         value={files}
         onChange={setFiles}
-      >
-        <FileUploadDropzone>
-          <FileUploadDropzoneIcon />
-          <FileUploadDropzoneDescription />
-        </FileUploadDropzone>
-        <FileUploadList>
-          <FileUploadItem />
-        </FileUploadList>
-      </FileUpload>
+      />
+
       <FieldDescription>
         Drop files here, paste from your clipboard, or click to browse.
       </FieldDescription>

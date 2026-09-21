@@ -7,9 +7,11 @@ description: A file upload component with click, drag-and-drop, and paste suppor
 
 ## API Style
 
-`FileUpload` uses a [compound-first API](/docs/api-design/compound-first).
-Compose a dropzone with either a file list or a preview while the root component
-owns file selection and state.
+`FileUpload` supports props and composition APIs. Without `children`, it renders
+an upload area and a removable [Attachment](https://ui.shadcn.com/docs/components/base/attachment)
+list. Pass `children` to replace the entire default UI and compose your own layout.
+Both modes support controlled and uncontrolled file selection. Upload requests,
+progress, and retries are managed by your application.
 
 ## Installation
 
@@ -20,29 +22,31 @@ pnpm dlx shadcn@latest add @thread-ui/file-upload
 ## Usage
 
 ```tsx
-import {
-  FileUpload,
-  FileUploadDropzone,
-  FileUploadDropzoneDescription,
-  FileUploadDropzoneIcon,
-  FileUploadItem,
-  FileUploadList,
-  FileUploadPreview,
-  FileUploadPreviewItem,
-} from "@/components/thread-ui/file-upload";
+import { FileUpload } from "@/components/thread-ui/file-upload";
 ```
 
 ```tsx
-<FileUpload multiple accept="image/*,.pdf">
-  <FileUploadDropzone>
-    <FileUploadDropzoneIcon />
-    <FileUploadDropzoneDescription />
-  </FileUploadDropzone>
-  <FileUploadList>
-    <FileUploadItem />
-  </FileUploadList>
-</FileUpload>
+<FileUpload
+  multiple
+  accept="image/*,.pdf"
+  title="Upload attachments"
+  description="Choose files, drop them here, or paste from the clipboard."
+  value={files}
+  onChange={setFiles}
+/>
 ```
+
+Omit `value` to let the component manage its own files; use `defaultValue` for
+initial files. `title` is optional and `description` falls back to the localized
+`placeholder`. `className` styles the root wrapper in both modes.
+
+Passing `children` (including `null`) selects composition mode. In this mode,
+`FileUpload` adds no default dropzone or attachment list. Use `FileUploadDropzone`
+for file selection and compose Attachment components with `useFileUpload()`,
+or use the existing `FileUploadList` and `FileUploadPreview` helpers. Keep attachment
+actions outside the dropzone so they do not open the file picker.
+
+<Preview path="file-upload-composition" />
 
 ## Examples
 
@@ -54,7 +58,7 @@ Use the `multiple` prop to allow several files. New dropped, pasted, or selected
 
 ### Preview
 
-Use `FileUploadPreview` to render image and video previews in a grid.
+Use `FileUploadPreview` to render Attachment cards with image and video previews in a grid. Preview object URLs are released when files change or the component unmounts.
 
 ```tsx
 <FileUpload multiple accept="image/*,video/*">
@@ -69,7 +73,7 @@ Use `FileUploadPreview` to render image and video previews in a grid.
 
 ### Disabled
 
-Use the `disabled` prop to disable click, drag-and-drop, and paste handling.
+Use the `disabled` prop to disable file selection and built-in removal actions.
 
 <Preview path="file-upload-disabled" />
 
@@ -92,18 +96,42 @@ Use the `disabled` prop to disable click, drag-and-drop, and paste handling.
 
 File removal labels use `fileUpload.removeFile` in the `thread-ui` i18next
 namespace provided through `AppProvider`, with the original filename interpolated
-as `name`.
+as `name`. The default description uses `fileUpload.placeholder`. Custom `title`
+and `description` content is localized by the caller. Root `aria-label` and
+`aria-labelledby` also label the interactive dropzone.
+
+The built-in list uses `ul` / `li` semantics. Selected attachments have `state="idle"`;
+selecting a file does not imply that it has been uploaded.
 
 ## API Reference
 
 ### FileUploadProps
 
-Extends all native HTML `<input>` element props except `type`, `value`, `defaultValue`, `onChange`, and `placeholder`.
+Extends native HTML `<input>` props, with `type`, `value`, `defaultValue`, `onChange`, `placeholder`, `title`, `className`, and `children` owned by FileUpload.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadProps, 'value' | 'defaultValue' | 'onChange' | 'placeholder' | 'multiple' | 'accept' | 'disabled' | 'className' | 'children'>`}
+  type={`Pick<FileUploadProps, 'value' | 'defaultValue' | 'onChange' | 'title' | 'description' | 'placeholder' | 'multiple' | 'accept' | 'disabled' | 'className' | 'children'>`}
 />
+
+### useFileUpload
+
+Call `useFileUpload()` in any descendant of `FileUpload` to share its built-in
+Context. It works with both `value` / `onChange` and `defaultValue`; the composition
+example above does not need its own state.
+
+| Member                  | Behavior                                                       |
+| ----------------------- | -------------------------------------------------------------- |
+| `files`                 | Current `File[]`                                               |
+| `multiple` / `disabled` | Selection settings from the root                               |
+| `isDragging`            | Whether files are being dragged over the dropzone              |
+| `addFiles(files)`       | Append in multiple mode, otherwise replace with the first file |
+| `removeFile(index)`     | Remove a file by its current index                             |
+| `openFileDialog()`      | Open the native picker, even without a `FileUploadDropzone`    |
+
+Actions respect `disabled`. Controlled actions call `onChange`; the caller must
+update `value`. The hook must be used inside `FileUpload`. The native input belongs
+to the root, so custom picker buttons can use `openFileDialog()` directly.
 
 ### FileUploadDropzoneProps
 

@@ -1,0 +1,303 @@
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { createInstance } from "i18next";
+import { I18nextProvider } from "react-i18next";
+import { afterEach, expect, it, vi } from "vitest";
+
+import en from "@repo/locales/en/thread-ui.json";
+import zh from "@repo/locales/zh/thread-ui.json";
+import type { ReactNode } from "react";
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadPreview,
+  useFileUpload,
+} from "@/components/thread-ui/file-upload";
+
+const file = new File(["report"], 'A&B "<report>".pdf', {
+  type: "application/pdf",
+});
+const otherFile = new File(["notes"], "notes.txt", { type: "text/plain" });
+
+const localized = (children: ReactNode) => {
+  const i18n = createInstance();
+  void i18n.init({
+    initAsync: false,
+    lng: "en",
+    fallbackLng: "en",
+    resources: {
+      en: { "thread-ui": structuredClone(en) },
+      zh: { "thread-ui": structuredClone(zh) },
+    },
+  });
+  return {
+    i18n,
+    ...render(<I18nextProvider i18n={i18n}>{children}</I18nextProvider>),
+  };
+};
+
+const getInput = (container: HTMLElement) =>
+  container.querySelector<HTMLInputElement>('input[type="file"]')!;
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+it("renders default Attachment items outside the dropzone and localizes removal", async () => {
+  const onChange = vi.fn();
+  const { container, i18n } = localized(
+    <FileUpload
+      defaultValue={[file]}
+      description="Pick a document"
+      title="Attachments"
+      onChange={onChange}
+    />,
+  );
+  const dropzone = screen.getByRole("button", {
+    name: "Attachments Pick a document",
+  });
+  const item = screen.getByRole("listitem");
+  expect(
+    item.querySelector('[data-slot="attachment"]')?.getAttribute("data-state"),
+  ).toBe("idle");
+  expect(dropzone.contains(item)).toBe(false);
+  expect(i18n.options.interpolation?.escapeValue).toBe(true);
+  expect(
+    screen.getByRole("button", { name: `Remove ${file.name}` }),
+  ).toBeTruthy();
+  await act(() => i18n.changeLanguage("zh"));
+  const inputClick = vi.spyOn(getInput(container), "click");
+  await userEvent.click(
+    screen.getByRole("button", { name: `移除 ${file.name}` }),
+  );
+  expect(onChange).toHaveBeenLastCalledWith([]);
+  expect(screen.queryByRole("list")).toBeNull();
+  expect(inputClick).not.toHaveBeenCalled();
+});
+
+it("lets children replace both defaults, including an explicit null", () => {
+  const { container, rerender } = localized(
+    <FileUpload defaultValue={[file]}>
+      <FileUploadDropzone>Custom picker</FileUploadDropzone>
+      <p>Custom attachments</p>
+    </FileUpload>,
+  );
+  expect(screen.getAllByRole("button")).toHaveLength(1);
+  expect(screen.getByRole("button", { name: "Custom picker" })).toBeTruthy();
+  expect(screen.queryByRole("list")).toBeNull();
+  rerender(<FileUpload defaultValue={[file]}>{null}</FileUpload>);
+  expect(
+    container.querySelector('[data-slot="file-upload-root"]')?.childNodes,
+  ).toHaveLength(0);
+});
+
+it("appends picked, dropped and pasted files in uncontrolled multiple mode", async () => {
+  const onChange = vi.fn();
+  const { container } = localized(<FileUpload multiple onChange={onChange} />);
+  const input = getInput(container);
+  await userEvent.upload(input, file);
+  expect(input.value).toBe("");
+  const dropzone = screen.getByRole("button", {
+    name: en.fileUpload.placeholder,
+  });
+  fireEvent.dragOver(dropzone);
+  expect(dropzone.getAttribute("data-dragging")).toBe("true");
+  fireEvent.drop(dropzone, { dataTransfer: { files: [otherFile] } });
+  expect(dropzone.getAttribute("data-dragging")).toBe("false");
+  fireEvent.paste(dropzone, {
+    clipboardData: {
+      files: [],
+      items: [{ kind: "file", getAsFile: () => file }],
+    },
+  });
+  expect(onChange).toHaveBeenLastCalledWith([file, otherFile, file]);
+  expect(screen.getAllByRole("listitem")).toHaveLength(3);
+});
+
+it("replaces files in single mode and keeps controlled state owned by the caller", async () => {
+  const onChange = vi.fn();
+  const { container } = localized(
+    <FileUpload value={[file]} onChange={onChange} />,
+  );
+  await userEvent.upload(getInput(container), otherFile);
+  expect(onChange).toHaveBeenLastCalledWith([otherFile]);
+  expect(screen.getByText(file.name)).toBeTruthy();
+  expect(screen.queryByText(otherFile.name)).toBeNull();
+  await userEvent.click(
+    screen.getByRole("button", { name: `Remove ${file.name}` }),
+  );
+  expect(onChange).toHaveBeenLastCalledWith([]);
+  expect(screen.getByText(file.name)).toBeTruthy();
+});
+
+it("opens the picker with the keyboard and forwards the accessible name", () => {
+  const { container } = localized(<FileUpload aria-label="Add attachments" />);
+  const inputClick = vi.spyOn(getInput(container), "click");
+  const dropzone = screen.getByRole("button", { name: "Add attachments" });
+  fireEvent.keyDown(dropzone, { key: "Enter" });
+  fireEvent.keyDown(dropzone, { key: " " });
+  expect(inputClick).toHaveBeenCalledTimes(2);
+});
+
+it("blocks selection and removal while disabled", async () => {
+  const onChange = vi.fn();
+  const { container } = localized(
+    <FileUpload disabled defaultValue={[file]} onChange={onChange} />,
+  );
+  const input = getInput(container);
+  const inputClick = vi.spyOn(input, "click");
+  const dropzone = screen.getByRole("button", {
+    name: en.fileUpload.placeholder,
+  });
+  fireEvent.click(dropzone);
+  fireEvent.keyDown(dropzone, { key: "Enter" });
+  fireEvent.drop(dropzone, { dataTransfer: { files: [otherFile] } });
+  fireEvent.paste(dropzone, { clipboardData: { files: [otherFile] } });
+  fireEvent.change(input, { target: { files: [otherFile] } });
+  const remove = screen.getByRole("button", {
+    name: `Remove ${file.name}`,
+  }) as HTMLButtonElement;
+  expect(remove.disabled).toBe(true);
+  await userEvent.click(remove);
+  expect(onChange).not.toHaveBeenCalled();
+  expect(inputClick).not.toHaveBeenCalled();
+});
+
+it("releases media URLs on removal and unmount and preserves native video controls", async () => {
+  const createObjectURL = vi.fn((file: File) => `blob:${file.name}`);
+  const revokeObjectURL = vi.fn();
+  vi.stubGlobal(
+    "URL",
+    class extends URL {
+      static createObjectURL = createObjectURL;
+      static revokeObjectURL = revokeObjectURL;
+    },
+  );
+  const image = new File(["image"], "photo.png", { type: "image/png" });
+  const video = new File(["video"], "clip.mp4", { type: "video/mp4" });
+  const { container, unmount } = localized(
+    <FileUpload defaultValue={[image, video]}>
+      <FileUploadDropzone />
+      <FileUploadPreview />
+    </FileUpload>,
+  );
+  expect(await screen.findByRole("img", { name: image.name })).toBeTruthy();
+  const player = screen.getByLabelText(video.name) as HTMLVideoElement;
+  expect(player.controls).toBe(true);
+  expect(
+    player
+      .closest('[data-slot="attachment"]')
+      ?.querySelector('[data-slot="attachment-trigger"]'),
+  ).toBeNull();
+  const inputClick = vi.spyOn(getInput(container), "click");
+  fireEvent.click(player);
+  expect(inputClick).not.toHaveBeenCalled();
+  await userEvent.click(
+    screen.getByRole("button", { name: `Remove ${image.name}` }),
+  );
+  await waitFor(() =>
+    expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${image.name}`),
+  );
+  unmount();
+  expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${video.name}`);
+});
+
+const ContextControls = () => {
+  const { files, addFiles, removeFile, openFileDialog, isDragging } =
+    useFileUpload();
+  return (
+    <>
+      <output aria-label="Selection">
+        {files.map((file) => file.name).join(",")}
+      </output>
+      <output aria-label="Dragging">{String(isDragging)}</output>
+      <button type="button" onClick={() => addFiles([otherFile])}>
+        Add
+      </button>
+      <button type="button" onClick={() => removeFile(0)}>
+        Remove
+      </button>
+      <button type="button" onClick={openFileDialog}>
+        Browse
+      </button>
+    </>
+  );
+};
+
+it("shares state with custom children and opens the picker without a dropzone", async () => {
+  const onChange = vi.fn();
+  const { container } = localized(
+    <FileUpload multiple defaultValue={[file]} onChange={onChange}>
+      <ContextControls />
+    </FileUpload>,
+  );
+  const inputClick = vi.spyOn(getInput(container), "click");
+  await userEvent.click(screen.getByRole("button", { name: "Browse" }));
+  expect(inputClick).toHaveBeenCalledOnce();
+  await userEvent.click(screen.getByRole("button", { name: "Add" }));
+  expect(screen.getByLabelText("Selection").textContent).toBe(
+    `${file.name},${otherFile.name}`,
+  );
+  expect(onChange).toHaveBeenLastCalledWith([file, otherFile]);
+  await userEvent.click(screen.getByRole("button", { name: "Remove" }));
+  expect(screen.getByLabelText("Selection").textContent).toBe(otherFile.name);
+  expect(onChange).toHaveBeenLastCalledWith([otherFile]);
+});
+
+it("shares dragging state and protects context actions when disabled", async () => {
+  const onChange = vi.fn();
+  const { container, rerender } = localized(
+    <FileUpload defaultValue={[file]}>
+      <FileUploadDropzone />
+      <ContextControls />
+    </FileUpload>,
+  );
+  fireEvent.dragOver(
+    screen.getByRole("button", { name: en.fileUpload.placeholder }),
+  );
+  expect(screen.getByLabelText("Dragging").textContent).toBe("true");
+  fireEvent.drop(
+    screen.getByRole("button", { name: en.fileUpload.placeholder }),
+    { dataTransfer: { files: [] } },
+  );
+  expect(screen.getByLabelText("Dragging").textContent).toBe("false");
+  rerender(
+    <FileUpload disabled defaultValue={[file]} onChange={onChange}>
+      <ContextControls />
+    </FileUpload>,
+  );
+  const inputClick = vi.spyOn(getInput(container), "click");
+  for (const name of ["Add", "Remove", "Browse"]) {
+    await userEvent.click(screen.getByRole("button", { name }));
+  }
+  expect(screen.getByLabelText("Selection").textContent).toBe(file.name);
+  expect(onChange).not.toHaveBeenCalled();
+  expect(inputClick).not.toHaveBeenCalled();
+});
+
+it("uses the controlled value as the context source of truth", async () => {
+  const onChange = vi.fn();
+  const { rerender } = localized(
+    <FileUpload value={[file]} onChange={onChange}>
+      <ContextControls />
+    </FileUpload>,
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Add" }));
+  expect(onChange).toHaveBeenLastCalledWith([otherFile]);
+  expect(screen.getByLabelText("Selection").textContent).toBe(file.name);
+  rerender(
+    <FileUpload value={[otherFile]} onChange={onChange}>
+      <ContextControls />
+    </FileUpload>,
+  );
+  expect(screen.getByLabelText("Selection").textContent).toBe(otherFile.name);
+});
