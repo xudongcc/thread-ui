@@ -1,5 +1,4 @@
-import { useTranslation } from "react-i18next";
-import { Loader2Icon, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 import { useState } from "react";
 import type { FC } from "react";
@@ -8,6 +7,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface DataFilterSearchProps {
   placeholder?: string;
@@ -41,7 +41,6 @@ export const DataFilterSearch: FC<DataFilterSearchViewProps> = ({
   value,
   onChange,
 }) => {
-  const { t } = useTranslation("thread-ui");
   const [draftState, setDraftState] = useState(() =>
     createSearchDraftState(value),
   );
@@ -91,11 +90,7 @@ export const DataFilterSearch: FC<DataFilterSearchViewProps> = ({
         </InputGroupAddon>
         {loading && (
           <InputGroupAddon align="inline-end">
-            <Loader2Icon
-              aria-label={t("dataFilter.loading", "Loading")}
-              className="size-4 animate-spin"
-              role="status"
-            />
+            <Spinner />
           </InputGroupAddon>
         )}
       </InputGroup>
