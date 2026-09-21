@@ -81,6 +81,7 @@ import {
   SiWebassembly,
 } from "react-icons/si";
 import { codeToHtml } from "shiki";
+import { useTranslation } from "react-i18next";
 import type { BundledLanguage, CodeOptionsMultipleThemes } from "shiki";
 import type { IconType } from "react-icons";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
@@ -428,16 +429,24 @@ export type CodeBlockSelectTriggerProps = ComponentProps<typeof SelectTrigger>;
 
 export const CodeBlockSelectTrigger = ({
   className,
+  "aria-label": ariaLabel,
   ...props
-}: CodeBlockSelectTriggerProps) => (
-  <SelectTrigger
-    className={cn(
-      "text-muted-foreground w-fit border-none text-xs shadow-none",
-      className,
-    )}
-    {...props}
-  />
-);
+}: CodeBlockSelectTriggerProps) => {
+  const { t } = useTranslation("thread-ui");
+
+  return (
+    <SelectTrigger
+      aria-label={
+        ariaLabel ?? t("codeBlock.selectLanguage", "Select code language")
+      }
+      className={cn(
+        "text-muted-foreground w-fit border-none text-xs shadow-none",
+        className,
+      )}
+      {...props}
+    />
+  );
+};
 
 export type CodeBlockSelectValueProps = ComponentProps<typeof SelectValue>;
 
@@ -485,8 +494,10 @@ export const CodeBlockCopyButton = ({
   timeout = 2000,
   children,
   className,
+  "aria-label": ariaLabel,
   ...props
 }: CodeBlockCopyButtonProps) => {
+  const { t } = useTranslation("thread-ui");
   const [isCopied, setIsCopied] = useState(false);
   const { data, value } = useContext(CodeBlockContext);
   const code = data.find((item) => item.language === value)?.code;
@@ -516,6 +527,10 @@ export const CodeBlockCopyButton = ({
       className={cn("shrink-0", className)}
       size="icon"
       variant="ghost"
+      aria-label={
+        ariaLabel ??
+        (children == null ? t("codeBlock.copy", "Copy code") : undefined)
+      }
       onClick={copyToClipboard}
     >
       {children ?? <Icon className="text-muted-foreground" size={14} />}

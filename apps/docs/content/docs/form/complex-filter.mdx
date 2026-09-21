@@ -70,6 +70,13 @@ Start with an empty logical group and add conditions from the control menu.
 
 <Preview path="complex-filter-empty" />
 
+## Accessibility
+
+Built-in accessible labels use the `complexFilter` resources in the `thread-ui`
+i18next namespace provided through `AppProvider`. Override `selectField`,
+`selectOperator`, `removeCondition`, and `removeGroup` in that namespace to
+customize the selector and removal labels.
+
 ## API Reference
 
 ### ComplexFilterProps

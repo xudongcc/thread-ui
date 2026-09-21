@@ -254,7 +254,10 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
           if (value) handleFieldChange(value);
         }}
       >
-        <SelectTrigger className="min-w-[150px]">
+        <SelectTrigger
+          aria-label={t("complexFilter.selectField", "Select field")}
+          className="min-w-[150px]"
+        >
           <SelectValue
             placeholder={t("complexFilter.selectField", "Select field")}
           />
@@ -277,7 +280,10 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
           if (value) handleOperatorChange(value as ComplexFilterOperator);
         }}
       >
-        <SelectTrigger className="min-w-[150px]">
+        <SelectTrigger
+          aria-label={t("complexFilter.selectOperator", "Select operator")}
+          className="min-w-[150px]"
+        >
           <SelectValue
             placeholder={t("complexFilter.selectOperator", "Select operator")}
           />
@@ -300,7 +306,13 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
         onChange: handleValueChange,
       })}
 
-      <Button size="icon" type="button" variant="ghost" onClick={onRemove}>
+      <Button
+        aria-label={t("complexFilter.removeCondition", "Remove condition")}
+        size="icon"
+        type="button"
+        variant="ghost"
+        onClick={onRemove}
+      >
         <X className="size-4" />
       </Button>
     </div>
@@ -456,7 +468,13 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
       </div>
 
       {onRemove && (
-        <Button size="icon" type="button" variant="ghost" onClick={onRemove}>
+        <Button
+          aria-label={t("complexFilter.removeGroup", "Remove group")}
+          size="icon"
+          type="button"
+          variant="ghost"
+          onClick={onRemove}
+        >
           <X className="size-4" />
         </Button>
       )}

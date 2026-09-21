@@ -351,6 +351,9 @@ importers:
       '@radix-ui/react-use-controllable-state':
         specifier: ^1.2.2
         version: 1.2.6(@types/react@19.3.0)(react@19.3.0)
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
       '@shikijs/transformers':
         specifier: ^3.21.0
         version: 3.21.0
@@ -363,6 +366,9 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
       react-icons:
         specifier: ^5.5.0
         version: 5.5.0(react@19.3.0)
@@ -740,6 +746,9 @@ importers:
       '@repo/common':
         specifier: workspace:*
         version: link:../common
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -752,6 +761,9 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*

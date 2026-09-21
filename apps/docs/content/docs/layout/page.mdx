@@ -98,6 +98,12 @@ default page needs responsive primary or secondary sections. Do not switch
 `Page` variants at breakpoints merely to make the page responsive; use the
 content layout and its container queries for responsive structure.
 
+## Accessibility
+
+The default back and more-actions labels use the `page` resources in the
+`thread-ui` i18next namespace provided through `AppProvider`. Override them with
+`PageBackAction`'s `aria-label` and `PageActions`'s `secondaryMenuLabel`.
+
 ## API Reference
 
 ### Page

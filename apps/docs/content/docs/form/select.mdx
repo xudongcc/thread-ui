@@ -65,7 +65,8 @@ Use the `value` and `onValueChange` props for controlled state.
 
 ## Best Practices
 
-- Always provide a `label` for accessibility
+- Provide a visible `label` when possible; otherwise pass `aria-label` or
+  `aria-labelledby`. These attributes are forwarded to the select trigger.
 - Use `description` to provide helpful context about the selection
 - Use `error` to display validation errors
 - Provide clear and concise option labels
@@ -79,7 +80,7 @@ Extends all Base UI Select.Root props.
 
 <AutoTypeTable
   path="../../components/select/index.tsx"
-  type={`Pick<SelectProps<string>, 'label' | 'description' | 'error' | 'placeholder' | 'items' | 'className'>`}
+  type={`Pick<SelectProps<string>, 'label' | 'description' | 'error' | 'placeholder' | 'items' | 'className' | 'aria-label' | 'aria-labelledby'>`}
 />
 
 ### SelectItemProps

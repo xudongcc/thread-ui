@@ -31,6 +31,8 @@ export type SelectProps<
   className?: string;
   id?: string;
   "aria-describedby"?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
 };
 
 export function Select<Value, Multiple extends boolean | undefined = false>({
@@ -43,6 +45,8 @@ export function Select<Value, Multiple extends boolean | undefined = false>({
   disabled,
   id: idProp,
   "aria-describedby": ariaDescribedBy,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: SelectProps<Value, Multiple>) {
   const generatedId = useId();
@@ -65,6 +69,8 @@ export function Select<Value, Multiple extends boolean | undefined = false>({
         <SelectTrigger
           aria-describedby={describedBy}
           aria-invalid={!!error}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
           id={id}
         >
           <SelectValue placeholder={placeholder} />

@@ -71,6 +71,13 @@ Use `CodeBlockSelect` to create a tabbed interface for multiple code files.
 - **File Tabs** - Support for multiple files with tabbed navigation
 - **File Icons** - Automatic file type icons based on filename
 
+## Accessibility
+
+The default copy and language-selector labels use the `codeBlock` resources in
+the `thread-ui` i18next namespace provided through `AppProvider`. Both controls
+accept `aria-label` overrides. Custom visible copy-button text supplies its own
+accessible name.
+
 ## API Reference
 
 ### CodeBlockProps

@@ -163,7 +163,10 @@ export const DataFilterDefaultSelectField: FC<
               );
             })}
           </ComboboxValue>
-          <ComboboxChipsInput placeholder={item.placeholder} />
+          <ComboboxChipsInput
+            aria-label={item.label}
+            placeholder={item.placeholder}
+          />
         </ComboboxChips>
 
         <ComboboxList className="max-h-72">

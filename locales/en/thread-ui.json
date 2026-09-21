@@ -24,7 +24,9 @@
     "clearAll": "Clear all",
     "selectField": "Select field",
     "selectOperator": "Select operator",
-    "selectValue": "Select value"
+    "selectValue": "Select value",
+    "removeCondition": "Remove condition",
+    "removeGroup": "Remove group"
   },
   "dataFilter": {
     "loading": "Loading",
@@ -50,7 +52,10 @@
       "$nin": "does not contain"
     },
     "minimumAriaLabel": "{{label}} minimum",
-    "maximumAriaLabel": "{{label}} maximum"
+    "maximumAriaLabel": "{{label}} maximum",
+    "search": "Search",
+    "sort": "Sort",
+    "sortField": "Sort field"
   },
   "dataTable": {
     "allSelected": "All selected",
@@ -206,6 +211,18 @@
     }
   },
   "fileUpload": {
-    "placeholder": "Click to upload, drop files here, or paste files"
+    "placeholder": "Click to upload, drop files here, or paste files",
+    "removeFile": "Remove {{name}}"
+  },
+  "common": {
+    "copy": "Copy"
+  },
+  "page": {
+    "back": "Back",
+    "moreActions": "More actions"
+  },
+  "codeBlock": {
+    "copy": "Copy code",
+    "selectLanguage": "Select code language"
   }
 }

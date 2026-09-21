@@ -3,6 +3,7 @@
 import { cva } from "class-variance-authority";
 import { ArrowLeftIcon, MoreHorizontalIcon } from "lucide-react";
 import { Children, isValidElement } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   AriaAttributes,
   ComponentProps,
@@ -74,10 +75,16 @@ export type PageBackActionProps = PageActionProps;
 export const PageBackAction: FC<PageBackActionProps> = ({
   children,
   className,
+  "aria-label": ariaLabel,
   ...props
 }) => {
+  const { t } = useTranslation("thread-ui");
+
   return (
     <Button
+      aria-label={
+        ariaLabel ?? (children == null ? t("page.back", "Back") : undefined)
+      }
       {...props}
       data-slot="page-back-action"
       size="icon"
@@ -87,12 +94,7 @@ export const PageBackAction: FC<PageBackActionProps> = ({
         className,
       )}
     >
-      {children ?? (
-        <>
-          <ArrowLeftIcon />
-          <span className="sr-only">Back</span>
-        </>
-      )}
+      {children ?? <ArrowLeftIcon />}
     </Button>
   );
 };
@@ -180,9 +182,11 @@ export type PageActionsProps = Omit<
 export const PageActions: FC<PageActionsProps> = ({
   children,
   className,
-  secondaryMenuLabel = "More actions",
+  secondaryMenuLabel,
   ...props
 }) => {
+  const { t } = useTranslation("thread-ui");
+  const menuLabel = secondaryMenuLabel ?? t("page.moreActions", "More actions");
   const secondaryActions: Array<
     ReactElement<PageSecondaryActionProps, typeof PageSecondaryAction>
   > = [];
@@ -266,9 +270,12 @@ export const PageActions: FC<PageActionsProps> = ({
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button size="icon" variant="secondary">
+                  <Button
+                    aria-label={menuLabel}
+                    size="icon"
+                    variant="secondary"
+                  >
                     <MoreHorizontalIcon />
-                    <span className="sr-only">{secondaryMenuLabel}</span>
                   </Button>
                 }
               />
@@ -282,9 +289,12 @@ export const PageActions: FC<PageActionsProps> = ({
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
-                    <Button size="icon" variant="secondary">
+                    <Button
+                      aria-label={menuLabel}
+                      size="icon"
+                      variant="secondary"
+                    >
                       <MoreHorizontalIcon />
-                      <span className="sr-only">{secondaryMenuLabel}</span>
                     </Button>
                   }
                 />

@@ -10,7 +10,7 @@ assert.match(
 );
 assert.match(
   source,
-  /<Button\s+\{\.\.\.props\}\s+className=\{cn\("shrink-0", className\)\}\s+size="icon"\s+variant="ghost"\s+onClick=\{copyToClipboard\}/,
+  /<Button\s+\{\.\.\.props\}\s+className=\{cn\("shrink-0", className\)\}\s+size="icon"\s+variant="ghost"\s+aria-label=\{[\s\S]*?\}\s+onClick=\{copyToClipboard\}/,
 );
 assert.match(
   source,
