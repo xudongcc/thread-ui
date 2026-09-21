@@ -357,6 +357,11 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                       style={{
                         ...getCommonPinningStyles<TData>(cell.column),
                       }}
+                      onClick={
+                        cell.column.id === "$actions"
+                          ? (event) => event.stopPropagation()
+                          : undefined
+                      }
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
