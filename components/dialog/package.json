@@ -4,8 +4,11 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "@repo/locales": "workspace:*",
+    "lucide-react": "^0.562.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.8"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:*",

@@ -4,6 +4,7 @@
 
 import { ChevronDown, Plus, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { FC, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,8 @@ export interface ComplexFilterI18n {
   selectOperator: string;
   selectValue: string;
   clearAll: string;
+  removeCondition?: string;
+  removeGroup?: string;
 }
 
 export const defaultComplexFilterI18n: ComplexFilterI18n = {
@@ -125,6 +128,8 @@ export const defaultComplexFilterI18n: ComplexFilterI18n = {
   selectOperator: "Select operator",
   selectValue: "Select value",
   clearAll: "Clear all",
+  removeCondition: "Remove condition",
+  removeGroup: "Remove group",
 };
 
 function isFilterGroup(
@@ -202,6 +207,7 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
   onChange,
   onRemove,
 }) => {
+  const { t } = useTranslation("thread-ui");
   const [field, operatorValuePair] = useMemo<
     [
       string | undefined,
@@ -316,7 +322,16 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
         onChange: handleValueChange,
       })}
 
-      <Button size="icon" type="button" variant="ghost" onClick={onRemove}>
+      <Button
+        size="icon"
+        type="button"
+        variant="ghost"
+        aria-label={
+          i18n.removeCondition ??
+          t("complexFilter.removeCondition", "Remove condition")
+        }
+        onClick={onRemove}
+      >
         <X className="size-4" />
       </Button>
     </div>
@@ -338,6 +353,7 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
   onChange,
   onRemove,
 }) => {
+  const { t } = useTranslation("thread-ui");
   const [logical, items]: [ComplexFilterLogical, Array<ComplexFilterValue>] =
     useMemo(() => {
       if (
@@ -472,7 +488,15 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
       </div>
 
       {onRemove && (
-        <Button size="icon" type="button" variant="ghost" onClick={onRemove}>
+        <Button
+          size="icon"
+          type="button"
+          variant="ghost"
+          aria-label={
+            i18n.removeGroup ?? t("complexFilter.removeGroup", "Remove group")
+          }
+          onClick={onRemove}
+        >
           <X className="size-4" />
         </Button>
       )}
@@ -493,12 +517,30 @@ export interface ComplexFilterProps<
 export const ComplexFilter = <
   TFormat extends ComplexFilterValueFormat = "object",
 >({
-  i18n = defaultComplexFilterI18n,
+  i18n: i18nProp,
   filters,
   showClearAll = false,
   value,
   onChange,
 }: ComplexFilterProps<TFormat>) => {
+  const { t } = useTranslation("thread-ui");
+  const i18n: ComplexFilterI18n = {
+    ...defaultComplexFilterI18n,
+    ...Object.fromEntries(
+      Object.entries(defaultComplexFilterI18n).map(([key, fallback]) => [
+        key,
+        typeof fallback === "string"
+          ? t(`complexFilter.${key}`, fallback)
+          : Object.fromEntries(
+              Object.entries(fallback).map(([name, label]) => [
+                name,
+                t(`complexFilter.${key}.${name}`, String(label)),
+              ]),
+            ),
+      ]),
+    ),
+    ...i18nProp,
+  };
   const [displayState, setDisplayState] = useState(() => {
     const displayValue =
       value === undefined

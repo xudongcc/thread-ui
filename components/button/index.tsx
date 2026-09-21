@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 import type { ComponentProps, FC } from "react";
 
 import { Button as ButtonComponent } from "@/components/ui/button";
@@ -17,6 +19,7 @@ export const Button: FC<ButtonProps> = ({
   children,
   ...props
 }) => {
+  const { t } = useTranslation("thread-ui");
   return (
     <ButtonComponent
       className={cn("group/button relative", className)}
@@ -25,7 +28,7 @@ export const Button: FC<ButtonProps> = ({
       {...props}
     >
       <span className="absolute inset-0 hidden items-center justify-center group-data-[loading=true]/button:flex">
-        <Spinner />
+        <Spinner aria-label={t("button.loading", "Loading")} />
       </span>
 
       <span className="contents group-data-[loading=true]/button:invisible">

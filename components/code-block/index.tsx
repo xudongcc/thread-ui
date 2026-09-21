@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
 import {
   transformerNotationDiff,
@@ -487,6 +489,7 @@ export const CodeBlockCopyButton = ({
   className,
   ...props
 }: CodeBlockCopyButtonProps) => {
+  const { t } = useTranslation("thread-ui");
   const [isCopied, setIsCopied] = useState(false);
   const { data, value } = useContext(CodeBlockContext);
   const code = data.find((item) => item.language === value)?.code;
@@ -512,6 +515,11 @@ export const CodeBlockCopyButton = ({
 
   return (
     <Button
+      aria-label={
+        isCopied
+          ? t("codeBlock.copied", "Copied")
+          : t("codeBlock.copy", "Copy code")
+      }
       {...props}
       className={cn("shrink-0", className)}
       size="icon"

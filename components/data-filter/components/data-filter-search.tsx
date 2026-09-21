@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 
 import { useState } from "react";
@@ -41,6 +42,7 @@ export const DataFilterSearch: FC<DataFilterSearchViewProps> = ({
   value,
   onChange,
 }) => {
+  const { t } = useTranslation("thread-ui");
   const [draftState, setDraftState] = useState(() =>
     createSearchDraftState(value),
   );
@@ -90,7 +92,7 @@ export const DataFilterSearch: FC<DataFilterSearchViewProps> = ({
         </InputGroupAddon>
         {loading && (
           <InputGroupAddon align="inline-end">
-            <Spinner />
+            <Spinner aria-label={t("dataFilter.loading", "Loading")} />
           </InputGroupAddon>
         )}
       </InputGroup>

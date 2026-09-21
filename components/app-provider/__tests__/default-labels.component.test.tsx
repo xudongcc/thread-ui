@@ -139,3 +139,38 @@ it.each(["empty", "error"])(
     ).toBeTruthy();
   },
 );
+
+it("localizes selected option removal and preserves the filter update", async () => {
+  const i18n = createI18n();
+  const onChange = vi.fn();
+  render(
+    <AppProvider i18n={i18n}>
+      <DataFilter
+        defaultValue={{
+          query: "",
+          filter: { tags: { $in: ["alpha", "beta"] } },
+        }}
+        filters={[
+          {
+            field: "tags",
+            label: "Tags",
+            type: "select",
+            defaultOperator: "$in",
+            options: [
+              { label: "Alpha", value: "alpha" },
+              { label: "Beta", value: "beta" },
+            ],
+          },
+        ]}
+        onChange={onChange}
+      />
+    </AppProvider>,
+  );
+  await userEvent.click(screen.getByRole("button", { name: /Tags/ }));
+  expect(screen.getByRole("button", { name: "移除 Alpha" })).toBeTruthy();
+  await act(() => i18n.changeLanguage("en"));
+  await userEvent.click(screen.getByRole("button", { name: "Remove Alpha" }));
+  expect(onChange).toHaveBeenLastCalledWith(
+    expect.objectContaining({ filter: { tags: { $in: ["beta"] } } }),
+  );
+});

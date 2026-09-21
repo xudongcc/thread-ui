@@ -28,7 +28,9 @@
     "clearAll": "Clear all",
     "selectField": "Select field",
     "selectOperator": "Select operator",
-    "selectValue": "Select value"
+    "selectValue": "Select value",
+    "removeCondition": "Remove condition",
+    "removeGroup": "Remove group"
   },
   "dataFilter": {
     "loading": "Loading",
@@ -54,7 +56,8 @@
       "$nin": "does not contain"
     },
     "minimumAriaLabel": "{{label}} minimum",
-    "maximumAriaLabel": "{{label}} maximum"
+    "maximumAriaLabel": "{{label}} maximum",
+    "removeOption": "Remove {{label}}"
   },
   "dataTable": {
     "allSelected": "All selected",
@@ -208,5 +211,23 @@
       "nav": "Navigation bar",
       "weekNumberHeader": "Week Number"
     }
+  },
+  "button": {
+    "loading": "Loading"
+  },
+  "codeBlock": {
+    "copy": "Copy code",
+    "copied": "Copied"
+  },
+  "dialog": {
+    "close": "Close"
+  },
+  "toast": {
+    "close": "Close toast",
+    "notifications": "Notifications"
+  },
+  "fileUpload": {
+    "placeholder": "Click to upload, drop files here, or paste files",
+    "removeFile": "Remove {{name}}"
   }
 }

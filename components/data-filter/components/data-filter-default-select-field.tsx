@@ -1,3 +1,5 @@
+import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
+import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +9,7 @@ import type {
   DataFilterItemSelectProps,
   DataFilterSelectOption,
 } from "../types";
+import { Button } from "@/components/ui/button";
 import {
   Combobox,
   ComboboxChip,
@@ -157,8 +160,19 @@ export const DataFilterDefaultSelectField: FC<
               const option = getOption(optionValue);
 
               return (
-                <ComboboxChip key={optionValue}>
+                <ComboboxChip key={optionValue} showRemove={false}>
                   {option?.label ?? optionValue}
+                  <ComboboxPrimitive.ChipRemove
+                    className="-ml-1 opacity-50 hover:opacity-100"
+                    data-slot="combobox-chip-remove"
+                    render={<Button size="icon-xs" variant="ghost" />}
+                    aria-label={t("dataFilter.removeOption", {
+                      defaultValue: "Remove {{label}}",
+                      label: option?.label ?? optionValue,
+                    })}
+                  >
+                    <XIcon className="pointer-events-none" />
+                  </ComboboxPrimitive.ChipRemove>
                 </ComboboxChip>
               );
             })}
@@ -184,7 +198,7 @@ export const DataFilterDefaultSelectField: FC<
 
         {loading && (
           <div className="text-muted-foreground flex items-center justify-center gap-2 px-2 py-2 text-sm">
-            <Spinner />
+            <Spinner aria-label={t("dataFilter.loading", "Loading")} />
             {t("dataFilter.loading", "Loading")}
           </div>
         )}

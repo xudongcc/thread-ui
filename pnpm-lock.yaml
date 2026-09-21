@@ -249,6 +249,9 @@ importers:
 
   components/button:
     dependencies:
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.3.0)
@@ -258,6 +261,9 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*
@@ -351,6 +357,9 @@ importers:
       '@radix-ui/react-use-controllable-state':
         specifier: ^1.2.2
         version: 1.2.6(@types/react@19.3.0)(react@19.3.0)
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
       '@shikijs/transformers':
         specifier: ^3.21.0
         version: 3.21.0
@@ -363,6 +372,9 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
       react-icons:
         specifier: ^5.5.0
         version: 5.5.0(react@19.3.0)
@@ -394,6 +406,9 @@ importers:
 
   components/complex-filter:
     dependencies:
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.3.0)
@@ -403,6 +418,9 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*
@@ -419,6 +437,9 @@ importers:
 
   components/data-filter:
     dependencies:
+      '@base-ui/react':
+        specifier: ^1.8.0
+        version: 1.8.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@repo/app-provider':
         specifier: workspace:*
         version: link:../app-provider
@@ -603,12 +624,21 @@ importers:
 
   components/dialog:
     dependencies:
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
+      lucide-react:
+        specifier: ^0.562.0
+        version: 0.562.0(react@19.3.0)
       react:
         specifier: ^19.2.7
         version: 19.3.0
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*
@@ -650,6 +680,9 @@ importers:
 
   components/file-upload:
     dependencies:
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.3.0)
@@ -659,6 +692,9 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*
@@ -877,12 +913,21 @@ importers:
       '@base-ui/react':
         specifier: ^1.8.0
         version: 1.8.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
+      lucide-react:
+        specifier: ^0.562.0
+        version: 0.562.0(react@19.3.0)
       react:
         specifier: ^19.2.7
         version: 19.3.0
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*
