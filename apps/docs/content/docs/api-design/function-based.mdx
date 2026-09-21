@@ -1,0 +1,112 @@
+---
+title: Function-based APIs
+description: Trigger transient interface elements from events and async workflows.
+---
+
+A function-based API creates or updates UI through a function call instead of
+placing that UI directly at the call site. It is a focused form of imperative
+API for transient interactions such as notifications and confirmations.
+
+```tsx
+toast.add({ title: "Changes saved.", type: "success" });
+```
+
+Thread UI uses this style for [Toast](/docs/feedback/toast) and
+[AlertDialog](/docs/feedback/alert-dialog).
+
+## Provider and Trigger
+
+The pattern has two parts:
+
+1. A **provider** is mounted once near the application root. It owns rendering,
+   portals, queues, focus management, and cleanup.
+2. A **function** triggers an interaction from an event handler or async
+   workflow.
+
+```tsx
+<AppProvider>{children}</AppProvider>
+```
+
+```tsx
+async function handleDelete() {
+  const confirmed = await alertDialog({
+    title: "Delete item?",
+    description: "This action cannot be undone.",
+    variant: "destructive",
+  });
+
+  if (confirmed) {
+    await deleteItem();
+    toast.add({ title: "Item deleted.", type: "success" });
+  }
+}
+```
+
+The caller describes the interaction but does not own its rendered position or
+lifecycle.
+
+## When It Works Well
+
+Choose a function-based API when:
+
+- an interaction originates in an event or async workflow;
+- the UI is temporary and rendered globally;
+- only one shared host should manage stacking, queues, or portals;
+- awaiting a user decision makes control flow easier to understand;
+- placing component state at every call site would add repetitive plumbing.
+
+## Benefits
+
+- **Local control flow:** trigger feedback next to the operation that caused it.
+- **Less state plumbing:** callers do not manage `open`, queues, or portal
+  placement.
+- **Consistent lifecycle:** one provider handles focus, dismissal, and cleanup.
+- **Async-friendly:** promise-returning interactions work naturally with
+  `async`/`await`.
+
+## Trade-offs
+
+- Rendering is less visible from the component tree at the call site.
+- The provider must be mounted before the function is called.
+- Server rendering and tests need an explicit provider boundary.
+- Overuse can turn persistent interface state into hidden global behavior.
+
+## Toasts and Dialogs Have Different Contracts
+
+A toast reports information and normally does not block the workflow:
+
+```tsx
+toast.add({ title: "Could not save changes.", type: "error" });
+```
+
+An alert dialog asks for a decision and returns a promise:
+
+```tsx
+const confirmed = await alertDialog({ title: "Continue?" });
+```
+
+Do not use a toast when a decision is required, and do not use a confirmation
+dialog for routine status messages.
+
+## Common Mistakes
+
+### Calling before the provider is mounted
+
+Mount the provider at a stable application boundary. In Thread UI,
+`AppProvider` includes the feedback providers for the application.
+
+### Using functions for persistent UI
+
+Navigation, forms, filters, and page content should remain declarative in the
+component tree. Function-based APIs are best reserved for short-lived global
+interactions.
+
+### Ignoring cancellation
+
+Treat a dismissed confirmation the same as a negative response unless the API
+documents a separate cancellation state.
+
+### Hiding domain logic in the provider
+
+The provider should manage presentation and lifecycle. The caller should still
+own permissions, mutations, error handling, and business rules.

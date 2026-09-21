@@ -6,7 +6,7 @@ import type { AppProviderProps } from "../index";
 const i18n = createInstance();
 
 const AppProviderApi = () => (
-  <AppProvider i18n={i18n} toast={{ closeButton: true, position: "top-right" }}>
+  <AppProvider i18n={i18n} toast={{ limit: 5, timeout: 6_000 }}>
     <div>App</div>
   </AppProvider>
 );
@@ -15,8 +15,8 @@ const appProviderProps: AppProviderProps = {
   children: null,
   i18n,
   toast: {
-    richColors: true,
-    position: "bottom-center",
+    limit: 3,
+    timeout: 5_000,
   },
 };
 

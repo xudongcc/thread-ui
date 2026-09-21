@@ -12,7 +12,7 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,mdx,css}\""
   },
   "dependencies": {
-    "@base-ui/react": "^1.1.0",
+    "@base-ui/react": "^1.8.0",
     "@vercel/analytics": "^1.6.1",
     "fumadocs-core": "16.4.7",
     "fumadocs-mdx": "14.2.5",

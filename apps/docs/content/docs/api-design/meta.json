@@ -1,0 +1,10 @@
+{
+  "title": "API Design",
+  "pages": [
+    "index",
+    "props-first",
+    "compound-first",
+    "dual-api",
+    "function-based"
+  ]
+}

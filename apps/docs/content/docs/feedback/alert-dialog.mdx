@@ -5,6 +5,12 @@ description: A functional alert dialog component for confirmations and important
 
 <Preview path="alert-dialog" />
 
+## API Style
+
+`AlertDialog` uses a [function-based API](/docs/api-design/function-based).
+Mount `AlertDialogProvider` once, then call `alertDialog()` and await its boolean
+result from event handlers or async workflows.
+
 ## Installation
 
 ```bash

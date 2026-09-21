@@ -1,0 +1,107 @@
+---
+title: Compound-first APIs
+description: Compose named child components when structure, ordering, and custom content matter.
+---
+
+A compound-first API exposes a family of components that work together. The
+root usually owns shared state or context, while named children describe the
+visible structure.
+
+```tsx
+<FileUpload multiple accept="image/*">
+  <FileUploadDropzone>
+    <FileUploadDropzoneIcon />
+    <FileUploadDropzoneDescription />
+  </FileUploadDropzone>
+  <FileUploadPreview>
+    <FileUploadPreviewItem />
+  </FileUploadPreview>
+</FileUpload>
+```
+
+This pattern is sometimes called the **compound components pattern** in React.
+Thread UI uses **compound-first** to indicate that composition is the primary
+public API rather than an advanced escape hatch.
+
+## When It Works Well
+
+Choose a compound-first API when:
+
+- consumers need to insert custom content between component parts;
+- the order or presence of sections varies by use case;
+- several child components share state from one root;
+- expressing the structure in JSX is clearer than encoding it in objects;
+- semantic subcomponents should own accessibility or responsive behavior.
+
+[Page](/docs/layout/page), [CodeBlock](/docs/display/code-block),
+[File Upload](/docs/form/file-upload), and [Dialog](/docs/overlay/dialog) use this
+style.
+
+## How It Works
+
+A compound API usually has three layers:
+
+1. The **root** owns state, context, and the behavioral contract.
+2. **Structural children** define regions such as a header, body, or actions.
+3. **Leaf children** render controls or content connected to the root.
+
+For example, `CodeBlock` owns the selected item, `CodeBlockHeader` and
+`CodeBlockBody` define regions, and `CodeBlockItem` connects content to the
+selection state.
+
+## Benefits
+
+- **Structural flexibility:** consumers can omit, reorder, or extend regions.
+- **Readable markup:** JSX mirrors the visual and semantic hierarchy.
+- **Composable content:** custom React nodes fit naturally between named parts.
+- **Shared behavior:** context connects children without manually threading
+  every prop through the tree.
+
+## Trade-offs
+
+- Call sites contain more imports and markup.
+- Invalid arrangements may only be detectable at runtime.
+- Refactoring child names or nesting can be a breaking change.
+- Hidden context dependencies can make a child appear usable outside its root
+  when it is not.
+
+## Design Principles
+
+### Keep child responsibilities clear
+
+Each exported child should represent a stable semantic region, not an internal
+wrapper created only for styling.
+
+### Allow omission where it is safe
+
+Optional regions should remain optional. A consumer should not need to render an
+empty component merely to satisfy the root.
+
+### Preserve native composition
+
+Prefer regular `children`, DOM props, and event handlers. Avoid inspecting or
+cloning arbitrary children unless the behavior cannot be expressed through
+context.
+
+### Document placement constraints
+
+If an item must be nested under a particular root or body, show that relationship
+in the main usage example and report a clear runtime error for invalid usage.
+
+## Common Mistakes
+
+- Exporting so many child components that consumers must understand the
+  implementation before using the component.
+- Using context for values that could be ordinary props on a leaf component.
+- Requiring a rigid child order while presenting the API as freely composable.
+- Making the simplest use case excessively verbose.
+
+If most call sites repeat identical children, consider a props-first convenience
+API or a [dual API](/docs/api-design/dual-api).
+
+## Related Styles
+
+- Use [props-first APIs](/docs/api-design/props-first) for predictable,
+  data-driven structures.
+- Use [dual APIs](/docs/api-design/dual-api) when data and composition are both
+  common input forms for the same behavior.

@@ -1,9 +1,15 @@
 ---
 title: Toast
-description: A toast notification component powered by Sonner for displaying temporary messages.
+description: A toast notification component powered by Base UI for displaying temporary messages.
 ---
 
 <Preview path="toast" />
+
+## API Style
+
+`Toast` uses a [function-based API](/docs/api-design/function-based). Mount
+`ToastProvider` once, then call the toast manager from event handlers and async
+workflows.
 
 ## Installation
 
@@ -36,7 +42,7 @@ import { toast } from "@/components/thread-ui/toast";
 ```
 
 ```tsx
-toast("Event has been created.");
+toast.add({ title: "Event has been created." });
 ```
 
 ## Examples
@@ -63,7 +69,6 @@ Add an action button to the toast.
 
 - **Multiple Types**: Support for default, success, info, warning, and error toasts
 - **Promise Support**: Show loading, success, and error states for async operations
-- **Customizable Position**: Place toasts in any corner of the screen
 - **Actions**: Add interactive buttons to toasts
 - **Auto Dismiss**: Toasts automatically dismiss after a configurable duration
 - **Accessible**: Follows WAI-ARIA guidelines for notifications
@@ -87,28 +92,34 @@ The provider component that enables toast notifications throughout your app.
   type="ToastProviderProps"
 />
 
-### toast()
+### Toast Manager
 
-The toast function accepts a message and optional configuration:
+The exported manager supports adding, updating, closing, and tracking promise
+toasts:
 
 ```tsx
-// Simple message
-toast("Hello World");
+// Add a toast
+const id = toast.add({ title: "Hello World" });
 
 // With options
-toast("Event created", {
+toast.add({
+  title: "Event created",
   description: "Your event has been created successfully.",
-  action: {
-    label: "Undo",
+  actionProps: {
+    children: "Undo",
     onClick: () => console.log("Undo"),
   },
 });
 
 // Different types
-toast.success("Success!");
-toast.error("Something went wrong");
-toast.info("Did you know?");
-toast.warning("Be careful!");
+toast.add({ title: "Success!", type: "success" });
+toast.add({ title: "Something went wrong", type: "error" });
+toast.add({ title: "Did you know?", type: "info" });
+toast.add({ title: "Be careful!", type: "warning" });
+
+// Update or close a toast
+toast.update(id, { description: "Updated" });
+toast.close(id);
 
 // Promise toast
 toast.promise(saveData(), {
@@ -118,17 +129,12 @@ toast.promise(saveData(), {
 });
 ```
 
-### Position
+### Provider Options
 
-Configure the toast position via the `position` prop on `ToastProvider`:
-
-- `top-left`
-- `top-center`
-- `top-right`
-- `bottom-left`
-- `bottom-center` (default)
-- `bottom-right`
+Configure the default timeout and maximum visible toast count on the provider:
 
 ```tsx
-<ToastProvider position="top-right">{children}</ToastProvider>
+<ToastProvider timeout={5000} limit={3}>
+  {children}
+</ToastProvider>
 ```

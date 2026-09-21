@@ -4,6 +4,7 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 
 import { Providers } from "./providers";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -19,7 +20,11 @@ const geistMono = Geist_Mono({
 
 export default function Layout({ children }: LayoutProps<"/">) {
   return (
-    <html suppressHydrationWarning className={inter.variable} lang="en">
+    <html
+      suppressHydrationWarning
+      className={cn("font-sans", inter.variable)}
+      lang="en"
+    >
       <body
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >

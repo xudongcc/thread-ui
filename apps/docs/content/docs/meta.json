@@ -4,6 +4,8 @@
   "collapsible": false,
   "pages": [
     "index",
+    "---API Design---",
+    "...api-design",
     "---Action---",
     "...action",
     "---Display---",

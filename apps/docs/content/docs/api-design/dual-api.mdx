@@ -1,0 +1,105 @@
+---
+title: Dual APIs
+description: Offer props-first convenience and compound-first composition without creating two behavioral models.
+---
+
+A dual API lets one component accept either structured data or composed child
+components. It is useful when both forms represent common, legitimate usage.
+
+Thread UI currently uses this pattern for [CheckboxGroup](/docs/form/checkbox-group)
+and [RadioGroup](/docs/form/radio-group).
+
+## The Two Forms
+
+Use the props-first form when options come from data:
+
+```tsx
+<RadioGroup
+  defaultValue="standard"
+  items={[
+    { label: "Standard", value: "standard" },
+    { label: "Express", value: "express" },
+  ]}
+/>
+```
+
+Use the compound-first form when item content needs direct composition:
+
+```tsx
+<RadioGroup defaultValue="standard">
+  <RadioGroupItem value="standard">Standard</RadioGroupItem>
+  <RadioGroupItem description="Arrives tomorrow" value="express">
+    Express
+  </RadioGroupItem>
+</RadioGroup>
+```
+
+Both forms should produce the same state behavior, keyboard interaction,
+accessibility, and visual defaults.
+
+## Choosing a Form
+
+| Requirement                                        | Prefer         |
+| -------------------------------------------------- | -------------- |
+| Options come from an array or API response         | Props-first    |
+| Standard labels and descriptions are sufficient    | Props-first    |
+| Item content needs custom React composition        | Compound-first |
+| Item order is expressed most clearly as JSX        | Compound-first |
+| Options are transformed or filtered before display | Props-first    |
+
+Choose per call site. A codebase does not need to standardize on one form if
+different screens have different requirements.
+
+## Mutual Exclusivity
+
+The two input forms are alternatives, not additive. Do not pass `items` and item
+children together:
+
+```tsx
+// Incorrect: there are two competing sources of items.
+<RadioGroup items={options}>
+  <RadioGroupItem value="custom">Custom</RadioGroupItem>
+</RadioGroup>
+```
+
+Thread UI models this constraint as a TypeScript union, so choosing `items`
+disables item `children` and choosing item `children` disables `items`.
+
+## One Behavior Model
+
+A dual API should be two input formats for one component, not two independent
+implementations. Both forms should share:
+
+- the same controlled and uncontrolled state contract;
+- the same validation and disabled behavior;
+- the same accessibility semantics;
+- the same event callback signatures;
+- the same visual tokens and item primitives.
+
+This keeps documentation, testing, and migration between forms predictable.
+
+## Trade-offs
+
+- The public types and tests are more complex than a single API style.
+- Every shared feature must work consistently in both forms.
+- Documentation must show which props belong to each form.
+- Adding a feature to only one form can create confusing capability gaps.
+
+Use a dual API only when both forms are frequent enough to justify that cost.
+An occasional customization is often better served by a render callback in a
+[props-first API](/docs/api-design/props-first).
+
+## Not the Same as Controlled and Uncontrolled
+
+Dual API describes how items are supplied. Controlled and uncontrolled describe
+who owns selection state. These choices are independent:
+
+```tsx
+// Props-first and controlled
+<RadioGroup value={value} onValueChange={setValue} items={options} />
+
+// Compound-first and uncontrolled
+<RadioGroup defaultValue="standard">
+  <RadioGroupItem value="standard">Standard</RadioGroupItem>
+</RadioGroup>
+```

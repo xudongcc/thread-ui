@@ -1,0 +1,106 @@
+---
+title: Props-first APIs
+description: Use structured props for concise, data-driven component configuration.
+---
+
+A props-first API represents a component's common structure as data and
+configuration. The component owns the markup and consumers describe what should
+appear.
+
+```tsx
+<Empty
+  title="No projects yet"
+  description="Create a project to get started."
+  primaryAction={{ label: "Create project", onClick: handleCreate }}
+/>
+```
+
+Thread UI uses the term **props-first** instead of **props-only**. A props-first
+component may still accept `children`, icons, or render callbacks as focused
+escape hatches.
+
+## When It Works Well
+
+Choose a props-first API when:
+
+- options, rows, columns, or actions already exist as application data;
+- the component should enforce a consistent internal layout;
+- most consumers need the same structure with different content;
+- data may be mapped, filtered, fetched, or generated before rendering;
+- a compact call site is more valuable than arbitrary composition.
+
+[Select](/docs/form/select), [DataTable](/docs/display/data-table), and
+[Empty](/docs/display/empty) are representative examples.
+
+## Benefits
+
+- **Concise call sites:** consumers describe content without rebuilding markup.
+- **Consistent output:** accessibility and layout decisions remain inside the
+  component.
+- **Data-friendly:** arrays and configuration objects work naturally with API
+  responses and application state.
+- **Easier global changes:** internal markup can evolve without changing every
+  call site.
+
+## Trade-offs
+
+- Configuration types grow as more exceptions are added.
+- Deeply custom content can be awkward to express as nested objects.
+- Consumers cannot freely reorder internal elements.
+- Too many boolean props can create combinations the component was never
+  designed to support.
+
+When exceptions become common rather than exceptional, a compound API may be a
+better fit.
+
+## Focused Escape Hatches
+
+A props-first component can preserve a simple default while exposing deliberate
+customization points:
+
+```tsx
+<DataTable
+  columns={[
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => <Badge>{row.original.status}</Badge>,
+    },
+  ]}
+  data={rows}
+/>
+```
+
+Prefer a small number of typed render callbacks over a generic callback for
+every internal element. Each escape hatch becomes part of the public API and
+must remain stable.
+
+## Common Mistakes
+
+### Recreating JSX in configuration
+
+If a configuration object becomes a second template language with deeply nested
+objects, the API has lost the main benefit of being props-first. Consider named
+child components instead.
+
+### Adding a prop for every visual detail
+
+Prefer semantic props such as `variant="destructive"` over implementation props
+such as `redBorder` and `darkRedIcon`. Semantic props survive visual redesigns.
+
+### Confusing props-first with controlled state
+
+Props-first describes configuration, not state ownership. A component can be
+props-first and still support both controlled and uncontrolled state:
+
+```tsx
+<Select value={status} onValueChange={setStatus} items={statuses} />
+<Select defaultValue="draft" items={statuses} />
+```
+
+## Related Styles
+
+- Use [compound-first APIs](/docs/api-design/compound-first) when consumers need
+  structural control.
+- Use a [dual API](/docs/api-design/dual-api) when both data-driven and composed
+  usage are important first-class cases.

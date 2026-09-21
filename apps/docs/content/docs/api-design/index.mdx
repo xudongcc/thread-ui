@@ -1,0 +1,126 @@
+---
+title: API Design Overview
+description: Understand the API styles used by Thread UI and choose the right one for each task.
+---
+
+A component API is the vocabulary consumers use to describe UI: props, child
+components, functions, and state callbacks. A good API makes the common case
+short without preventing more specialized layouts.
+
+Thread UI uses several API styles rather than forcing every component into one
+shape. These names describe how a component is configured; they do not describe
+its visual design.
+
+## The Styles
+
+### Props-first
+
+Pass structured data and configuration to one component. This is concise and
+works naturally when options, rows, or actions already exist as application
+data.
+
+```tsx
+<Select
+  items={[
+    { label: "Draft", value: "draft" },
+    { label: "Published", value: "published" },
+  ]}
+/>
+```
+
+[Learn about props-first APIs →](/docs/api-design/props-first)
+
+### Compound-first
+
+Compose named child components to describe structure. This makes content order
+and custom layout explicit in JSX.
+
+```tsx
+<Page>
+  <PageHeader>
+    <PageTitle>Settings</PageTitle>
+  </PageHeader>
+  <PageContent>{/* ... */}</PageContent>
+</Page>
+```
+
+[Learn about compound-first APIs →](/docs/api-design/compound-first)
+
+### Dual API
+
+Some collection components support both forms. Use an `items` prop for
+data-driven options or item children for direct composition.
+
+```tsx
+<RadioGroup items={[{ label: "Email", value: "email" }]} />
+
+<RadioGroup>
+  <RadioGroupItem value="email">Email</RadioGroupItem>
+</RadioGroup>
+```
+
+[Learn about dual APIs →](/docs/api-design/dual-api)
+
+### Function-based
+
+Trigger transient UI from application logic through a function. A provider
+mounted near the application root owns rendering and lifecycle.
+
+```tsx
+toast.add({ title: "Changes saved.", type: "success" });
+
+const confirmed = await alertDialog({
+  title: "Delete project?",
+  variant: "destructive",
+});
+```
+
+[Learn about function-based APIs →](/docs/api-design/function-based)
+
+### Single-component props
+
+Leaf components such as [Button](/docs/action/button),
+[Badge](/docs/feedback/badge), [Input](/docs/form/input), and
+[Textarea](/docs/form/textarea) use regular props and `children`. They do not
+need a separate props-first or compound-first variant because they do not own a
+configurable child structure.
+
+## How to Choose
+
+| Situation                                            | Prefer         |
+| ---------------------------------------------------- | -------------- |
+| Options or rows already exist as data                | Props-first    |
+| You need to control child content or ordering        | Compound-first |
+| A dual component's default rendering is sufficient   | Props-first    |
+| An item in a dual component needs custom composition | Compound-first |
+| Transient feedback must be triggered from an event   | Function-based |
+
+Start with the simplest style that represents the requirement. Do not choose a
+compound API only because it appears more flexible: flexibility also means more
+markup, more decisions for consumers, and more structure to test.
+
+## Separate Concerns
+
+API style is independent from several other component decisions:
+
+- **Controlled vs. uncontrolled state** describes who owns state. Either a
+  props-first or compound-first component may support `value` and
+  `defaultValue`.
+- **Data vs. presentation** describes what a consumer supplies. A compound
+  component can still receive data, and a props-first component can offer
+  render callbacks.
+- **Styling** describes how appearance is customized. `className`, variants,
+  and design tokens can be shared by every API style.
+- **Server vs. client rendering** is an implementation boundary, not an API
+  style.
+
+## Component Overview
+
+| Components                                                       | Primary API style                        |
+| ---------------------------------------------------------------- | ---------------------------------------- |
+| Button, Badge, Input, Textarea, NumberInput, Calendar, DateInput | Single-component props                   |
+| Select, DataTable, Empty, DataFilter, ComplexFilter              | Props-first                              |
+| Page, CodeBlock, File Upload, Dialog                             | Compound-first                           |
+| CheckboxGroup, RadioGroup                                        | Dual: props-first and compound-first     |
+| Toast, AlertDialog                                               | Function-based                           |
+| DatePicker                                                       | Props with a render prop for the trigger |

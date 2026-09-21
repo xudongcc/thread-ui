@@ -7,11 +7,13 @@ const Example = () => (
   <Button
     variant="outline"
     onClick={() => {
-      toast("File deleted", {
+      toast.add({
+        title: "File deleted",
         description: "Your file has been permanently deleted.",
-        action: {
-          label: "Undo",
-          onClick: () => toast.success("File restored!"),
+        actionProps: {
+          children: "Undo",
+          onClick: () =>
+            toast.add({ title: "File restored!", type: "success" }),
         },
       });
     }}

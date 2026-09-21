@@ -5,6 +5,13 @@ description: A checkbox group component that manages collective state across mul
 
 <Preview path="checkbox-group" />
 
+## API Style
+
+`CheckboxGroup` supports both [props-first and compound-first APIs](/docs/api-design/dual-api).
+Use `items` when options come from data, or use `CheckboxGroupItem` children
+when you need to compose item content directly. The two forms are mutually
+exclusive.
+
 ## Installation
 
 ```bash

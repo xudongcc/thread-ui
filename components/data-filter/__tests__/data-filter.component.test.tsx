@@ -348,7 +348,7 @@ describe("DataFilter", () => {
 
   it("passes the AppProvider language calendar locale to date filter calendars", async () => {
     const user = userEvent.setup();
-    const selectedDate = "2025-03-15T00:00:00.000Z";
+    const selectedDate = new Date(2025, 2, 15).toISOString();
     const localizedDate = new Date(selectedDate).toLocaleDateString("zh");
 
     render(

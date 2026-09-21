@@ -11,24 +11,34 @@ Thread UI is a component library built on top of [shadcn/ui](https://ui.shadcn.c
 
 ### New Projects
 
-Create a new project with Base UI support using the shadcn/ui CLI:
+Create a new project with the same Base UI theme preset used by Thread UI:
 
 ```bash
-pnpm dlx shadcn@latest init --base base
+pnpm dlx shadcn@latest init --preset b1ZOMFeHQ
 ```
 
-Or visit [ui.shadcn.com/create?base=base](https://ui.shadcn.com/create?base=base) to create a new project interactively.
+The preset selects the `base-maia` component style, Base UI primitives, neutral
+base colors, and the matching theme tokens.
 
 ### Existing Projects
 
-If you have an existing shadcn/ui project, update your `components.json` to use Base UI:
+Apply the same preset to an existing shadcn/ui project:
+
+```bash
+pnpm dlx shadcn@latest apply --preset b1ZOMFeHQ
+```
+
+The resulting `components.json` uses:
 
 ```json
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "base-vega"
+  "style": "base-maia"
 }
 ```
+
+Applying a preset reinstalls existing shadcn/ui components and updates theme
+variables. Commit or stash local component customizations before running it.
 
 ## Adding Components
 
@@ -50,7 +60,7 @@ This will automatically add the Thread UI registry to your `components.json`:
 
 ## Why Base UI?
 
-The `base-vega` style uses [Base UI](https://base-ui.com) as the underlying component library, providing:
+The `base-maia` style uses [Base UI](https://base-ui.com) as the underlying component library, providing:
 
 - **Better Accessibility** - Built with ARIA best practices from the ground up
 - **Flexible APIs** - More control over component behavior and styling

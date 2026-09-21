@@ -7,7 +7,8 @@ const Example = () => (
   <Button
     variant="outline"
     onClick={() => {
-      toast("Event Created", {
+      toast.add({
+        title: "Event Created",
         description: "Your event has been scheduled for tomorrow at 10:00 AM.",
       });
     }}

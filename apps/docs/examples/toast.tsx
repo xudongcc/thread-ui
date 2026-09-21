@@ -7,7 +7,7 @@ const Example = () => (
   <Button
     variant="outline"
     onClick={() => {
-      toast("Event has been created.");
+      toast.add({ title: "Event has been created." });
     }}
   >
     Show Toast
