@@ -225,7 +225,20 @@
   },
   "fileUpload": {
     "placeholder": "点击上传、拖放文件到此处或粘贴文件",
-    "removeFile": "移除 {{name}}"
+    "removeFile": "移除 {{name}}",
+    "uploadFile": "上传 {{name}}",
+    "cancelFile": "取消上传 {{name}}",
+    "retryFile": "重新上传 {{name}}",
+    "status": {
+      "idle": "等待上传",
+      "queued": "排队中",
+      "preparing": "准备中",
+      "uploading": "上传中",
+      "processing": "处理中",
+      "done": "已上传",
+      "error": "上传失败",
+      "canceled": "已取消"
+    }
   },
   "common": {
     "copy": "复制"

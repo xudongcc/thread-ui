@@ -212,7 +212,20 @@
   },
   "fileUpload": {
     "placeholder": "Click to upload, drop files here, or paste files",
-    "removeFile": "Remove {{name}}"
+    "removeFile": "Remove {{name}}",
+    "uploadFile": "Upload {{name}}",
+    "cancelFile": "Cancel upload of {{name}}",
+    "retryFile": "Retry upload of {{name}}",
+    "status": {
+      "idle": "Waiting to upload",
+      "queued": "Queued",
+      "preparing": "Preparing",
+      "uploading": "Uploading",
+      "processing": "Processing",
+      "done": "Uploaded",
+      "error": "Upload failed",
+      "canceled": "Canceled"
+    }
   },
   "common": {
     "copy": "Copy"

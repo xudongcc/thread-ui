@@ -8,11 +8,13 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
+import { StrictMode } from "react";
 import { I18nextProvider } from "react-i18next";
 import { afterEach, expect, it, vi } from "vitest";
 
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
+import type { FileUploadTaskContext } from "../../file-upload/upload-queue";
 import type { ReactNode } from "react";
 import {
   FileUpload,
@@ -300,4 +302,107 @@ it("uses the controlled value as the context source of truth", async () => {
     </FileUpload>,
   );
   expect(screen.getByLabelText("Selection").textContent).toBe(otherFile.name);
+});
+
+it("renders localized upload progress and actions and completes only after confirmation", async () => {
+  let context!: FileUploadTaskContext;
+  let finish!: (value: { url: string }) => void;
+  const onUpload = vi.fn((next: FileUploadTaskContext) => {
+    context = next;
+    return new Promise<{ url: string }>((resolve) => {
+      finish = resolve;
+    });
+  });
+  const onUploadComplete = vi.fn();
+  const { i18n } = localized(
+    <StrictMode>
+      <FileUpload
+        defaultValue={[file]}
+        onUpload={onUpload}
+        onUploadComplete={onUploadComplete}
+      />
+    </StrictMode>,
+  );
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
+  expect(context.file).toBe(file);
+  expect(screen.getByRole("status").textContent).toBe("Preparing");
+  await act(async () => {
+    context.setStage("uploading");
+    context.onProgress(42);
+  });
+  expect(screen.getByRole("status").textContent).toBe("Uploading 42%");
+  await act(() => i18n.changeLanguage("zh"));
+  expect(screen.getByRole("status").textContent).toBe("上传中 42%");
+  expect(
+    screen.getByRole("button", { name: `取消上传 ${file.name}` }),
+  ).toBeTruthy();
+  await act(async () => {
+    context.onProgress(100);
+    context.setStage("processing");
+  });
+  expect(screen.getByRole("status").textContent).toBe("处理中");
+  expect(onUploadComplete).not.toHaveBeenCalled();
+  await act(async () => finish({ url: "https://example.com/report.pdf" }));
+  expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith([
+    { url: "https://example.com/report.pdf" },
+  ]);
+  expect(screen.getByRole("status").textContent).toBe("已上传");
+});
+
+it("starts and retries from default Attachment actions", async () => {
+  const onUpload = vi
+    .fn()
+    .mockRejectedValueOnce(new Error("expired"))
+    .mockResolvedValueOnce({ url: "url" });
+  const onUploadComplete = vi.fn();
+  localized(
+    <FileUpload
+      autoUpload={false}
+      defaultValue={[file]}
+      onUpload={onUpload}
+      onUploadComplete={onUploadComplete}
+    />,
+  );
+  expect(onUpload).not.toHaveBeenCalled();
+  await userEvent.click(
+    screen.getByRole("button", { name: `Upload ${file.name}` }),
+  );
+  expect(screen.getByRole("status").textContent).toBe("Upload failed");
+  expect(onUploadComplete).not.toHaveBeenCalled();
+  await userEvent.click(
+    screen.getByRole("button", { name: `Retry upload of ${file.name}` }),
+  );
+  expect(onUpload).toHaveBeenCalledTimes(2);
+  expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith([{ url: "url" }]);
+});
+
+it("aborts a removed controlled file and does not complete from its late result", async () => {
+  let context!: FileUploadTaskContext;
+  let finish!: (value: string) => void;
+  const onUpload = vi.fn((next: FileUploadTaskContext) => {
+    context = next;
+    return new Promise<string>((resolve) => {
+      finish = resolve;
+    });
+  });
+  const onUploadComplete = vi.fn();
+  const { rerender } = localized(
+    <FileUpload
+      value={[file]}
+      onUpload={onUpload}
+      onUploadComplete={onUploadComplete}
+    />,
+  );
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
+  rerender(
+    <FileUpload
+      value={[]}
+      onUpload={onUpload}
+      onUploadComplete={onUploadComplete}
+    />,
+  );
+  expect(context.signal.aborted).toBe(true);
+  await act(async () => finish("stale"));
+  expect(onUploadComplete).not.toHaveBeenCalled();
+  expect(screen.queryByRole("listitem")).toBeNull();
 });

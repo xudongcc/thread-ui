@@ -1,6 +1,13 @@
 "use client";
 
-import { FileIcon, UploadIcon, XIcon } from "lucide-react";
+import {
+  BanIcon,
+  FileIcon,
+  PlayIcon,
+  RotateCcwIcon,
+  UploadIcon,
+  XIcon,
+} from "lucide-react";
 import {
   createContext,
   useCallback,
@@ -12,6 +19,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { useUploadQueue } from "./use-upload-queue";
 import type {
   ClipboardEvent,
   ComponentProps,
@@ -22,15 +30,26 @@ import type {
   ReactNode,
 } from "react";
 
+import type { FileUploadEntry, FileUploadOptions } from "./upload-queue";
 import {
   Attachment,
   AttachmentAction,
   AttachmentActions,
   AttachmentContent,
+  AttachmentDescription,
   AttachmentMedia,
   AttachmentTitle,
 } from "@/components/ui/attachment";
+
 import { cn } from "@/lib/utils";
+
+export type {
+  FileUploadEntry,
+  FileUploadOptions,
+  FileUploadStage,
+  FileUploadStatus,
+  FileUploadTaskContext,
+} from "./upload-queue";
 
 type FileUploadInputProps = Omit<
   ComponentProps<"input">,
@@ -44,7 +63,8 @@ type FileUploadInputProps = Omit<
   | "value"
 >;
 
-export interface FileUploadProps extends FileUploadInputProps {
+export interface FileUploadProps<TResult = unknown>
+  extends FileUploadInputProps, FileUploadOptions<TResult> {
   value?: File[];
   defaultValue?: File[];
   onChange?: (files: File[]) => void;
@@ -60,6 +80,12 @@ export interface FileUploadProps extends FileUploadInputProps {
 
 type FileUploadContextValue = {
   files: File[];
+  entries: FileUploadEntry[];
+  upload: (id?: string) => void;
+  retry: (id: string) => void;
+  cancel: (id: string) => void;
+  remove: (id: string) => void;
+  uploadEnabled: boolean;
   inputProps: FileUploadInputProps;
   multiple?: boolean;
   disabled?: boolean;
@@ -78,6 +104,7 @@ type FileUploadContextValue = {
 type FileUploadItemContextValue = {
   file: File;
   index: number;
+  entry?: FileUploadEntry;
   remove: () => void;
 };
 
@@ -117,7 +144,7 @@ const useFileUploadContext = () => {
   return context;
 };
 
-export type UseFileUploadReturn = Pick<
+export type UseFileUploadReturn<TResult = unknown> = Pick<
   FileUploadContextValue,
   | "files"
   | "multiple"
@@ -126,27 +153,43 @@ export type UseFileUploadReturn = Pick<
   | "addFiles"
   | "removeFile"
   | "openFileDialog"
->;
+  | "upload"
+  | "retry"
+  | "cancel"
+  | "remove"
+> & { entries: FileUploadEntry<TResult>[] };
 
-/** Access file selection state and actions from a descendant of FileUpload. */
-export const useFileUpload = (): UseFileUploadReturn => {
+/** TResult should match the enclosing FileUpload's onUpload return type. */
+export const useFileUpload = <
+  TResult = unknown,
+>(): UseFileUploadReturn<TResult> => {
   const {
     files,
+    entries,
     multiple,
     disabled,
     isDragging,
     addFiles,
     removeFile,
     openFileDialog,
+    upload,
+    retry,
+    cancel,
+    remove,
   } = useFileUploadContext();
   return {
     files,
+    entries: entries as FileUploadEntry<TResult>[],
     multiple,
     disabled,
     isDragging,
     addFiles,
     removeFile,
     openFileDialog,
+    upload,
+    retry,
+    cancel,
+    remove,
   };
 };
 
@@ -229,7 +272,12 @@ const useObjectUrl = (file?: File) => {
   return currentObjectUrlState.url;
 };
 
-export const FileUpload: FC<FileUploadProps> = ({
+export const FileUpload = <TResult,>({
+  onUpload,
+  onUploadComplete,
+  onUploadError,
+  autoUpload = true,
+  concurrency = 3,
   value,
   defaultValue,
   onChange,
@@ -244,7 +292,7 @@ export const FileUpload: FC<FileUploadProps> = ({
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
   ...inputProps
-}) => {
+}: FileUploadProps<TResult>) => {
   const { t } = useTranslation("thread-ui");
   const placeholder =
     placeholderProp ??
@@ -262,6 +310,18 @@ export const FileUpload: FC<FileUploadProps> = ({
 
   const files = value ?? internalFiles;
   const isControlled = value !== undefined;
+
+  const { entries, upload, retry, cancel, prepareRemove } = useUploadQueue(
+    files,
+    {
+      onUpload,
+      onUploadComplete,
+      onUploadError,
+      autoUpload,
+      concurrency,
+      disabled,
+    },
+  );
 
   const addFiles = useCallback(
     (nextFiles: File[]) => {
@@ -286,6 +346,7 @@ export const FileUpload: FC<FileUploadProps> = ({
     (index: number) => {
       if (disabled) return;
 
+      if (entries[index]) prepareRemove(entries[index].id);
       const nextFiles = files.filter((_, fileIndex) => fileIndex !== index);
 
       if (!isControlled) {
@@ -294,7 +355,15 @@ export const FileUpload: FC<FileUploadProps> = ({
 
       onChange?.(nextFiles);
     },
-    [disabled, files, isControlled, onChange],
+    [prepareRemove, disabled, entries, files, isControlled, onChange],
+  );
+
+  const remove = useCallback(
+    (id: string) => {
+      const index = entries.findIndex((entry) => entry.id === id);
+      if (index >= 0) removeFile(index);
+    },
+    [entries, removeFile],
   );
 
   const openFileDialog = useCallback(() => {
@@ -308,6 +377,12 @@ export const FileUpload: FC<FileUploadProps> = ({
   const contextValue = useMemo<FileUploadContextValue>(
     () => ({
       files,
+      entries,
+      upload,
+      retry,
+      cancel,
+      remove,
+      uploadEnabled: !!onUpload,
       inputProps,
       multiple,
       disabled,
@@ -324,6 +399,12 @@ export const FileUpload: FC<FileUploadProps> = ({
     }),
     [
       files,
+      entries,
+      upload,
+      retry,
+      cancel,
+      remove,
+      onUpload,
       inputProps,
       multiple,
       disabled,
@@ -563,7 +644,7 @@ export const FileUploadList: FC<FileUploadListProps> = ({
   className,
   ...props
 }) => {
-  const { files, removeFile } = useFileUploadContext();
+  const { files, entries, removeFile } = useFileUploadContext();
 
   if (!files.length) {
     return null;
@@ -577,8 +658,13 @@ export const FileUploadList: FC<FileUploadListProps> = ({
     >
       {files.map((file, index) => (
         <FileUploadItemContext.Provider
-          key={getFileKey(file, index)}
-          value={{ file, index, remove: () => removeFile(index) }}
+          key={entries[index]?.id ?? getFileKey(file, index)}
+          value={{
+            file,
+            index,
+            entry: entries[index],
+            remove: () => removeFile(index),
+          }}
         >
           {children ?? <FileUploadItem />}
         </FileUploadItemContext.Provider>
@@ -626,7 +712,7 @@ export const FileUploadPreview: FC<FileUploadPreviewProps> = ({
   className,
   ...props
 }) => {
-  const { files, removeFile } = useFileUploadContext();
+  const { files, entries, removeFile } = useFileUploadContext();
 
   if (!files.length) {
     return null;
@@ -640,8 +726,13 @@ export const FileUploadPreview: FC<FileUploadPreviewProps> = ({
     >
       {files.map((file, index) => (
         <FileUploadItemContext.Provider
-          key={getFileKey(file, index)}
-          value={{ file, index, remove: () => removeFile(index) }}
+          key={entries[index]?.id ?? getFileKey(file, index)}
+          value={{
+            file,
+            index,
+            entry: entries[index],
+            remove: () => removeFile(index),
+          }}
         >
           {children ?? <FileUploadPreviewItem />}
         </FileUploadItemContext.Provider>
@@ -702,13 +793,38 @@ const FileUploadAttachment = ({
 }) => {
   const { t } = useTranslation("thread-ui");
   const context = useContext(FileUploadContext);
+  const itemContext = useContext(FileUploadItemContext);
+  const entry =
+    itemContext?.entry?.file === file
+      ? itemContext.entry
+      : context?.entries.find((entry) => entry.file === file);
+  const status = entry?.status ?? "idle";
+  const state =
+    status === "preparing"
+      ? "processing"
+      : status === "queued" || status === "canceled"
+        ? "idle"
+        : status;
+  const active = ["queued", "preparing", "uploading", "processing"].includes(
+    status,
+  );
+  const statusLabels = {
+    idle: t("fileUpload.status.idle", "Waiting to upload"),
+    queued: t("fileUpload.status.queued", "Queued"),
+    preparing: t("fileUpload.status.preparing", "Preparing"),
+    uploading: t("fileUpload.status.uploading", "Uploading"),
+    processing: t("fileUpload.status.processing", "Processing"),
+    done: t("fileUpload.status.done", "Uploaded"),
+    error: t("fileUpload.status.error", "Upload failed"),
+    canceled: t("fileUpload.status.canceled", "Canceled"),
+  };
   const previewType = preview ? getPreviewType(file) : null;
   const objectUrl = useObjectUrl(previewType ? file : undefined);
 
   return (
     <Attachment
       orientation={preview ? "vertical" : "horizontal"}
-      state="idle"
+      state={state}
       className={cn(
         "w-full",
         preview && "has-data-[slot=attachment-content]:w-full",
@@ -737,8 +853,52 @@ const FileUploadAttachment = ({
       </AttachmentMedia>
       <AttachmentContent>
         <AttachmentTitle title={file.name}>{file.name}</AttachmentTitle>
+        {context?.uploadEnabled && (
+          <AttachmentDescription role="status">
+            {statusLabels[status]}
+            {status === "uploading" &&
+              entry?.progress !== undefined &&
+              ` ${Math.round(entry.progress)}%`}
+          </AttachmentDescription>
+        )}
       </AttachmentContent>
       <AttachmentActions>
+        {context?.uploadEnabled && entry && status !== "done" && (
+          <AttachmentAction
+            disabled={context.disabled}
+            type="button"
+            aria-label={t(
+              active
+                ? "fileUpload.cancelFile"
+                : status === "idle"
+                  ? "fileUpload.uploadFile"
+                  : "fileUpload.retryFile",
+              {
+                defaultValue: active
+                  ? "Cancel upload of {{name}}"
+                  : status === "idle"
+                    ? "Upload {{name}}"
+                    : "Retry upload of {{name}}",
+                interpolation: { escapeValue: false },
+                name: file.name,
+              },
+            )}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (active) context.cancel(entry.id);
+              else if (status === "idle") context.upload(entry.id);
+              else context.retry(entry.id);
+            }}
+          >
+            {active ? (
+              <BanIcon className="size-4" />
+            ) : status === "idle" ? (
+              <PlayIcon className="size-4" />
+            ) : (
+              <RotateCcwIcon className="size-4" />
+            )}
+          </AttachmentAction>
+        )}
         <AttachmentAction
           disabled={context?.disabled}
           type="button"
