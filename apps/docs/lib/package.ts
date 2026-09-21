@@ -42,10 +42,6 @@ export const getPackage = async (packageName: string) => {
     string,
     string
   >;
-  const packageDevDependencies = (packageJson.devDependencies || {}) as Record<
-    string,
-    string
-  >;
   const toDependencySpecifier = (
     dependency: string,
     version: string | undefined,
@@ -66,14 +62,6 @@ export const getPackage = async (packageName: string) => {
         ].includes(dep),
     )
     .map((dep) => toDependencySpecifier(dep, packageDependencies[dep]));
-
-  const devDependencies = Object.keys(packageDevDependencies)
-    .filter(
-      (dep) =>
-        !dep.startsWith("@repo/") &&
-        !["@types/react", "@types/react-dom", "typescript"].includes(dep),
-    )
-    .map((dep) => toDependencySpecifier(dep, packageDevDependencies[dep]));
 
   const packageFiles = await getPackageFiles(packageDir);
   const sourceFiles = packageFiles.filter((file) => {
@@ -215,7 +203,6 @@ export const getPackage = async (packageName: string) => {
     title: packageName,
     description: packageJson.description,
     dependencies,
-    devDependencies,
     registryDependencies,
     files,
     css,
