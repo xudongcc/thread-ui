@@ -1,4 +1,8 @@
 {
+  "alertDialog": {
+    "cancel": "取消",
+    "confirm": "确认"
+  },
   "complexFilter": {
     "operators": {
       "$eq": "等于",
@@ -23,6 +27,9 @@
     "selectValue": "选择值"
   },
   "dataFilter": {
+    "loading": "加载中",
+    "loadFailed": "无法加载选项",
+    "noOptions": "没有找到选项",
     "addFilter": "添加筛选",
     "removeFilter": "移除筛选",
     "empty": "空",
@@ -210,5 +217,8 @@
       "nav": "导航栏",
       "weekNumberHeader": "周数"
     }
+  },
+  "fileUpload": {
+    "placeholder": "点击上传、拖放文件到此处或粘贴文件"
   }
 }

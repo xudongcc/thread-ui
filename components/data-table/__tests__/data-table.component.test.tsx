@@ -76,6 +76,48 @@ afterEach(() => {
 });
 
 describe("DataTable", () => {
+  it.each(["pointer", "keyboard"])(
+    "keeps %s row actions separate from row navigation",
+    async (interaction) => {
+      const user = userEvent.setup();
+      const onRowClick = vi.fn();
+      const onAction = vi.fn();
+
+      renderWithProvider(
+        <DataTable
+          columns={columns}
+          data={data}
+          rowActions={() => [{ label: "Edit", onClick: onAction }]}
+          onRowClick={onRowClick}
+        />,
+      );
+
+      await user.click(screen.getByText("Ada"));
+      expect(onRowClick).toHaveBeenCalledTimes(1);
+      expect(onRowClick.mock.calls[0]![0].original).toEqual(data[0]);
+      onRowClick.mockClear();
+
+      const trigger = screen.getAllByLabelText("打开行操作")[0]!;
+      await user.click(trigger);
+      expect(onRowClick).not.toHaveBeenCalled();
+      const item = await screen.findByRole("menuitem", { name: "Edit" });
+
+      if (interaction === "keyboard") {
+        item.focus();
+        await user.keyboard("{Enter}");
+      } else {
+        await user.click(item);
+      }
+
+      expect(onAction).toHaveBeenCalledTimes(1);
+      expect(onAction.mock.calls[0]![0].original).toEqual(data[0]);
+      expect(onRowClick).not.toHaveBeenCalled();
+
+      await user.click(trigger.closest("td")!);
+      expect(onRowClick).not.toHaveBeenCalled();
+    },
+  );
+
   it("uses AppProvider translations for the built-in empty state", () => {
     renderWithProvider(<DataTable columns={columns} data={[]} />);
 

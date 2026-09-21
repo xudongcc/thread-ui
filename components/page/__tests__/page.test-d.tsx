@@ -1,3 +1,4 @@
+import { createRef } from "react";
 import {
   PageActions,
   PageBackAction,
@@ -5,19 +6,16 @@ import {
   PagePrimaryAction,
   PageSecondaryAction,
 } from "../index";
-import type { HTMLAttributes } from "react";
 import type { PageActionProps } from "../index";
 
 const PageActionTypeApi = (props: PageActionProps) => {
-  const htmlAttributes: HTMLAttributes<HTMLElement> = props;
   const loadingActionProps: PageActionProps = {
     children: "Save",
     loading: true,
   };
-
   return (
     <>
-      <PagePrimaryAction {...htmlAttributes}>Save</PagePrimaryAction>
+      <PagePrimaryAction {...props}>Save</PagePrimaryAction>
       <PagePrimaryAction {...loadingActionProps} />
     </>
   );
@@ -25,12 +23,15 @@ const PageActionTypeApi = (props: PageActionProps) => {
 
 const PageActionApi = () => (
   <PageHeader>
-    <PageBackAction loading aria-label="Back" />
+    <PageBackAction loading aria-label="Back" className="custom-back" />
     <PageActions>
-      <PageSecondaryAction onAction={() => undefined}>
+      <PageSecondaryAction
+        className="custom-secondary"
+        onAction={() => undefined}
+      >
         Duplicate
       </PageSecondaryAction>
-      <PagePrimaryAction loading aria-label="Save">
+      <PagePrimaryAction loading aria-label="Save" className="custom-primary">
         Save
       </PagePrimaryAction>
     </PageActions>
@@ -43,11 +44,50 @@ const PageActionPropLimits = () => (
     <PagePrimaryAction size="sm">Save</PagePrimaryAction>
     {/* @ts-expect-error PagePrimaryAction owns its visual variant. */}
     <PagePrimaryAction variant="secondary">Save</PagePrimaryAction>
-    {/* @ts-expect-error PagePrimaryAction uses generic HTML attributes, not button-only attributes. */}
-    <PagePrimaryAction type="submit">Save</PagePrimaryAction>
     {/* @ts-expect-error PageSecondaryAction is an action description, not a Button. */}
     <PageSecondaryAction variant="secondary">Duplicate</PageSecondaryAction>
+    {/* @ts-expect-error PageSecondaryAction requires children. */}
+    <PageSecondaryAction />
+    {/* @ts-expect-error PagePrimaryAction only supports string class names. */}
+    <PagePrimaryAction className={() => "custom-action"}>
+      Save
+    </PagePrimaryAction>
+    {/* @ts-expect-error PageBackAction only supports string class names. */}
+    <PageBackAction className={() => "custom-action"} />
+    {/* @ts-expect-error PageSecondaryAction only supports string class names. */}
+    <PageSecondaryAction className={() => "custom-action"}>
+      Edit
+    </PageSecondaryAction>
   </>
 );
 
 export { PageActionApi, PageActionPropLimits, PageActionTypeApi };
+
+export const submit = (
+  <PagePrimaryAction
+    ref={createRef<HTMLButtonElement>()}
+    disabled
+    form="profile"
+    type="submit"
+  >
+    Save
+  </PagePrimaryAction>
+);
+export const back = (
+  <PageBackAction nativeButton={false} render={<a href="/" />} />
+);
+export const secondary = (
+  <PageSecondaryAction
+    disabled
+    aria-label="Edit profile"
+    data-tracking-id="edit"
+    title="Edit"
+  >
+    Edit
+  </PageSecondaryAction>
+);
+
+export const invalid = (
+  // @ts-expect-error Button types must remain restricted to valid HTML button types.
+  <PagePrimaryAction type="invalid">Save</PagePrimaryAction>
+);

@@ -1,11 +1,12 @@
 import {
   ComplexFilter,
+  ComplexFilterConditionRow,
+  ComplexFilterGroup,
   ComplexFilterLogical,
   ComplexFilterType,
 } from "../index";
 import type {
   ComplexFilterCondition,
-  ComplexFilterI18n,
   ComplexFilterItem,
   ComplexFilterProps,
   ComplexFilterValue,
@@ -47,35 +48,10 @@ const value: ComplexFilterValue = {
   [ComplexFilterLogical.AND]: [condition, { age: { $lt: 18 } }],
 };
 
-const i18n: ComplexFilterI18n = {
-  operators: {
-    $eq: "Equals",
-    $ne: "Not equal",
-    $gt: "Greater than",
-    $gte: "Greater than or equal",
-    $lt: "Less than",
-    $lte: "Less than or equal",
-    $in: "Includes",
-    $nin: "Excludes",
-    $fulltext: "Contains",
-  },
-  logicals: {
-    $and: "AND",
-    $or: "OR",
-  },
-  addCondition: "Add condition",
-  addGroup: "Add group",
-  clearAll: "Clear all",
-  selectField: "Select field",
-  selectOperator: "Select operator",
-  selectValue: "Select value",
-};
-
 const ComplexFilterApi = () => (
   <ComplexFilter
     showClearAll
     filters={filters}
-    i18n={i18n}
     value={value}
     onChange={() => undefined}
   />
@@ -96,3 +72,27 @@ const invalidFilter: ComplexFilterItem = {
 };
 
 export { ComplexFilterApi, complexFilterProps, invalidFilter };
+
+const ComplexFilterPartsApi = () => (
+  <>
+    <ComplexFilterConditionRow
+      filters={filters}
+      value={condition}
+      onChange={() => undefined}
+      onRemove={() => undefined}
+    />
+    <ComplexFilterGroup
+      filters={filters}
+      value={{ $and: [condition] }}
+      onChange={() => undefined}
+    />
+  </>
+);
+
+const invalidI18nProps: ComplexFilterProps = {
+  filters,
+  // @ts-expect-error Component labels are configured through the provider resources.
+  i18n: {},
+};
+
+export { ComplexFilterPartsApi, invalidI18nProps };

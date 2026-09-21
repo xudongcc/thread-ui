@@ -1,4 +1,8 @@
 {
+  "alertDialog": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
   "complexFilter": {
     "operators": {
       "$eq": "Equals",
@@ -23,6 +27,9 @@
     "selectValue": "Select value"
   },
   "dataFilter": {
+    "loading": "Loading",
+    "loadFailed": "Failed to load options",
+    "noOptions": "No options found",
     "addFilter": "Add Filter",
     "removeFilter": "Remove filter",
     "empty": "empty",
@@ -197,5 +204,8 @@
       "nav": "Navigation bar",
       "weekNumberHeader": "Week Number"
     }
+  },
+  "fileUpload": {
+    "placeholder": "Click to upload, drop files here, or paste files"
   }
 }
