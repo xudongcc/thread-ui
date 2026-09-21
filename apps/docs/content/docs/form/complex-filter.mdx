@@ -58,9 +58,10 @@ field's `render` callback.
 ## Internationalization
 
 Built-in labels follow the `thread-ui` namespace from the i18next instance passed
-to `AppProvider` or inherited from an outer `I18nextProvider`, including live language changes. English defaults are used when
-resources are missing. The `i18n` prop overrides these labels; field labels and
-custom controls remain application-provided content.
+to `AppProvider` or inherited from an outer `I18nextProvider`, including live
+language changes. English defaults are used when resources are missing.
+Customize built-in labels in the `complexFilter` section of your `thread-ui`
+resources. Field labels and custom controls remain application-provided content.
 
 ## Examples
 
@@ -78,7 +79,7 @@ The root component props for the complex filter builder.
 
 <AutoTypeTable
   path="../../components/complex-filter/index.tsx"
-  type={`Pick<ComplexFilterProps, 'filters' | 'i18n' | 'showClearAll' | 'value' | 'onChange'>`}
+  type={`Pick<ComplexFilterProps, 'filters' | 'showClearAll' | 'value' | 'onChange'>`}
 />
 
 ### ComplexFilterItem
@@ -88,15 +89,6 @@ Configuration for one available filter field.
 <AutoTypeTable
   path="../../components/complex-filter/index.tsx"
   type={`Pick<ComplexFilterItem, 'type' | 'label' | 'field' | 'render' | 'operators'>`}
-/>
-
-### ComplexFilterI18n
-
-Text overrides used by the default controls.
-
-<AutoTypeTable
-  path="../../components/complex-filter/index.tsx"
-  type={`Pick<ComplexFilterI18n, 'operators' | 'logicals' | 'addCondition' | 'addGroup' | 'selectField' | 'selectOperator' | 'selectValue' | 'clearAll' | 'removeCondition' | 'removeGroup'>`}
 />
 
 ### ComplexFilterValue

@@ -13,7 +13,6 @@ import {
 import {
   ComplexFilter,
   ComplexFilterType,
-  defaultComplexFilterI18n,
 } from "@/components/thread-ui/complex-filter";
 import { DataFilterSearch } from "@/components/thread-ui/data-filter/components/data-filter-search";
 import {
@@ -200,7 +199,7 @@ it("localizes toasts from a custom manager and preserves actions and dismissal",
   expect(screen.queryByRole("button", { name: "Close toast" })).toBeNull();
 });
 
-it("connects all ComplexFilter defaults to the provider and keeps explicit translations", async () => {
+it("reads all ComplexFilter labels and custom translations from the provider", async () => {
   const i18n = createI18n();
   const { rerender } = render(
     <AppProvider i18n={i18n}>
@@ -223,17 +222,18 @@ it("connects all ComplexFilter defaults to the provider and keeps explicit trans
     screen.getAllByRole("button", { name: "Remove condition" }),
   ).toHaveLength(3);
   expect(screen.getByRole("button", { name: "Clear all" })).toBeTruthy();
+  i18n.addResourceBundle(
+    "en",
+    "thread-ui",
+    {
+      complexFilter: { clearAll: "Reset rules", addCondition: "New rule" },
+    },
+    true,
+    true,
+  );
   rerender(
     <AppProvider i18n={i18n}>
-      <ComplexFilter
-        showClearAll
-        filters={[]}
-        i18n={{
-          ...defaultComplexFilterI18n,
-          clearAll: "Reset rules",
-          addCondition: "New rule",
-        }}
-      />
+      <ComplexFilter showClearAll filters={[]} />
     </AppProvider>,
   );
   expect(screen.getByRole("button", { name: "Reset rules" })).toBeTruthy();
