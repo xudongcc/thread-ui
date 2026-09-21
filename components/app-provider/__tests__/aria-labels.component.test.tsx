@@ -2,7 +2,7 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
@@ -29,7 +29,10 @@ import {
 } from "@/components/thread-ui/page";
 import { Select } from "@/components/thread-ui/select";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 const renderLocalized = (children: ReactNode, language = "en") => {
   const i18n = createInstance();
@@ -37,7 +40,6 @@ const renderLocalized = (children: ReactNode, language = "en") => {
     initAsync: false,
     lng: language,
     fallbackLng: "en",
-    interpolation: { escapeValue: false },
     resources: {
       en: { "thread-ui": structuredClone(en) },
       zh: { "thread-ui": structuredClone(zh) },
@@ -48,8 +50,17 @@ const renderLocalized = (children: ReactNode, language = "en") => {
 };
 
 describe("accessible labels", () => {
-  it("updates built-in labels when the language changes", async () => {
-    const file = new File(["text"], "A&B.txt", { type: "text/plain" });
+  it("updates built-in labels and preserves filenames with default i18next escaping", async () => {
+    vi.stubGlobal(
+      "URL",
+      class extends URL {
+        static createObjectURL = vi.fn(() => "blob:preview");
+        static revokeObjectURL = vi.fn();
+      },
+    );
+    const file = new File(["image"], 'A&B "<report>".png', {
+      type: "image/png",
+    });
     const i18n = renderLocalized(
       <>
         <PageBackAction />
@@ -69,6 +80,9 @@ describe("accessible labels", () => {
       </>,
     );
 
+    // Wait for the image branch instead of testing the text-file fallback twice.
+    expect(await screen.findByRole("img", { name: file.name })).toBeTruthy();
+    expect(i18n.options.interpolation?.escapeValue).toBe(true);
     expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
     expect(
       screen.getAllByRole("button", { name: "More actions" }),
@@ -80,7 +94,7 @@ describe("accessible labels", () => {
     expect(screen.getByRole("textbox", { name: "Search" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Sort" })).toBeTruthy();
     expect(
-      screen.getAllByRole("button", { name: "Remove A&B.txt" }),
+      screen.getAllByRole("button", { name: `Remove ${file.name}` }),
     ).toHaveLength(2);
 
     await act(() => i18n.changeLanguage("zh"));
@@ -92,7 +106,7 @@ describe("accessible labels", () => {
     expect(screen.getByRole("textbox", { name: "搜索" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "排序" })).toBeTruthy();
     expect(
-      screen.getAllByRole("button", { name: "移除 A&B.txt" }),
+      screen.getAllByRole("button", { name: `移除 ${file.name}` }),
     ).toHaveLength(2);
   });
 

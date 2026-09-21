@@ -570,6 +570,7 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
         type="button"
         aria-label={t("fileUpload.removeFile", {
           defaultValue: "Remove {{name}}",
+          interpolation: { escapeValue: false },
           name: resolvedFile.name,
         })}
         onClick={(event) => {
@@ -683,6 +684,7 @@ export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
           type="button"
           aria-label={t("fileUpload.removeFile", {
             defaultValue: "Remove {{name}}",
+            interpolation: { escapeValue: false },
             name: resolvedFile.name,
           })}
           onClick={(event) => {

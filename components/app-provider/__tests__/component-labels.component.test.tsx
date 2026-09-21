@@ -17,7 +17,6 @@ const createI18n = (resources = true) => {
     lng: "zh",
     fallbackLng: "en",
     ns: ["thread-ui"],
-    interpolation: { escapeValue: false },
     resources: resources
       ? {
           en: { "thread-ui": structuredClone(en) },
