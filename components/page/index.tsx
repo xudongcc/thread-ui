@@ -115,10 +115,11 @@ export const PagePrimaryAction: FC<PagePrimaryActionProps> = ({
 
 export type PageSecondaryActionProps = Pick<
   PageActionProps,
-  "children" | "className" | "disabled" | "title"
+  "className" | "disabled" | "title"
 > &
   AriaAttributes &
   DataAttributes & {
+    children: ReactNode;
     destructive?: boolean;
     icon?: ReactNode;
     onAction?: () => void;

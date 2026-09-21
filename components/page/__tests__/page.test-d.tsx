@@ -46,6 +46,8 @@ const PageActionPropLimits = () => (
     <PagePrimaryAction variant="secondary">Save</PagePrimaryAction>
     {/* @ts-expect-error PageSecondaryAction is an action description, not a Button. */}
     <PageSecondaryAction variant="secondary">Duplicate</PageSecondaryAction>
+    {/* @ts-expect-error PageSecondaryAction requires children. */}
+    <PageSecondaryAction />
     {/* @ts-expect-error PagePrimaryAction only supports string class names. */}
     <PagePrimaryAction className={() => "custom-action"}>
       Save
