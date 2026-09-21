@@ -23,12 +23,15 @@ const PageActionTypeApi = (props: PageActionProps) => {
 
 const PageActionApi = () => (
   <PageHeader>
-    <PageBackAction loading aria-label="Back" />
+    <PageBackAction loading aria-label="Back" className="custom-back" />
     <PageActions>
-      <PageSecondaryAction onAction={() => undefined}>
+      <PageSecondaryAction
+        className="custom-secondary"
+        onAction={() => undefined}
+      >
         Duplicate
       </PageSecondaryAction>
-      <PagePrimaryAction loading aria-label="Save">
+      <PagePrimaryAction loading aria-label="Save" className="custom-primary">
         Save
       </PagePrimaryAction>
     </PageActions>
@@ -43,6 +46,16 @@ const PageActionPropLimits = () => (
     <PagePrimaryAction variant="secondary">Save</PagePrimaryAction>
     {/* @ts-expect-error PageSecondaryAction is an action description, not a Button. */}
     <PageSecondaryAction variant="secondary">Duplicate</PageSecondaryAction>
+    {/* @ts-expect-error PagePrimaryAction only supports string class names. */}
+    <PagePrimaryAction className={() => "custom-action"}>
+      Save
+    </PagePrimaryAction>
+    {/* @ts-expect-error PageBackAction only supports string class names. */}
+    <PageBackAction className={() => "custom-action"} />
+    {/* @ts-expect-error PageSecondaryAction only supports string class names. */}
+    <PageSecondaryAction className={() => "custom-action"}>
+      Edit
+    </PageSecondaryAction>
   </>
 );
 

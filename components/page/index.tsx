@@ -64,8 +64,10 @@ export const PageHeader: FC<PageHeaderProps> = ({ className, ...props }) => {
 
 export type PageActionProps = Omit<
   ComponentProps<typeof Button>,
-  "size" | "variant"
->;
+  "size" | "variant" | "className"
+> & {
+  className?: string;
+};
 
 export type PageBackActionProps = PageActionProps;
 
@@ -112,7 +114,7 @@ export const PagePrimaryAction: FC<PagePrimaryActionProps> = ({
 };
 
 export type PageSecondaryActionProps = Pick<
-  ComponentProps<typeof Button>,
+  PageActionProps,
   "children" | "className" | "disabled" | "title"
 > &
   AriaAttributes &
