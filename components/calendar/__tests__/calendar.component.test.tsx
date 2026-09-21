@@ -12,9 +12,6 @@ const createI18n = (language = "en") => {
 
   void i18n.init({
     fallbackLng: "en",
-    interpolation: {
-      escapeValue: false,
-    },
     initAsync: false,
     lng: language,
     ns: ["thread-ui"],

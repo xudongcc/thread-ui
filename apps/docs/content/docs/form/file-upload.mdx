@@ -88,6 +88,12 @@ Use the `disabled` prop to disable click, drag-and-drop, and paste handling.
 - Pair the upload area with a `FieldLabel` and `FieldDescription` for clear form context
 - Treat `value` as the source of truth in forms that need external validation
 
+## Accessibility
+
+File removal labels use `fileUpload.removeFile` in the `thread-ui` i18next
+namespace provided through `AppProvider`, with the original filename interpolated
+as `name`.
+
 ## API Reference
 
 ### FileUploadProps

@@ -24,7 +24,9 @@
     "clearAll": "清除全部",
     "selectField": "选择字段",
     "selectOperator": "选择操作符",
-    "selectValue": "选择值"
+    "selectValue": "选择值",
+    "removeCondition": "删除条件",
+    "removeGroup": "删除条件组"
   },
   "dataFilter": {
     "loading": "加载中",
@@ -50,7 +52,10 @@
       "$nin": "不包含"
     },
     "minimumAriaLabel": "{{label}} 最小值",
-    "maximumAriaLabel": "{{label}} 最大值"
+    "maximumAriaLabel": "{{label}} 最大值",
+    "search": "搜索",
+    "sort": "排序",
+    "sortField": "排序字段"
   },
   "dataTable": {
     "allSelected": "已全选",
@@ -219,6 +224,18 @@
     }
   },
   "fileUpload": {
-    "placeholder": "点击上传、拖放文件到此处或粘贴文件"
+    "placeholder": "点击上传、拖放文件到此处或粘贴文件",
+    "removeFile": "移除 {{name}}"
+  },
+  "common": {
+    "copy": "复制"
+  },
+  "page": {
+    "back": "返回",
+    "moreActions": "更多操作"
+  },
+  "codeBlock": {
+    "copy": "复制代码",
+    "selectLanguage": "选择代码语言"
   }
 }

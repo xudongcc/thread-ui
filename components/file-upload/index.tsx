@@ -1,7 +1,5 @@
 "use client";
 
-import { useTranslation } from "react-i18next";
-
 import { FileIcon, UploadIcon, XIcon } from "lucide-react";
 import {
   createContext,
@@ -13,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   ChangeEvent,
   ClipboardEvent,
@@ -544,6 +543,7 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
   className,
   ...props
 }) => {
+  const { t } = useTranslation("thread-ui");
   const itemContext = useContext(FileUploadItemContext);
   const resolvedFile = file ?? itemContext?.file;
   const remove = onRemove ?? itemContext?.remove;
@@ -566,9 +566,13 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
       <FileIcon className="text-muted-foreground size-4 shrink-0" />
       <span className="min-w-0 flex-1 truncate">{resolvedFile.name}</span>
       <button
-        aria-label={`Remove ${resolvedFile.name}`}
         className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex size-7 shrink-0 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-[3px]"
         type="button"
+        aria-label={t("fileUpload.removeFile", {
+          defaultValue: "Remove {{name}}",
+          interpolation: { escapeValue: false },
+          name: resolvedFile.name,
+        })}
         onClick={(event) => {
           event.stopPropagation();
           remove?.();
@@ -624,6 +628,7 @@ export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
   mediaClassName,
   ...props
 }) => {
+  const { t } = useTranslation("thread-ui");
   const itemContext = useContext(FileUploadItemContext);
   const resolvedFile = file ?? itemContext?.file;
   const remove = onRemove ?? itemContext?.remove;
@@ -675,9 +680,13 @@ export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
           />
         )}
         <button
-          aria-label={`Remove ${resolvedFile.name}`}
           className="bg-background/90 text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-md shadow-xs backdrop-blur transition-colors outline-none focus-visible:ring-[3px]"
           type="button"
+          aria-label={t("fileUpload.removeFile", {
+            defaultValue: "Remove {{name}}",
+            interpolation: { escapeValue: false },
+            name: resolvedFile.name,
+          })}
           onClick={(event) => {
             event.stopPropagation();
             remove?.();

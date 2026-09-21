@@ -33,9 +33,6 @@ const createI18n = () => {
   void i18n.init({
     fallbackLng: "en",
     initAsync: false,
-    interpolation: {
-      escapeValue: false,
-    },
     lng: "zh",
     ns: ["thread-ui"],
     resources: {
