@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { FC, PropsWithChildren, ReactNode } from "react";
 
 import {
@@ -89,6 +90,7 @@ const AlertDialogRenderer = memo(function AlertDialogRenderer({
   onRemove,
 }: AlertDialogRendererProps) {
   const { id, open, options } = dialog;
+  const { t } = useTranslation("thread-ui");
 
   return (
     <AlertDialog
@@ -124,13 +126,13 @@ const AlertDialogRenderer = memo(function AlertDialogRenderer({
 
         <AlertDialogFooter>
           <AlertDialogCancel>
-            {options.cancelText ?? "Cancel"}
+            {options.cancelText ?? t("alertDialog.cancel", "Cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             variant={options.variant}
             onClick={() => onClose(id, true)}
           >
-            {options.confirmText ?? "Confirm"}
+            {options.confirmText ?? t("alertDialog.confirm", "Confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

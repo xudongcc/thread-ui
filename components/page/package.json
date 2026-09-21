@@ -6,10 +6,12 @@
   "dependencies": {
     "@repo/button": "workspace:*",
     "@repo/common": "workspace:*",
+    "@repo/locales": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^0.562.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.8"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:*",

@@ -1,4 +1,12 @@
 {
+  "page": {
+    "back": "Back",
+    "moreActions": "More actions"
+  },
+  "alertDialog": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
   "complexFilter": {
     "operators": {
       "$eq": "Equals",
@@ -23,6 +31,9 @@
     "selectValue": "Select value"
   },
   "dataFilter": {
+    "loading": "Loading",
+    "loadFailed": "Failed to load options",
+    "noOptions": "No options found",
     "addFilter": "Add Filter",
     "removeFilter": "Remove filter",
     "empty": "empty",
