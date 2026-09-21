@@ -225,9 +225,6 @@
       "weekNumberHeader": "周数"
     }
   },
-  "button": {
-    "loading": "加载中"
-  },
   "codeBlock": {
     "copy": "复制代码",
     "copied": "已复制"

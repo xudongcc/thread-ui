@@ -27,6 +27,7 @@ import {
   FileUploadPreview,
 } from "@/components/thread-ui/file-upload";
 import { createToastManager } from "@/components/ui/toast";
+import { toast } from "@/components/thread-ui/toast";
 
 const createI18n = (resources = true) => {
   const i18n = createInstance();
@@ -134,7 +135,7 @@ it("localizes copy feedback without changing clipboard behavior", async () => {
   expect(screen.getByRole("button", { name: "Copied" })).toBeTruthy();
 });
 
-it("localizes loading status labels on buttons and filter search", async () => {
+it("keeps loading button names and localizes filter search status", async () => {
   const i18n = createI18n();
   render(
     <AppProvider i18n={i18n}>
@@ -142,9 +143,15 @@ it("localizes loading status labels on buttons and filter search", async () => {
       <DataFilterSearch loading />
     </AppProvider>,
   );
-  expect(screen.getAllByRole("status", { name: "加载中" })).toHaveLength(2);
+  expect(
+    screen.getByRole("button", { name: "Save" }).getAttribute("aria-busy"),
+  ).toBe("true");
+  expect(screen.getAllByRole("status", { name: "加载中" })).toHaveLength(1);
   await act(() => i18n.changeLanguage("en"));
-  expect(screen.getAllByRole("status", { name: "Loading" })).toHaveLength(2);
+  expect(
+    screen.getByRole("button", { name: "Save" }).getAttribute("aria-busy"),
+  ).toBe("true");
+  expect(screen.getAllByRole("status", { name: "Loading" })).toHaveLength(1);
 });
 
 it.each(["content", "footer"])(
@@ -238,6 +245,7 @@ it("uses English defaults when translation resources are missing", () => {
     <AppProvider i18n={createI18n(false)}>
       <FileUpload />
       <Button loading>Save</Button>
+      <DataFilterSearch loading />
       <CodeBlockCopyButton />
       <ComplexFilter showClearAll filters={[]} />
     </AppProvider>,
@@ -280,4 +288,45 @@ it("updates ComplexFilter operator labels when the language changes", async () =
   expect(screen.getByText("等于")).toBeTruthy();
   await act(() => i18n.changeLanguage("en"));
   expect(screen.getByText("Equals")).toBeTruthy();
+});
+
+it("keeps a loading button accessible without an internationalization provider", async () => {
+  const onClick = vi.fn();
+  const { rerender } = render(
+    <Button loading onClick={onClick}>
+      Save
+    </Button>,
+  );
+  const button = screen.getByRole("button", { name: "Save" });
+  expect(button.getAttribute("aria-busy")).toBe("true");
+  expect(button.hasAttribute("disabled")).toBe(true);
+  await userEvent.click(button);
+  expect(onClick).not.toHaveBeenCalled();
+  rerender(<Button onClick={onClick}>Save</Button>);
+  expect(button.hasAttribute("aria-busy")).toBe(false);
+  expect(button.hasAttribute("disabled")).toBe(false);
+  await userEvent.click(button);
+  expect(onClick).toHaveBeenCalledOnce();
+});
+
+it("renders and updates notifications through the exported default toast manager", async () => {
+  render(<AppProvider i18n={createI18n()} toast={{ timeout: 0 }} />);
+  let id!: string;
+  act(() => {
+    id = toast.add({ title: "Saving", type: "loading" });
+  });
+  expect(await screen.findByRole("heading", { name: "Saving" })).toBeTruthy();
+  act(() => {
+    toast.update(id, {
+      title: "Saved",
+      description: "Changes stored",
+      type: "success",
+    });
+  });
+  expect(await screen.findByRole("heading", { name: "Saved" })).toBeTruthy();
+  expect(screen.getByText("Changes stored")).toBeTruthy();
+  act(() => {
+    toast.close(id);
+  });
+  expect(screen.queryByRole("heading", { name: "Saved" })).toBeNull();
 });

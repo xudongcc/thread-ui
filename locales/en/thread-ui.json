@@ -212,9 +212,6 @@
       "weekNumberHeader": "Week Number"
     }
   },
-  "button": {
-    "loading": "Loading"
-  },
   "codeBlock": {
     "copy": "Copy code",
     "copied": "Copied"

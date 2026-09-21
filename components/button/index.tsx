@@ -1,11 +1,9 @@
 "use client";
 
-import { useTranslation } from "react-i18next";
-
+import { Loader2Icon } from "lucide-react";
 import type { ComponentProps, FC } from "react";
 
 import { Button as ButtonComponent } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 export type ButtonProps = ComponentProps<typeof ButtonComponent> & {
@@ -19,19 +17,26 @@ export const Button: FC<ButtonProps> = ({
   children,
   ...props
 }) => {
-  const { t } = useTranslation("thread-ui");
   return (
     <ButtonComponent
-      className={cn("group/button relative", className)}
+      aria-busy={loading || undefined}
+      className={cn("relative", className)}
       data-loading={loading}
       disabled={loading || disabled}
       {...props}
     >
-      <span className="absolute inset-0 hidden items-center justify-center group-data-[loading=true]/button:flex">
-        <Spinner aria-label={t("button.loading", "Loading")} />
-      </span>
-
-      <span className="contents group-data-[loading=true]/button:invisible">
+      {loading && (
+        <Loader2Icon
+          aria-hidden="true"
+          className="absolute size-4 animate-spin"
+        />
+      )}
+      <span
+        className={cn(
+          "inline-flex items-center justify-center gap-[inherit]",
+          loading && "opacity-0",
+        )}
+      >
         {children}
       </span>
     </ButtonComponent>
