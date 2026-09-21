@@ -1,3 +1,4 @@
+import { createRef } from "react";
 import {
   PageActions,
   PageBackAction,
@@ -5,19 +6,16 @@ import {
   PagePrimaryAction,
   PageSecondaryAction,
 } from "../index";
-import type { HTMLAttributes } from "react";
 import type { PageActionProps } from "../index";
 
 const PageActionTypeApi = (props: PageActionProps) => {
-  const htmlAttributes: HTMLAttributes<HTMLElement> = props;
   const loadingActionProps: PageActionProps = {
     children: "Save",
     loading: true,
   };
-
   return (
     <>
-      <PagePrimaryAction {...htmlAttributes}>Save</PagePrimaryAction>
+      <PagePrimaryAction {...props}>Save</PagePrimaryAction>
       <PagePrimaryAction {...loadingActionProps} />
     </>
   );
@@ -43,11 +41,38 @@ const PageActionPropLimits = () => (
     <PagePrimaryAction size="sm">Save</PagePrimaryAction>
     {/* @ts-expect-error PagePrimaryAction owns its visual variant. */}
     <PagePrimaryAction variant="secondary">Save</PagePrimaryAction>
-    {/* @ts-expect-error PagePrimaryAction uses generic HTML attributes, not button-only attributes. */}
-    <PagePrimaryAction type="submit">Save</PagePrimaryAction>
     {/* @ts-expect-error PageSecondaryAction is an action description, not a Button. */}
     <PageSecondaryAction variant="secondary">Duplicate</PageSecondaryAction>
   </>
 );
 
 export { PageActionApi, PageActionPropLimits, PageActionTypeApi };
+
+export const submit = (
+  <PagePrimaryAction
+    ref={createRef<HTMLButtonElement>()}
+    disabled
+    form="profile"
+    type="submit"
+  >
+    Save
+  </PagePrimaryAction>
+);
+export const back = (
+  <PageBackAction nativeButton={false} render={<a href="/" />} />
+);
+export const secondary = (
+  <PageSecondaryAction
+    disabled
+    aria-label="Edit profile"
+    data-tracking-id="edit"
+    title="Edit"
+  >
+    Edit
+  </PageSecondaryAction>
+);
+
+export const invalid = (
+  // @ts-expect-error Button types must remain restricted to valid HTML button types.
+  <PagePrimaryAction type="invalid">Save</PagePrimaryAction>
+);
