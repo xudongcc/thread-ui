@@ -6,6 +6,17 @@ import postcss from "postcss";
 import postcssNested from "postcss-nested";
 import type { RegistryItem } from "shadcn/schema";
 
+const devDependencyBlocklist = new Set([
+  "@types/react",
+  "@types/react-dom",
+  "typescript",
+  "@testing-library/react",
+  "@testing-library/user-event",
+  "@vitejs/plugin-react",
+  "jsdom",
+  "vitest",
+]);
+
 const getPackageFiles = async (dir: string): Promise<Array<string>> => {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const files: Array<string> = [];
@@ -42,6 +53,10 @@ export const getPackage = async (packageName: string) => {
     string,
     string
   >;
+  const packageDevDependencies = (packageJson.devDependencies || {}) as Record<
+    string,
+    string
+  >;
   const toDependencySpecifier = (
     dependency: string,
     version: string | undefined,
@@ -62,6 +77,12 @@ export const getPackage = async (packageName: string) => {
         ].includes(dep),
     )
     .map((dep) => toDependencySpecifier(dep, packageDependencies[dep]));
+
+  const devDependencies = Object.keys(packageDevDependencies)
+    .filter(
+      (dep) => !dep.startsWith("@repo/") && !devDependencyBlocklist.has(dep),
+    )
+    .map((dep) => toDependencySpecifier(dep, packageDevDependencies[dep]));
 
   const packageFiles = await getPackageFiles(packageDir);
   const sourceFiles = packageFiles.filter((file) => {
@@ -203,6 +224,7 @@ export const getPackage = async (packageName: string) => {
     title: packageName,
     description: packageJson.description,
     dependencies,
+    devDependencies,
     registryDependencies,
     files,
     css,

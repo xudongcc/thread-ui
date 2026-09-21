@@ -10,7 +10,7 @@ const docsDir = resolve(root, "apps/docs");
 const packageModuleUrl = pathToFileURL(resolve(docsDir, "lib/package.ts")).href;
 const { getPackage } = await import(packageModuleUrl);
 
-test("public registry packages do not expose development dependencies", async () => {
+test("public registry packages exclude internal dependencies and test tooling", async () => {
   const previousCwd = process.cwd();
   process.chdir(docsDir);
 
@@ -24,10 +24,16 @@ test("public registry packages do not expose development dependencies", async ()
 
     for (const packageName of [...packageNames, "locales"]) {
       const registryPackage = await getPackage(packageName);
-      assert.equal(
-        registryPackage.devDependencies,
-        undefined,
-        `${packageName} should not expose development dependencies`,
+      const excludedDependencies = registryPackage.devDependencies?.filter(
+        (dependency) =>
+          /^(@repo\/|@testing-library\/|@vitejs\/plugin-react@|vitest@|jsdom@|typescript@|@types\/react(?:-dom)?@)/.test(
+            dependency,
+          ),
+      );
+      assert.deepEqual(
+        excludedDependencies,
+        [],
+        `${packageName} should not expose internal dependencies or test tooling`,
       );
     }
   } finally {
@@ -53,8 +59,12 @@ test("public registry dependencies keep package versions", async () => {
 
     const dataFilterPackage = await getPackage("data-filter");
     assert.ok(
-      dataFilterPackage.dependencies?.includes("@types/lodash@^4.17.15"),
+      dataFilterPackage.devDependencies?.includes("@types/lodash@^4.17.15"),
       "data-filter source needs lodash types in consuming TypeScript apps",
+    );
+    assert.ok(
+      calendarPackage.devDependencies?.includes("i18next@^26.3.1"),
+      "development dependencies outside the blocklist should keep their versions",
     );
 
     const pagePackage = await getPackage("page");
