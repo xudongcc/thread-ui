@@ -59,6 +59,45 @@ Use the `variant="full"` prop to remove the default max-width constraint.
 
 <Preview path="page-full-width" />
 
+## Best Practices
+
+Choose a variant based on the page's content and primary task rather than the
+viewport size. `Page` already fills the available width until it reaches the
+selected maximum width.
+
+| Variant   | Best suited for                                      | Avoid when                                      |
+| --------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `default` | Detail pages, settings, editors, and most CRUD pages | The content is a single short, focused form     |
+| `compact` | Focused forms, setup steps, confirmations, and flows | The page contains wide tables or dense panels   |
+| `full`    | Dashboards, data tables, canvases, and split views   | Unconstrained text or a simple single-column UI |
+
+### Prefer Default
+
+Start with `default` for most product pages. Its `max-w-5xl` constraint keeps
+headers, actions, and content visually connected while leaving enough room for
+ordinary forms and multi-section content.
+
+### Use Compact for Focused Tasks
+
+Use `compact` when the user should concentrate on one narrow task, such as
+completing a short form, reviewing a confirmation, or moving through a setup
+step. It uses `max-w-2xl`, leaving enough room for ordinary form groups without
+making a focused workflow feel like a full-width page. Avoid it for dense forms
+that need several side-by-side fields or for content whose readability depends
+on horizontal space.
+
+### Use Full Width Deliberately
+
+Use `full` when additional horizontal space directly improves the task, such as
+comparing table columns, scanning dashboard panels, working on a canvas, or
+using a split view. Full width removes the outer max-width constraint, but inner
+content should still define its own readable width where necessary.
+
+Combine `PageContent` with [Page Layout](/docs/layout/page-layout) when a full or
+default page needs responsive primary or secondary sections. Do not switch
+`Page` variants at breakpoints merely to make the page responsive; use the
+content layout and its container queries for responsive structure.
+
 ## API Reference
 
 ### Page
@@ -138,7 +177,8 @@ the rest move into the menu.
 
 ### PageContent
 
-The main content area.
+The main content area. Use [Page Layout](/docs/layout/page-layout) inside it when
+the content needs responsive full-width or fractional sections.
 
 <AutoTypeTable
   path="../../components/page/index.tsx"

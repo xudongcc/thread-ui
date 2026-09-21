@@ -28,7 +28,7 @@ const pageVariants = cva(
       variant: {
         full: "w-full",
         default: "max-w-5xl",
-        compact: "max-w-xl",
+        compact: "max-w-2xl",
       },
     },
     defaultVariants: {

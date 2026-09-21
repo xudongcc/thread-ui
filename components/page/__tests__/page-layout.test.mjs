@@ -9,6 +9,7 @@ const pageActionsSource =
     /export const PageActions[\s\S]*?export type PageContentProps/,
   )?.[0] ?? "";
 
+assert.match(source, /compact: "max-w-2xl"/);
 assert.doesNotMatch(source, /export const PageSecondaryActions/);
 assert.match(pageActionsSource, /Children\.toArray\(children\)/);
 assert.match(pageActionsSource, /isPageSecondaryActionElement/);

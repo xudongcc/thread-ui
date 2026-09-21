@@ -1,0 +1,117 @@
+---
+title: Page Layout
+description: Arrange page content into responsive full-width and fractional sections.
+---
+
+<Preview path="page-layout" />
+
+`PageLayout` is an independent content grid that arranges sections using the
+width of its own container. It does not render a page title, actions, cards, or
+an outer width constraint.
+
+## API Style
+
+`PageLayout` uses a [compound-first API](/docs/api-design/compound-first).
+Compose explicit section components so the JSX preserves the page's visual and
+semantic structure.
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/page-layout
+```
+
+## Usage
+
+Use `PageLayout` inside [`PageContent`](/docs/layout/page), or inside any other
+container whose available width should control the layout.
+
+```tsx
+import {
+  PageLayout,
+  PageLayoutSection,
+} from "@/components/thread-ui/page-layout";
+```
+
+```tsx
+<PageContent>
+  <PageLayout>
+    <PageLayoutSection>{/* Full-width content */}</PageLayoutSection>
+    <PageLayoutSection span="2/3">{/* Primary content */}</PageLayoutSection>
+    <PageLayoutSection span="1/3">{/* Secondary content */}</PageLayoutSection>
+  </PageLayout>
+</PageContent>
+```
+
+## Layout Patterns
+
+### One Column
+
+Omit `span` or use `full` for banners, tables, and content that should span the
+complete layout.
+
+### Primary and Secondary
+
+Pair `2/3` with `1/3` when the primary region carries the main task and the
+secondary region contains supporting details or less-frequent actions. Use a
+visually quieter surface for secondary content when hierarchy matters.
+
+### Equal Columns
+
+Use two `1/2` sections or three `1/3` sections when their content has equal
+importance.
+
+<Preview path="page-layout-equal-columns" />
+
+## Section Widths
+
+| `span` | Wide layout | Typical use                         |
+| ------ | ----------- | ----------------------------------- |
+| `full` | 6 of 6      | Banners, tables, or a single column |
+| `1/2`  | 3 of 6      | Two equal columns                   |
+| `1/3`  | 2 of 6      | Secondary content or three columns  |
+| `2/3`  | 4 of 6      | Primary content                     |
+
+Widths are explicit. A fractional section does not expand to fill columns left
+empty by a missing sibling. Put conditional sections inside the same condition
+so hidden content does not leave an unintended gap.
+
+## Responsive Behavior
+
+Below a `48rem` container width, all sections stack in source order. At `48rem`
+and above, fractional sections use a six-column grid. Because the breakpoint is
+a container query, a layout inside a narrow panel remains stacked even when the
+browser viewport is wide; nested layouts respond to their own width.
+
+The root grid and each section use a `1.5rem` default gap. Prefer that shared gap
+over adding margins to individual cards. Use `className` when a page needs a
+different spacing rhythm.
+
+## Accessibility
+
+- `PageLayout` does not add a `main` landmark; use it within the page's existing
+  landmark structure.
+- Sections keep DOM source order at every width and do not visually reorder
+  content.
+- All components accept native element props, including `ref`, ARIA attributes,
+  data attributes, and event handlers.
+
+## API Reference
+
+### PageLayout
+
+The six-column container-query grid. Extends native `<div>` props.
+
+<AutoTypeTable
+  path="../../components/page-layout/index.tsx"
+  type="Pick<PageLayoutProps, 'children' | 'className'>"
+/>
+
+### PageLayoutSection
+
+A full-width or fractional content group. Extends native `<div>` props.
+
+<AutoTypeTable
+  path="../../components/page-layout/index.tsx"
+  type="Pick<PageLayoutSectionProps, 'children' | 'className' | 'span'>"
+/>

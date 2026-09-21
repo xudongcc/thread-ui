@@ -8,6 +8,11 @@ const root = process.cwd();
 
 const registryPackages = [
   {
+    name: "page-layout",
+    dependencies: ["class-variance-authority"],
+    repoDependencies: [],
+  },
+  {
     name: "empty",
     repoDependencies: ["@repo/button"],
   },
