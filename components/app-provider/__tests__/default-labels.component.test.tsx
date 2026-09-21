@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
@@ -8,11 +8,7 @@ import zh from "@repo/locales/zh/thread-ui.json";
 import { AppProvider } from "../index";
 import { alertDialog } from "@/components/thread-ui/alert-dialog";
 import { DataFilter } from "@/components/thread-ui/data-filter/data-filter";
-import {
-  PageActions,
-  PageBackAction,
-  PageSecondaryAction,
-} from "@/components/thread-ui/page";
+import { ComplexFilter } from "@/components/thread-ui/complex-filter";
 
 const createI18n = () => {
   const i18n = createInstance();
@@ -41,38 +37,6 @@ beforeAll(() => {
   });
 });
 afterEach(cleanup);
-
-it("updates default Page labels when the provider language changes", async () => {
-  const i18n = createI18n();
-  render(
-    <AppProvider i18n={i18n}>
-      <PageBackAction />
-      <PageActions>
-        <PageSecondaryAction>Edit</PageSecondaryAction>
-      </PageActions>
-    </AppProvider>,
-  );
-  expect(screen.getByRole("button", { name: /返回$/ })).toBeTruthy();
-  expect(screen.getByRole("button", { name: /更多操作$/ })).toBeTruthy();
-  await act(() => i18n.changeLanguage("en"));
-  expect(screen.getByRole("button", { name: /Back$/ })).toBeTruthy();
-  expect(screen.getByRole("button", { name: /More actions$/ })).toBeTruthy();
-});
-
-it("preserves explicit Page labels", () => {
-  render(
-    <AppProvider i18n={createI18n()}>
-      <PageBackAction>Return to projects</PageBackAction>
-      <PageActions secondaryMenuLabel="Project actions">
-        <PageSecondaryAction>Edit</PageSecondaryAction>
-      </PageActions>
-    </AppProvider>,
-  );
-  expect(
-    screen.getByRole("button", { name: /Return to projects$/ }),
-  ).toBeTruthy();
-  expect(screen.getByRole("button", { name: /Project actions$/ })).toBeTruthy();
-});
 
 it("localizes an open confirmation and keeps explicit button text", async () => {
   const i18n = createI18n();
@@ -141,7 +105,7 @@ it.each(["empty", "error"])(
   },
 );
 
-it("localizes selected option removal and preserves the filter update", async () => {
+it("removes selected options using the built-in ComboboxChip control", async () => {
   const i18n = createI18n();
   const onChange = vi.fn();
   render(
@@ -168,9 +132,10 @@ it("localizes selected option removal and preserves the filter update", async ()
     </AppProvider>,
   );
   await userEvent.click(screen.getByRole("button", { name: /Tags/ }));
-  expect(screen.getByRole("button", { name: "移除 Alpha" })).toBeTruthy();
-  await act(() => i18n.changeLanguage("en"));
-  await userEvent.click(screen.getByRole("button", { name: "Remove Alpha" }));
+  const chip = screen.getByText("Alpha", {
+    selector: '[data-slot="combobox-chip"]',
+  });
+  await userEvent.click(within(chip).getByRole("button"));
   expect(onChange).toHaveBeenLastCalledWith(
     expect.objectContaining({ filter: { tags: { $in: ["beta"] } } }),
   );
@@ -186,15 +151,12 @@ it.each([false, true])(
     render(
       <I18nextProvider i18n={outer}>
         <AppProvider i18n={override ? inner : undefined}>
-          <PageBackAction />
+          <ComplexFilter showClearAll filters={[]} />
         </AppProvider>
       </I18nextProvider>,
     );
     expect(
-      screen.getByRole("button", { name: override ? /Back$/ : /返回$/ }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("region", { name: override ? "Notifications" : "通知" }),
+      screen.getByRole("button", { name: override ? "Clear all" : "清除全部" }),
     ).toBeTruthy();
     let result!: Promise<boolean>;
     act(() => {
@@ -214,10 +176,7 @@ it.each([false, true])(
     );
     await expect(result).resolves.toBe(false);
     expect(
-      screen.getByRole("button", { name: override ? /返回$/ : /Back$/ }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("region", { name: override ? "通知" : "Notifications" }),
+      screen.getByRole("button", { name: override ? "清除全部" : "Clear all" }),
     ).toBeTruthy();
     expect((override ? outer : inner).language).toBe(override ? "zh" : "en");
   },

@@ -300,13 +300,7 @@ export const ComplexFilterConditionRow: FC<ComplexFilterConditionRowProps> = ({
         onChange: handleValueChange,
       })}
 
-      <Button
-        aria-label={t("complexFilter.removeCondition", "Remove condition")}
-        size="icon"
-        type="button"
-        variant="ghost"
-        onClick={onRemove}
-      >
+      <Button size="icon" type="button" variant="ghost" onClick={onRemove}>
         <X className="size-4" />
       </Button>
     </div>
@@ -462,13 +456,7 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
       </div>
 
       {onRemove && (
-        <Button
-          aria-label={t("complexFilter.removeGroup", "Remove group")}
-          size="icon"
-          type="button"
-          variant="ghost"
-          onClick={onRemove}
-        >
+        <Button size="icon" type="button" variant="ghost" onClick={onRemove}>
           <X className="size-4" />
         </Button>
       )}

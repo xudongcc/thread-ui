@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@base-ui/react": "^1.8.0",
     "@repo/app-provider": "workspace:*",
     "@repo/calendar": "workspace:*",
     "@repo/number-input": "workspace:*",

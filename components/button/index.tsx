@@ -1,9 +1,9 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
 import type { ComponentProps, FC } from "react";
 
 import { Button as ButtonComponent } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 export type ButtonProps = ComponentProps<typeof ButtonComponent> & {
@@ -19,24 +19,16 @@ export const Button: FC<ButtonProps> = ({
 }) => {
   return (
     <ButtonComponent
-      aria-busy={loading || undefined}
-      className={cn("relative", className)}
+      className={cn("group/button relative", className)}
       data-loading={loading}
       disabled={loading || disabled}
       {...props}
     >
-      {loading && (
-        <Loader2Icon
-          aria-hidden="true"
-          className="absolute size-4 animate-spin"
-        />
-      )}
-      <span
-        className={cn(
-          "inline-flex items-center justify-center gap-[inherit]",
-          loading && "opacity-0",
-        )}
-      >
+      <span className="absolute inset-0 hidden items-center justify-center group-data-[loading=true]/button:flex">
+        <Spinner />
+      </span>
+
+      <span className="contents group-data-[loading=true]/button:invisible">
         {children}
       </span>
     </ButtonComponent>

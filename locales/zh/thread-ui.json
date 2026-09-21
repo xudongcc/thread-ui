@@ -1,8 +1,4 @@
 {
-  "page": {
-    "back": "返回",
-    "moreActions": "更多操作"
-  },
   "alertDialog": {
     "cancel": "取消",
     "confirm": "确认"
@@ -28,9 +24,7 @@
     "clearAll": "清除全部",
     "selectField": "选择字段",
     "selectOperator": "选择操作符",
-    "selectValue": "选择值",
-    "removeCondition": "移除条件",
-    "removeGroup": "移除分组"
+    "selectValue": "选择值"
   },
   "dataFilter": {
     "loading": "加载中",
@@ -56,8 +50,7 @@
       "$nin": "不包含"
     },
     "minimumAriaLabel": "{{label}} 最小值",
-    "maximumAriaLabel": "{{label}} 最大值",
-    "removeOption": "移除 {{label}}"
+    "maximumAriaLabel": "{{label}} 最大值"
   },
   "dataTable": {
     "allSelected": "已全选",
@@ -225,19 +218,7 @@
       "weekNumberHeader": "周数"
     }
   },
-  "codeBlock": {
-    "copy": "复制代码",
-    "copied": "已复制"
-  },
-  "dialog": {
-    "close": "关闭"
-  },
-  "toast": {
-    "close": "关闭通知",
-    "notifications": "通知"
-  },
   "fileUpload": {
-    "placeholder": "点击上传、拖放文件到此处或粘贴文件",
-    "removeFile": "移除 {{name}}"
+    "placeholder": "点击上传、拖放文件到此处或粘贴文件"
   }
 }

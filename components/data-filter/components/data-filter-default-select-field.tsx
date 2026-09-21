@@ -1,5 +1,3 @@
-import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
-import { Loader2Icon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,15 +7,16 @@ import type {
   DataFilterItemSelectProps,
   DataFilterSelectOption,
 } from "../types";
-import { Button } from "@/components/ui/button";
 import {
   Combobox,
+  ComboboxChip,
   ComboboxChips,
   ComboboxChipsInput,
   ComboboxItem,
   ComboboxList,
   ComboboxValue,
 } from "@/components/ui/combobox";
+import { Spinner } from "@/components/ui/spinner";
 
 type DataFilterDefaultSelectFieldValue = Array<string> | string | undefined;
 type DataFilterDefaultSelectFieldChangeValue = Array<string> | undefined;
@@ -158,24 +157,9 @@ export const DataFilterDefaultSelectField: FC<
               const option = getOption(optionValue);
 
               return (
-                <ComboboxPrimitive.Chip
-                  key={optionValue}
-                  className="bg-muted-foreground/10 text-foreground flex h-[calc(--spacing(5.5))] w-fit items-center justify-center gap-1 rounded-4xl py-0 pr-0 pl-2 text-xs font-medium whitespace-nowrap has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
-                  data-slot="combobox-chip"
-                >
+                <ComboboxChip key={optionValue}>
                   {option?.label ?? optionValue}
-                  <ComboboxPrimitive.ChipRemove
-                    className="-ml-1 opacity-50 hover:opacity-100"
-                    data-slot="combobox-chip-remove"
-                    render={<Button size="icon-xs" variant="ghost" />}
-                    aria-label={t("dataFilter.removeOption", {
-                      defaultValue: "Remove {{label}}",
-                      label: option?.label ?? optionValue,
-                    })}
-                  >
-                    <XIcon className="pointer-events-none" />
-                  </ComboboxPrimitive.ChipRemove>
-                </ComboboxPrimitive.Chip>
+                </ComboboxChip>
               );
             })}
           </ComboboxValue>
@@ -199,11 +183,8 @@ export const DataFilterDefaultSelectField: FC<
         </ComboboxList>
 
         {loading && (
-          <div
-            className="text-muted-foreground flex items-center justify-center gap-2 px-2 py-2 text-sm"
-            role="status"
-          >
-            <Loader2Icon aria-hidden="true" className="size-4 animate-spin" />
+          <div className="text-muted-foreground flex items-center justify-center gap-2 px-2 py-2 text-sm">
+            <Spinner />
             {t("dataFilter.loading", "Loading")}
           </div>
         )}

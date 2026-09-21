@@ -5,11 +5,6 @@ import { afterEach, beforeAll, expect, it, vi } from "vitest";
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
 import { AppProvider } from "../index";
-import { Button } from "@/components/thread-ui/button";
-import {
-  CodeBlock,
-  CodeBlockCopyButton,
-} from "@/components/thread-ui/code-block";
 import {
   ComplexFilter,
   ComplexFilterType,
@@ -68,7 +63,7 @@ beforeAll(() => {
 afterEach(cleanup);
 
 it.each([false, true])(
-  "localizes upload prompts and removal in preview=%s",
+  "localizes upload prompts and preserves removal in preview=%s",
   async (preview) => {
     const i18n = createI18n();
     const onChange = vi.fn();
@@ -82,7 +77,9 @@ it.each([false, true])(
     );
     if (preview) await screen.findByRole("img", { name: file.name });
     else expect(screen.getByText(zh.fileUpload.placeholder)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "移除 photo.png" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Remove photo.png" }),
+    ).toBeTruthy();
     await act(() => i18n.changeLanguage("en"));
     if (!preview)
       expect(screen.getByText(en.fileUpload.placeholder)).toBeTruthy();
@@ -96,65 +93,17 @@ it.each([false, true])(
   },
 );
 
-it("preserves upload placeholders and copy button labels", () => {
+it("preserves explicit upload placeholders", () => {
   render(
     <AppProvider i18n={createI18n()}>
       <FileUpload placeholder="Upload a document" />
-      <CodeBlockCopyButton aria-label="Copy snippet" />
     </AppProvider>,
   );
   expect(screen.getByText("Upload a document")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Copy snippet" })).toBeTruthy();
-});
-
-it("localizes copy feedback without changing clipboard behavior", async () => {
-  const user = userEvent.setup();
-  const writeText = vi
-    .spyOn(navigator.clipboard, "writeText")
-    .mockResolvedValue();
-  const i18n = createI18n();
-  const onCopy = vi.fn();
-  render(
-    <AppProvider i18n={i18n}>
-      <CodeBlock
-        defaultValue="typescript"
-        data={[
-          { filename: "demo.ts", language: "typescript", code: "const n = 1;" },
-        ]}
-      >
-        <CodeBlockCopyButton onCopy={onCopy} />
-      </CodeBlock>
-    </AppProvider>,
-  );
-  await user.click(screen.getByRole("button", { name: "复制代码" }));
-  expect(writeText).toHaveBeenCalledWith("const n = 1;");
-  expect(onCopy).toHaveBeenCalledOnce();
-  expect(screen.getByRole("button", { name: "已复制" })).toBeTruthy();
-  await act(() => i18n.changeLanguage("en"));
-  expect(screen.getByRole("button", { name: "Copied" })).toBeTruthy();
-});
-
-it("keeps loading button names and shows filter search status", async () => {
-  const i18n = createI18n();
-  render(
-    <AppProvider i18n={i18n}>
-      <Button loading>Save</Button>
-      <DataFilterSearch loading />
-    </AppProvider>,
-  );
-  expect(
-    screen.getByRole("button", { name: "Save" }).getAttribute("aria-busy"),
-  ).toBe("true");
-  expect(screen.getByRole("status")).toBeTruthy();
-  await act(() => i18n.changeLanguage("en"));
-  expect(
-    screen.getByRole("button", { name: "Save" }).getAttribute("aria-busy"),
-  ).toBe("true");
-  expect(screen.getByRole("status")).toBeTruthy();
 });
 
 it.each(["content", "footer"])(
-  "localizes and closes the dialog using the %s button",
+  "closes the dialog using the built-in %s button",
   async (button) => {
     const i18n = createI18n();
     render(
@@ -167,14 +116,12 @@ it.each(["content", "footer"])(
         </Dialog>
       </AppProvider>,
     );
-    expect(await screen.findByRole("button", { name: "关闭" })).toBeTruthy();
-    await act(() => i18n.changeLanguage("en"));
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   },
 );
 
-it("localizes toasts from a custom manager and preserves actions and dismissal", async () => {
+it("preserves custom toast manager actions and dismissal", async () => {
   const i18n = createI18n();
   const manager = createToastManager();
   const onAction = vi.fn();
@@ -188,11 +135,12 @@ it("localizes toasts from a custom manager and preserves actions and dismissal",
       actionProps: { children: "Undo", onClick: onAction },
     });
   });
-  expect(await screen.findByRole("region", { name: "通知" })).toBeTruthy();
-  await userEvent.hover(screen.getByRole("region", { name: "通知" }));
-  expect(await screen.findByRole("button", { name: "关闭通知" })).toBeTruthy();
-  await act(() => i18n.changeLanguage("en"));
-  expect(screen.getByRole("region", { name: "Notifications" })).toBeTruthy();
+  await userEvent.hover(
+    await screen.findByRole("region", { name: "Notifications" }),
+  );
+  expect(
+    await screen.findByRole("button", { name: "Close toast" }),
+  ).toBeTruthy();
   await userEvent.click(screen.getByRole("button", { name: "Undo" }));
   expect(onAction).toHaveBeenCalledOnce();
   await userEvent.click(screen.getByRole("button", { name: "Close toast" }));
@@ -212,15 +160,10 @@ it("reads all ComplexFilter labels and custom translations from the provider", a
   );
   expect(screen.getAllByText("选择字段")).toHaveLength(3);
   expect(screen.getAllByText("选择操作符")).toHaveLength(3);
-  expect(screen.getAllByRole("button", { name: "移除条件" })).toHaveLength(3);
-  expect(screen.getByRole("button", { name: "移除分组" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "且" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "或" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "清除全部" })).toBeTruthy();
   await act(() => i18n.changeLanguage("en"));
-  expect(
-    screen.getAllByRole("button", { name: "Remove condition" }),
-  ).toHaveLength(3);
   expect(screen.getByRole("button", { name: "Clear all" })).toBeTruthy();
   i18n.addResourceBundle(
     "en",
@@ -244,14 +187,11 @@ it("uses English defaults when translation resources are missing", () => {
   render(
     <AppProvider i18n={createI18n(false)}>
       <FileUpload />
-      <Button loading>Save</Button>
       <DataFilterSearch loading />
-      <CodeBlockCopyButton />
       <ComplexFilter showClearAll filters={[]} />
     </AppProvider>,
   );
   expect(screen.getByText(en.fileUpload.placeholder)).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Copy code" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Clear all" })).toBeTruthy();
   expect(screen.getByRole("status", { name: "Loading" })).toBeTruthy();
   expect(screen.getByRole("region", { name: "Notifications" })).toBeTruthy();
@@ -288,25 +228,6 @@ it("updates ComplexFilter operator labels when the language changes", async () =
   expect(screen.getByText("等于")).toBeTruthy();
   await act(() => i18n.changeLanguage("en"));
   expect(screen.getByText("Equals")).toBeTruthy();
-});
-
-it("keeps a loading button accessible without an internationalization provider", async () => {
-  const onClick = vi.fn();
-  const { rerender } = render(
-    <Button loading onClick={onClick}>
-      Save
-    </Button>,
-  );
-  const button = screen.getByRole("button", { name: "Save" });
-  expect(button.getAttribute("aria-busy")).toBe("true");
-  expect(button.hasAttribute("disabled")).toBe(true);
-  await userEvent.click(button);
-  expect(onClick).not.toHaveBeenCalled();
-  rerender(<Button onClick={onClick}>Save</Button>);
-  expect(button.hasAttribute("aria-busy")).toBe(false);
-  expect(button.hasAttribute("disabled")).toBe(false);
-  await userEvent.click(button);
-  expect(onClick).toHaveBeenCalledOnce();
 });
 
 it("renders and updates notifications through the exported default toast manager", async () => {
