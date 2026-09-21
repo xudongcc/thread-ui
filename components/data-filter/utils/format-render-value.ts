@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import dayjs from "dayjs";
-import { forEach, isPlainObject, transform } from "lodash";
+import { forEach, isPlainObject, transform } from "lodash-es";
 
 type DataFilterRecord = Record<string, any>;
 
