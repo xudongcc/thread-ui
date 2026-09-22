@@ -142,9 +142,6 @@ const imageExtensions = new Set([
 const videoExtensions = new Set(["m4v", "mov", "mp4", "ogg", "ogv", "webm"]);
 
 const FileUploadContext = createContext<FileUploadContextValue | null>(null);
-const FileUploadDropzoneContext = createContext<{ placeholder: string } | null>(
-  null,
-);
 const FileUploadItemContext = createContext<FileUploadItemContextValue | null>(
   null,
 );
@@ -444,14 +441,11 @@ export const FileUpload = <TResult,>({
   );
 };
 
-export interface FileUploadDropzoneProps extends ComponentProps<"div"> {
-  placeholder?: string;
-}
+export type FileUploadDropzoneProps = ComponentProps<"div">;
 
 export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
   children,
   className,
-  placeholder,
   tabIndex,
   onClick,
   onDragLeave,
@@ -464,7 +458,7 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
   const {
     inputProps,
     disabled,
-    placeholder: contextPlaceholder,
+    placeholder,
     title,
     description,
     ariaDescribedBy,
@@ -474,11 +468,6 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
     addFiles,
     openFileDialog,
   } = useFileUploadContext();
-  const resolvedPlaceholder = placeholder ?? contextPlaceholder;
-  const dropzoneContextValue = useMemo(
-    () => ({ placeholder: resolvedPlaceholder }),
-    [resolvedPlaceholder],
-  );
 
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {
     onClick?.(event);
@@ -551,50 +540,46 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
   };
 
   return (
-    <>
-      <FileUploadDropzoneContext.Provider value={dropzoneContextValue}>
-        <div
-          {...props}
-          aria-describedby={props["aria-describedby"] ?? ariaDescribedBy}
-          aria-disabled={disabled}
-          aria-invalid={ariaInvalid}
-          aria-label={props["aria-label"] ?? inputProps["aria-label"]}
-          data-disabled={disabled}
-          data-dragging={isDragging}
-          data-slot="file-upload"
-          role="button"
-          tabIndex={disabled ? undefined : (tabIndex ?? 0)}
-          aria-labelledby={
-            props["aria-labelledby"] ?? inputProps["aria-labelledby"]
-          }
-          className={cn(
-            "border-input bg-background text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-center shadow-xs transition-[background-color,border-color,box-shadow] outline-none focus-visible:ring-[3px]",
-            "data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5",
-            "data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50",
-            className,
+    <div
+      {...props}
+      aria-describedby={props["aria-describedby"] ?? ariaDescribedBy}
+      aria-disabled={disabled}
+      aria-invalid={ariaInvalid}
+      aria-label={props["aria-label"] ?? inputProps["aria-label"]}
+      data-disabled={disabled}
+      data-dragging={isDragging}
+      data-slot="file-upload"
+      role="button"
+      tabIndex={disabled ? undefined : (tabIndex ?? 0)}
+      aria-labelledby={
+        props["aria-labelledby"] ?? inputProps["aria-labelledby"]
+      }
+      className={cn(
+        "border-input bg-background text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-center shadow-xs transition-[background-color,border-color,box-shadow] outline-none focus-visible:ring-[3px]",
+        "data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5",
+        "data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50",
+        className,
+      )}
+      onClick={handleClick}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
+    >
+      {children ?? (
+        <>
+          <FileUploadDropzoneIcon />
+          {title != null && (
+            <span className="text-sm font-medium">{title}</span>
           )}
-          onClick={handleClick}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-        >
-          {children ?? (
-            <>
-              <FileUploadDropzoneIcon />
-              {title != null && (
-                <span className="text-sm font-medium">{title}</span>
-              )}
-              {title != null && " "}
-              <FileUploadDropzoneDescription>
-                {description}
-              </FileUploadDropzoneDescription>
-            </>
-          )}
-        </div>
-      </FileUploadDropzoneContext.Provider>
-    </>
+          {title != null && " "}
+          <FileUploadDropzoneDescription>
+            {description ?? placeholder}
+          </FileUploadDropzoneDescription>
+        </>
+      )}
+    </div>
   );
 };
 
@@ -610,25 +595,15 @@ export const FileUploadDropzoneIcon: FC<FileUploadDropzoneIconProps> = ({
   />
 );
 
-export interface FileUploadDropzoneDescriptionProps extends ComponentProps<"span"> {
-  placeholder?: string;
-}
+export type FileUploadDropzoneDescriptionProps = ComponentProps<"span">;
 
 export const FileUploadDropzoneDescription: FC<
   FileUploadDropzoneDescriptionProps
-> = ({ children, className, placeholder, ...props }) => {
-  const dropzoneContext = useContext(FileUploadDropzoneContext);
-  const { placeholder: contextPlaceholder } = useFileUploadContext();
-
-  return (
-    <span {...props} className={cn("text-muted-foreground text-sm", className)}>
-      {children ??
-        placeholder ??
-        dropzoneContext?.placeholder ??
-        contextPlaceholder}
-    </span>
-  );
-};
+> = ({ children, className, ...props }) => (
+  <span {...props} className={cn("text-muted-foreground text-sm", className)}>
+    {children}
+  </span>
+);
 
 export type FileUploadListProps = ComponentProps<"ul">;
 

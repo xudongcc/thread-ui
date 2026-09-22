@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import {
   FileUpload,
   FileUploadDropzone,
+  FileUploadDropzoneDescription,
   useFileUpload,
 } from "@/components/thread-ui/file-upload";
 import {
@@ -65,7 +66,9 @@ const SelectedAttachments = () => {
 const Example = () => (
   <FileUpload multiple className="max-w-md">
     <FileUploadDropzone>
-      Choose files, drop them here, or paste them.
+      <FileUploadDropzoneDescription>
+        Choose files, drop them here, or paste them.
+      </FileUploadDropzoneDescription>
     </FileUploadDropzone>
     <SelectedAttachments />
   </FileUpload>

@@ -53,6 +53,22 @@ for file selection and compose Attachment components with `useFileUpload()`,
 or use the existing `FileUploadList` and `FileUploadPreview` helpers. Keep attachment
 actions outside the dropzone so they do not open the file picker.
 
+Pass custom prompt content directly to `FileUploadDropzoneDescription`:
+
+```tsx
+<FileUpload>
+  <FileUploadDropzone>
+    <FileUploadDropzoneDescription>
+      Drop files here.
+    </FileUploadDropzoneDescription>
+  </FileUploadDropzone>
+  <FileUploadList />
+</FileUpload>
+```
+
+The description renders its `children`. In the default UI, FileUpload supplies
+`description` or the localized `placeholder` explicitly.
+
 <Preview path="file-upload-composition" />
 
 ## Examples
@@ -285,7 +301,7 @@ Extends all native HTML `<div>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadDropzoneProps, 'placeholder' | 'className' | 'children'>`}
+  type={`Pick<FileUploadDropzoneProps, 'className' | 'children'>`}
 />
 
 ### FileUploadDropzoneIconProps
@@ -303,7 +319,7 @@ Extends all native HTML `<span>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadDropzoneDescriptionProps, 'placeholder' | 'className' | 'children'>`}
+  type={`Pick<FileUploadDropzoneDescriptionProps, 'className' | 'children'>`}
 />
 
 ### FileUploadListProps

@@ -20,6 +20,7 @@ import type { ReactNode } from "react";
 import {
   FileUpload,
   FileUploadDropzone,
+  FileUploadDropzoneDescription,
   FileUploadPreview,
   useFileUpload,
 } from "@/components/thread-ui/file-upload";
@@ -95,7 +96,11 @@ it("renders default Attachment items outside the dropzone and localizes removal"
 it("lets children replace both defaults, including an explicit null", () => {
   const { container, rerender } = localized(
     <FileUpload defaultValue={[file]}>
-      <FileUploadDropzone>Custom picker</FileUploadDropzone>
+      <FileUploadDropzone>
+        <FileUploadDropzoneDescription>
+          Custom picker
+        </FileUploadDropzoneDescription>
+      </FileUploadDropzone>
       <p>Custom attachments</p>
     </FileUpload>,
   );
