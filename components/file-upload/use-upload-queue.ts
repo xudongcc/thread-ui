@@ -26,6 +26,7 @@ export const useUploadQueue = <TResult>(
 
   return {
     entries,
+    getEntries: store.getSnapshot,
     upload: store.upload,
     retry: store.retry,
     cancel: store.cancel,

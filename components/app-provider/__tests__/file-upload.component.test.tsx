@@ -8,12 +8,13 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
-import { StrictMode, useState } from "react";
+import { StrictMode, createRef, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import { afterEach, expect, it, vi } from "vitest";
 
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
+import type { FileUploadHandle } from "../../file-upload";
 import type { FileUploadTaskContext } from "../../file-upload/upload-queue";
 import type { ReactNode } from "react";
 import {
@@ -634,4 +635,142 @@ it("creates a fresh task when removing and re-adding the same File in one batch"
     finish[1]!("new");
   });
   expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["new"]);
+});
+
+it("starts props-mode uploads through an external ref and preserves the native picker", async () => {
+  const ref = createRef<FileUploadHandle<{ url: string }>>();
+  const onUpload = vi.fn(async ({ file }: FileUploadTaskContext) => ({
+    url: `/files/${file.name}`,
+  }));
+  const onUploadComplete = vi.fn();
+  const { container, unmount } = localized(
+    <StrictMode>
+      <FileUpload
+        ref={ref}
+        multiple
+        autoUpload={false}
+        onUpload={onUpload}
+        onUploadComplete={onUploadComplete}
+      />
+      <button type="button" onClick={() => ref.current?.upload()}>
+        Upload all
+      </button>
+    </StrictMode>,
+  );
+  const input = getInput(container);
+  const inputClick = vi.spyOn(input, "click");
+  await userEvent.click(
+    screen.getByRole("button", { name: en.fileUpload.placeholder }),
+  );
+  expect(inputClick).toHaveBeenCalledOnce();
+  act(() => ref.current!.openFileDialog());
+  expect(inputClick).toHaveBeenCalledTimes(2);
+  await userEvent.upload(input, [file, otherFile]);
+  expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  expect(onUpload).not.toHaveBeenCalled();
+  expect(ref.current!.getEntries().map((entry) => entry.status)).toEqual([
+    "idle",
+    "idle",
+  ]);
+  await userEvent.click(screen.getByRole("button", { name: "Upload all" }));
+  expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith([
+    { url: `/files/${file.name}` },
+    { url: `/files/${otherFile.name}` },
+  ]);
+  expect(ref.current!.getEntries()[0]!.result?.url).toBe(`/files/${file.name}`);
+  unmount();
+  expect(ref.current).toBeNull();
+});
+
+it("reads fresh task snapshots and supports cancel, retry and remove through the ref", async () => {
+  const ref = createRef<FileUploadHandle<string>>();
+  const contexts: FileUploadTaskContext[] = [];
+  const finish: ((result: string) => void)[] = [];
+  const onUpload = vi.fn((context: FileUploadTaskContext) => {
+    contexts.push(context);
+    return new Promise<string>((resolve) => {
+      finish.push(resolve);
+    });
+  });
+  const onUploadComplete = vi.fn();
+  localized(
+    <FileUpload
+      ref={ref}
+      autoUpload={false}
+      defaultValue={[file]}
+      onUpload={onUpload}
+      onUploadComplete={onUploadComplete}
+    />,
+  );
+  const getEntries = ref.current!.getEntries;
+  const id = getEntries()[0]!.id;
+  await act(async () => ref.current!.upload(id));
+  await act(async () => {
+    contexts[0]!.setStage("uploading");
+    contexts[0]!.onProgress(35);
+  });
+  expect(getEntries()[0]!.progress).toBe(35);
+  await act(async () => ref.current!.cancel(id));
+  expect(contexts[0]!.signal.aborted).toBe(true);
+  expect(getEntries()[0]!.status).toBe("canceled");
+  await act(async () => ref.current!.retry(id));
+  expect(onUpload).toHaveBeenCalledTimes(2);
+  await act(async () => {
+    finish[0]!("stale");
+    finish[1]!("current");
+  });
+  expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["current"]);
+  act(() => ref.current!.remove(id));
+  expect(getEntries()).toEqual([]);
+  expect(screen.queryByRole("listitem")).toBeNull();
+});
+
+it("respects updated disabled and controlled props through the ref", async () => {
+  const ref = createRef<FileUploadHandle<string>>();
+  const onUpload = vi.fn(async () => "url");
+  const onChange = vi.fn();
+  const props = { ref, autoUpload: false, value: [file], onUpload, onChange };
+  const { container, rerender } = localized(<FileUpload {...props} />);
+  const id = ref.current!.getEntries()[0]!.id;
+  rerender(<FileUpload {...props} disabled />);
+  const inputClick = vi.spyOn(getInput(container), "click");
+  await act(async () => {
+    ref.current!.upload();
+    ref.current!.cancel(id);
+    ref.current!.retry(id);
+    ref.current!.remove(id);
+    ref.current!.openFileDialog();
+  });
+  expect(onUpload).not.toHaveBeenCalled();
+  expect(onChange).not.toHaveBeenCalled();
+  expect(inputClick).not.toHaveBeenCalled();
+  expect(ref.current!.getEntries()[0]!.status).toBe("idle");
+  rerender(<FileUpload {...props} />);
+  act(() => ref.current!.remove(id));
+  expect(onChange).toHaveBeenCalledExactlyOnceWith([]);
+  expect(ref.current!.getEntries()).toHaveLength(1);
+  rerender(<FileUpload {...props} value={[]} />);
+  expect(ref.current!.getEntries()).toEqual([]);
+});
+
+it("supports callback refs in composition mode and clears the handle on unmount", async () => {
+  const ref = vi.fn();
+  const onUpload = vi.fn(async () => "url");
+  const { unmount } = localized(
+    <FileUpload
+      ref={ref}
+      autoUpload={false}
+      defaultValue={[file]}
+      onUpload={onUpload}
+    >
+      <FileUploadDropzone>Custom picker</FileUploadDropzone>
+    </FileUpload>,
+  );
+  const handle = ref.mock.lastCall![0] as FileUploadHandle<string>;
+  await act(async () => handle.upload());
+  expect(onUpload).toHaveBeenCalledTimes(1);
+  expect(handle.getEntries()[0]!.result).toBe("url");
+  expect(screen.queryByRole("listitem")).toBeNull();
+  unmount();
+  expect(ref.mock.lastCall![0]).toBeNull();
 });

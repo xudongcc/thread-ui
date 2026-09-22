@@ -110,7 +110,7 @@ not the presigned upload URL. Throw to report a failure.
 - `concurrency` is a positive integer (default `3`). Set `1` for serial uploads.
   One queue slot covers the entire workflow, including preparation and confirmation.
 - `autoUpload` defaults to `true` when `onUpload` is provided. With `false`, use
-  the built-in upload action or `useFileUpload().upload()` to start idle tasks.
+  the built-in upload action, `ref.current?.upload()`, or `useFileUpload().upload()` to start idle tasks.
 - `onUploadComplete` fires only when every currently selected file succeeds.
   Files added during uploading are included. Idle, failed, and canceled entries
   block completion; an empty selection never completes. Re-renders do not repeat
@@ -124,6 +124,48 @@ not the presigned upload URL. Throw to report a failure.
   `value` to accept the removal.
 - `disabled` pauses queued tasks and disables user actions; running tasks may
   finish. Re-enabling resumes queued work. Progress updates do not call `onChange`.
+
+### Manual upload with a ref
+
+Use `autoUpload={false}` and a `ref` to start uploads from an external button while
+keeping the default dropzone and Attachment list. No `children` or Context hook
+is required. This also works in composition mode.
+
+<Preview path="file-upload-manual" />
+
+```tsx
+import { useRef } from "react";
+import {
+  FileUpload,
+  type FileUploadHandle,
+} from "@/components/thread-ui/file-upload";
+
+type AttachmentResult = { id: string; url: string };
+
+function Example() {
+  const uploadRef = useRef<FileUploadHandle<AttachmentResult>>(null);
+
+  return (
+    <>
+      <FileUpload
+        ref={uploadRef}
+        multiple
+        autoUpload={false}
+        onUpload={uploadFile}
+        onUploadComplete={(results) => saveAttachments(results)}
+      />
+      <button type="button" onClick={() => uploadRef.current?.upload()}>
+        Start upload
+      </button>
+    </>
+  );
+}
+```
+
+Here `uploadFile` is your staged-upload handler returning `Promise<AttachmentResult>`.
+The ref exposes component actions, not the hidden input DOM element. It becomes
+`null` on unmount. Actions respect `disabled` and use the same queue as
+`useFileUpload()`.
 
 ### Disabled
 
@@ -163,12 +205,27 @@ updates. Upload, cancel, and retry labels and all status messages use the
 
 ### FileUploadProps
 
-Extends native HTML `<input>` props, with `type`, `value`, `defaultValue`, `onChange`, `placeholder`, `title`, `className`, and `children` owned by FileUpload.
+Extends native HTML `<input>` props, with `type`, `value`, `defaultValue`, `onChange`, `placeholder`, `title`, `className`, `ref`, and `children` owned by FileUpload.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
   type={`Pick<FileUploadProps, 'value' | 'defaultValue' | 'onChange' | 'title' | 'description' | 'placeholder' | 'multiple' | 'accept' | 'disabled' | 'className' | 'children' | 'onUpload' | 'onUploadComplete' | 'onUploadError' | 'autoUpload' | 'concurrency'>`}
 />
+
+### FileUploadHandle
+
+| Method             | Behavior                                                             |
+| ------------------ | -------------------------------------------------------------------- |
+| `upload(id?)`      | Start one idle task, or all idle tasks when omitted                  |
+| `retry(id)`        | Restart a failed or canceled task                                    |
+| `cancel(id)`       | Cancel an idle, queued, or running task                              |
+| `remove(id)`       | Cancel and remove a file; controlled callers must update `value`     |
+| `openFileDialog()` | Open the native file picker                                          |
+| `getEntries()`     | Read the current tasks, including IDs, status, progress, and results |
+
+`getEntries()` is an on-demand snapshot, not a React subscription. Use callbacks
+for external UI updates, or `useFileUpload()` in descendants for reactive state.
+The handle's generic type describes the result returned by `onUpload`.
 
 ### useFileUpload
 

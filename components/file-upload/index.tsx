@@ -14,6 +14,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -29,6 +30,7 @@ import type {
   KeyboardEvent,
   MouseEvent,
   ReactNode,
+  Ref,
 } from "react";
 
 import type { FileUploadEntry, FileUploadOptions } from "./upload-queue";
@@ -59,6 +61,7 @@ type FileUploadInputProps = Omit<
   | "defaultValue"
   | "onChange"
   | "placeholder"
+  | "ref"
   | "title"
   | "type"
   | "value"
@@ -66,6 +69,8 @@ type FileUploadInputProps = Omit<
 
 export interface FileUploadProps<TResult = unknown>
   extends FileUploadInputProps, FileUploadOptions<TResult> {
+  /** Imperative actions for external controls, including in props mode. */
+  ref?: Ref<FileUploadHandle<TResult>>;
   value?: File[];
   defaultValue?: File[];
   onChange?: (files: File[]) => void;
@@ -77,6 +82,16 @@ export interface FileUploadProps<TResult = unknown>
   placeholder?: string;
   className?: string;
   children?: ReactNode;
+}
+
+export interface FileUploadHandle<TResult = unknown> {
+  upload: (id?: string) => void;
+  retry: (id: string) => void;
+  cancel: (id: string) => void;
+  remove: (id: string) => void;
+  openFileDialog: () => void;
+  /** Read current tasks on demand; this getter does not subscribe to changes. */
+  getEntries: () => FileUploadEntry<TResult>[];
 }
 
 type FileUploadContextValue = {
@@ -274,6 +289,7 @@ const useObjectUrl = (file?: File) => {
 };
 
 export const FileUpload = <TResult,>({
+  ref,
   onUpload,
   onUploadComplete,
   onUploadError,
@@ -312,15 +328,22 @@ export const FileUpload = <TResult,>({
   const files = value ?? internalFiles;
   const isControlled = value !== undefined;
 
-  const { entries, upload, retry, cancel, prepareRemove, prepareSelection } =
-    useUploadQueue(files, {
-      onUpload,
-      onUploadComplete,
-      onUploadError,
-      autoUpload,
-      concurrency,
-      disabled,
-    });
+  const {
+    entries,
+    upload,
+    retry,
+    cancel,
+    prepareRemove,
+    prepareSelection,
+    getEntries,
+  } = useUploadQueue(files, {
+    onUpload,
+    onUploadComplete,
+    onUploadError,
+    autoUpload,
+    concurrency,
+    disabled,
+  });
 
   // Keep a synchronous draft so actions in the same React batch accumulate.
   // IDs distinguish duplicate File occurrences while their indexes shift.
@@ -400,6 +423,12 @@ export const FileUpload = <TResult,>({
 
     inputRef.current?.click();
   }, [disabled]);
+
+  useImperativeHandle(
+    ref,
+    () => ({ upload, retry, cancel, remove, openFileDialog, getEntries }),
+    [upload, retry, cancel, remove, openFileDialog, getEntries],
+  );
 
   const contextValue = useMemo<FileUploadContextValue>(
     () => ({
