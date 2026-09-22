@@ -40,9 +40,14 @@ const localized = (children: ReactNode) => {
       zh: { "thread-ui": structuredClone(zh) },
     },
   });
+  const view = render(
+    <I18nextProvider i18n={i18n}>{children}</I18nextProvider>,
+  );
   return {
     i18n,
-    ...render(<I18nextProvider i18n={i18n}>{children}</I18nextProvider>),
+    ...view,
+    rerender: (children: ReactNode) =>
+      view.rerender(<I18nextProvider i18n={i18n}>{children}</I18nextProvider>),
   };
 };
 
