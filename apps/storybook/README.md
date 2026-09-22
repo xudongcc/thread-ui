@@ -16,6 +16,7 @@ pnpm --filter @repo/storybook exec playwright install chromium
 pnpm storybook:test
 pnpm storybook:test:watch
 pnpm --filter @repo/storybook test:sources
+pnpm --filter @repo/storybook test:layout
 ```
 
 The static site is written to `apps/storybook/storybook-static`. On a fresh Linux CI image, install browser system dependencies with `playwright install --with-deps chromium` instead.
@@ -50,11 +51,15 @@ Stateful and function examples live in `stories/examples/*.tsx`. Import the same
 
 For popup interactions, wait until the popup leaves the accessibility tree and focus returns to the trigger before finishing `play`. Base UI Select intentionally retains hidden DOM after closing, so do not require its hidden listbox to be removed.
 
+`test:layout` checks the built application shell at desktop, tablet, and 320/375px widths, including light/dark themes and Chinese labels. It verifies navigation, drawer focus/dismissal, tenant switching, scrolling, and viewport overflow, plus orders filtering and the responsive two-column detail page.
+
 ## Coverage and conventions
+
+All story canvases and Docs story previews use `var(--sidebar)` as their background, defined once in `styles.css`. The theme toolbar updates this token for light/dark mode; keep background colors out of individual story decorators.
 
 Use the viewport toolbar to test responsive behavior on existing stories. Do not add separate mobile or narrow-container stories that only change available width. Keep stories for component props and behavior, such as Page width variants, PageLayout column spans, and DataTable pinned columns.
 
-All 23 visual component packages have a dedicated story file. `components/common` contains only TypeScript helpers and is documented on the Introduction page. Each component has its primary states and composition examples; complex examples show their controlled output so changes can be inspected.
+All 25 visual component packages have a dedicated story file. `components/common` contains only TypeScript helpers and is documented on the Introduction page. Each component has its primary states and composition examples; complex examples show their controlled output so changes can be inspected.
 
 - Dates use fixed sample values where a selected date is needed.
 - File uploads run a local, abortable simulation. No upload endpoint is required; selected file contents remain in the browser.
@@ -71,6 +76,23 @@ Run the full suite with `pnpm storybook:test`, keep it running with `pnpm storyb
 ```sh
 pnpm --filter @repo/storybook test stories/file-upload.stories.tsx
 ```
+
+Opening a story keeps its initial state: browsing does not execute interactions.
+Wrap every interaction with `testOnly` from `stories/utils/test-only.ts`:
+
+```tsx
+play: testOnly(async ({ canvas, userEvent }) => {
+  await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+});
+```
+
+The Vite config defines `__STORYBOOK_TEST__` as false for browsing/builds, and
+Vitest overrides it to true. The helper returns the original play function only
+in the test runner, preserving assertions and failures. Do not remove play
+functions to suppress autoplay, or add unwrapped play functions. Reusing a
+wrapped story's `play` (e.g. `Default.play`) is supported. Stories that need an
+open dialog/menu as their initial state should express that state in args or
+rendering. Docs also explicitly disables `docs.story.autoplay`.
 
 The Storybook sidebar's **Run tests** button runs component tests through the addon. A story without a `play` function checks rendering; add meaningful interaction assertions for behavior such as selection, confirmation, pagination, and retries. Tests are local and do not require a hosted visual-testing service.
 

@@ -1,4 +1,5 @@
 import { expect } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import {
   MultipleCalendar,
   RangeCalendar,
@@ -34,13 +35,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   name: "Props API",
-  play: async ({ canvas, globals }) => {
+  play: testOnly(async ({ canvas, globals }) => {
     await expect(
       canvas.getByRole("button", {
         name: globals.locale === "zh" ? /2026年9月22日/ : /September 22, 2026/,
       }),
     ).toBeVisible();
-  },
+  }),
 };
 export const DisabledDates: Story = {
   args: { disabled: { before: referenceDate } },

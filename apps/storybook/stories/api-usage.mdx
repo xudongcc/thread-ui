@@ -33,11 +33,11 @@ examples are shown separately where supported. Existing story URLs remain stable
       <td>Props API</td>
     </tr>
     <tr>
-      <td>CheckboxGroup, RadioGroup, FileUpload</td>
+      <td>CheckboxGroup, RadioGroup, FileUpload, Layout</td>
       <td>Props API first; Composition API for custom layout</td>
     </tr>
     <tr>
-      <td>Page, PageLayout, CodeBlock, Dialog</td>
+      <td>Page, PageLayout, CodeBlock, Dialog, Topbar, TopbarMenu</td>
       <td>Composition API</td>
     </tr>
     <tr>
@@ -129,3 +129,44 @@ The Manual Upload example combines the default Props API layout with
 `ref.current?.upload()`.
 
 <Canvas of={UploadStories.ManualUpload} story={{ autoplay: false }} />
+
+## Application layout
+
+The Layout stories include a dashboard, a `Page` + `DataFilter` + `DataTable`
+orders page, and a two-column collection editor built with `PageLayout`.
+Search, fulfillment/amount filtering, pagination, and bulk fulfillment operate
+on local sample data. The collection editor supports save/discard and stacks
+its columns on mobile.
+
+`Layout` supplies the application shell; `Page` and `PageLayout` organize its
+content. It uses shadcn `SidebarProvider`, `Sidebar`, and `SidebarInset`, and a
+Sheet on mobile. Use navigation groups for the Props API, or pass `sidebar`
+with composed shadcn menu components for custom navigation. Search, actions,
+topbarMenu, and sidebarFooter are independent slots. Layout composes the
+independent `Topbar` and supplies its mobile sidebar trigger. `Topbar` supports
+**Composition API only**. Arrange `TopbarBrand`, `TopbarNavigationTrigger`, and
+`TopbarActionGroup` as children. Place `TopbarAction` buttons inside the group,
+with `TopbarMenu` alongside it. Custom content can be composed directly into the
+header. It follows the application theme unless `variant` is set to light or
+dark. The parts and `TopbarMenu` are exported from the same topbar package.
+
+`TopbarMenu` supports **Composition API only** and works outside Layout.
+Use `TopbarMenuTrigger`, `TopbarMenuContent`, `TopbarMenuWorkspaceGroup`,
+`TopbarMenuWorkspaceLabel`, `TopbarMenuWorkspaceItem`, and `TopbarMenuUser`.
+The workspace group exposes shadcn radio-group `value`/`onValueChange`;
+workspace items, user items, and ordinary shadcn items accept Base UI `render`
+elements/functions for framework links. Use `TopbarMenuItem` (a direct shadcn alias) for
+additional account actions.
+The root supplies `currentWorkspace`/`user` context and loading/disabled state.
+It does not generate actions or search UI. The examples show at most three recent
+tenants including the current one; the application owns this data and updates
+selection after switching succeeds. Compose language/theme submenus with the `TopbarMenuSub`,
+`TopbarMenuSubTrigger`, `TopbarMenuSubContent`, `TopbarMenuRadioGroup`, and
+`TopbarMenuRadioItem` aliases. TopbarMenu and Layout demonstrate working
+preference changes; Layout also includes a profile page.
+These components have no global function API.
+
+See [Layout](?path=/docs/components-layout--docs),
+[Topbar](?path=/docs/components-topbar--docs), and
+[TopbarMenu](?path=/docs/components-topbarmenu--docs). Use the
+viewport toolbar for mobile; there are no separate mobile-only stories.

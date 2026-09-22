@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   PageLayout,
   PageLayoutSection,
@@ -20,13 +21,19 @@ const meta = {
   render: (args) => (
     <PageLayout {...args}>
       <PageLayoutSection span="2/3">
-        <div className="bg-muted rounded-lg border p-6">Main content · 2/3</div>
+        <Card>
+          <CardContent>Main content · 2/3</CardContent>
+        </Card>
       </PageLayoutSection>
       <PageLayoutSection span="1/3">
-        <div className="bg-muted rounded-lg border p-6">Sidebar · 1/3</div>
+        <Card>
+          <CardContent>Sidebar · 1/3</CardContent>
+        </Card>
       </PageLayoutSection>
       <PageLayoutSection>
-        <div className="rounded-lg border p-6">Full-width section</div>
+        <Card>
+          <CardContent>Full-width section</CardContent>
+        </Card>
       </PageLayoutSection>
     </PageLayout>
   ),
@@ -41,7 +48,9 @@ export const EqualColumns: Story = {
     <PageLayout {...args}>
       {["Profile", "Notifications"].map((label) => (
         <PageLayoutSection key={label} span="1/2">
-          <div className="rounded-lg border p-6">{label}</div>
+          <Card>
+            <CardContent>{label}</CardContent>
+          </Card>
         </PageLayoutSection>
       ))}
     </PageLayout>
@@ -52,7 +61,9 @@ export const ThreeColumns: Story = {
     <PageLayout {...args}>
       {["Overview", "Activity", "Members"].map((label) => (
         <PageLayoutSection key={label} span="1/3">
-          <div className="rounded-lg border p-6">{label}</div>
+          <Card>
+            <CardContent>{label}</CardContent>
+          </Card>
         </PageLayoutSection>
       ))}
     </PageLayout>

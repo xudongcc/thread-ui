@@ -12,6 +12,7 @@ import {
   PageTitle,
 } from "@/components/thread-ui/page";
 import { Input } from "@/components/thread-ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
 const meta = {
   id: "components-page",
@@ -47,13 +48,15 @@ const meta = {
         </PageActions>
       </PageHeader>
       <PageContent>
-        <div className="space-y-4 rounded-lg border p-4">
-          <Input defaultValue="Thread UI" label="Project name" />
-          <Input
-            defaultValue="A component library for product teams."
-            label="Description"
-          />
-        </div>
+        <Card>
+          <CardContent className="space-y-4">
+            <Input defaultValue="Thread UI" label="Project name" />
+            <Input
+              defaultValue="A component library for product teams."
+              label="Description"
+            />
+          </CardContent>
+        </Card>
       </PageContent>
     </Page>
   ),

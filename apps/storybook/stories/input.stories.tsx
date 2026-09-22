@@ -1,4 +1,5 @@
 import { expect } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { ControlledInputExample } from "./examples/input";
 import implementation from "./examples/input.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
@@ -36,20 +37,20 @@ export const Error: Story = {
   // TODO(a11y): color-contrast: destructive input text on the field background.
   parameters: { a11y: { test: "todo" } },
   args: { error: "Enter a valid email address.", defaultValue: "invalid" },
-  play: async ({ canvas }) => {
+  play: testOnly(async ({ canvas }) => {
     const input = canvas.getByRole("textbox", { name: "Email" });
     await expect(input).toHaveAttribute("aria-invalid", "true");
     await expect(input).toHaveAccessibleDescription(
       "Enter a valid email address.",
     );
-  },
+  }),
 };
 export const Typing: Story = {
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     const input = canvas.getByRole("textbox", { name: "Email" });
     await userEvent.type(input, "hello@example.com");
     await expect(input).toHaveValue("hello@example.com");
-  },
+  }),
 };
 
 export const WithoutLabel: Story = {

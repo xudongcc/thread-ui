@@ -1,4 +1,5 @@
 import { expect, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import {
   CodeBlockExample,
   FilesCodeBlockExample,
@@ -50,25 +51,25 @@ export const Default: Story = {
 export const Files: Story = {
   render: (args) => <FilesCodeBlockExample {...args} />,
   parameters: { docs: { source: withExampleSource(implementation) } },
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: "greeting.js" }));
     await expect(canvasElement.querySelector("pre")).toHaveTextContent(
       data[1].code,
     );
-  },
+  }),
 };
 export const LanguageSelector: Story = {
   // TODO(a11y): color-contrast: selected language text on the muted trigger.
   parameters: { a11y: { test: "todo" } },
   render: (args) => <LanguageSelectorCodeBlockExample {...args} />,
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(canvas.getByRole("combobox"));
     const body = within(canvasElement.ownerDocument.body);
     await userEvent.click(
       await body.findByRole("option", { name: "greeting.js" }),
     );
     await expect(canvas.getByText(data[1].code)).toBeVisible();
-  },
+  }),
 };
 export const Notation: Story = {
   // TODO(a11y): color-contrast and svg-img-alt: filename text and language icon.

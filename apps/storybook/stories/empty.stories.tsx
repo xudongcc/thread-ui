@@ -1,5 +1,6 @@
 import { Inbox, Plus } from "lucide-react";
 import { expect, fn } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Empty } from "@/components/thread-ui/empty";
 import { Button } from "@/components/thread-ui/button";
@@ -37,12 +38,12 @@ export const WithActions: Story = {
     },
     secondaryAction: { label: "Learn more", onClick: fn() },
   },
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.click(
       canvas.getByRole("button", { name: "Create project" }),
     );
     await expect(createProject).toHaveBeenCalledOnce();
-  },
+  }),
 };
 export const CustomAction: Story = {
   args: {

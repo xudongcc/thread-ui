@@ -241,10 +241,10 @@ export function DataTable<TData extends RowData, TValue = unknown>({
   }, []);
 
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       <div className="relative overflow-auto rounded-md">
         {selectedRowCount > 0 && (
-          <div className="bg-background absolute top-0 left-0 z-100 flex h-10 w-full items-center gap-2 px-2">
+          <div className="bg-card absolute top-0 left-0 z-100 flex h-10 w-full items-center gap-2 px-2">
             <Checkbox
               aria-label={t("dataTable.selectAllRows")}
               checked={table.getIsAllPageRowsSelected()}
@@ -256,7 +256,7 @@ export function DataTable<TData extends RowData, TValue = unknown>({
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button size="sm" variant="ghost">
+                  <Button size="xs" variant="ghost">
                     {isAllPageRowsSelected
                       ? t("dataTable.allSelected")
                       : t("dataTable.selectedRows", {
@@ -305,18 +305,18 @@ export function DataTable<TData extends RowData, TValue = unknown>({
           </div>
         )}
 
-        <Table className="bg-background table-fixed">
+        <Table className="bg-card table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="group bg-background hover:bg-muted"
+                className="group bg-card hover:bg-muted"
               >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
                     className={cn(
-                      "bg-background group-hover:bg-muted whitespace-normal",
+                      "bg-card group-hover:bg-muted whitespace-normal",
                       getCommonPinningClassNames<TData>(header.column),
                     )}
                     style={{
@@ -341,7 +341,7 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   className={cn(
-                    "group bg-background hover:bg-muted",
+                    "group bg-card hover:bg-muted",
                     onRowClick && "cursor-pointer",
                   )}
                   {...(onRowClick ? { onClick: () => onRowClick?.(row) } : {})}
@@ -350,7 +350,7 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        "bg-background group-hover:bg-muted whitespace-normal",
+                        "bg-card group-hover:bg-muted whitespace-normal",
                         getCommonPinningClassNames<TData>(cell.column),
                         cell.column.id === "$actions" && "text-right",
                       )}
@@ -374,7 +374,7 @@ export function DataTable<TData extends RowData, TValue = unknown>({
             ) : (
               <TableRow>
                 <TableCell
-                  className="bg-background h-24 text-center"
+                  className="bg-card h-24 text-center"
                   colSpan={tableColumns.length}
                 >
                   {empty ?? (
@@ -391,7 +391,7 @@ export function DataTable<TData extends RowData, TValue = unknown>({
       </div>
 
       {pagination && (
-        <div className="flex items-center justify-center py-4">
+        <div className="flex items-center justify-center">
           <ButtonGroup>
             <Button
               aria-label={t("dataTable.previousPage")}

@@ -33,7 +33,7 @@ export function RowSelectionDataTableExample(
       <DataTable
         {...args}
         bulkActions={
-          <Button size="sm" variant="outline" onClick={fn()}>
+          <Button size="xs" variant="outline" onClick={fn()}>
             Export selected
           </Button>
         }

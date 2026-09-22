@@ -1,4 +1,5 @@
 import { expect, fn, waitFor, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import {
   ControlledSelectExample,
   MultipleSelectExample,
@@ -49,7 +50,7 @@ export const Error: Story = {
   args: { error: "Choose a framework to continue." },
 };
 export const ChooseOption: Story = {
-  play: async ({ args, canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ args, canvas, canvasElement, userEvent }) => {
     await userEvent.click(canvas.getByRole("combobox", { name: "Framework" }));
     // The popup is portalled outside the story canvas.
     const body = within(canvasElement.ownerDocument.body);
@@ -63,7 +64,7 @@ export const ChooseOption: Story = {
       expect(body.queryByRole("listbox")).not.toBeInTheDocument(),
     );
     await expect(canvas.getByRole("combobox")).toHaveFocus();
-  },
+  }),
 };
 
 export const EmptyOptions: Story = {

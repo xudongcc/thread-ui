@@ -1,4 +1,5 @@
 import { expect, waitFor, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button } from "@/components/thread-ui/button";
@@ -51,7 +52,7 @@ export const Default: Story = {
   name: "Composition API",
 };
 export const OpenAndClose: Story = {
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     const trigger = canvas.getByRole("button", { name: "Edit profile" });
     await userEvent.click(trigger);
     const body = within(canvasElement.ownerDocument.body);
@@ -66,7 +67,7 @@ export const OpenAndClose: Story = {
       expect(body.queryByRole("dialog")).not.toBeInTheDocument(),
     );
     await expect(trigger).toHaveFocus();
-  },
+  }),
 };
 
 export const WithoutCloseButton: Story = { args: { showCloseButton: false } };

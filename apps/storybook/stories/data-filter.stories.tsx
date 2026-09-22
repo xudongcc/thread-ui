@@ -1,4 +1,5 @@
 import { expect } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import {
   FilterExample,
   asyncFilters,
@@ -60,7 +61,7 @@ export const Populated: Story = {
 };
 export const Search: Story = {
   args: { filters: noFilters },
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.type(
       canvas.getByPlaceholderText("Search projects..."),
       "Thread{Enter}",
@@ -68,7 +69,7 @@ export const Search: Story = {
     await expect(canvas.getByLabelText("Filter value")).toHaveTextContent(
       '"query": "Thread"',
     );
-  },
+  }),
 };
 export const Sort: Story = {
   args: {

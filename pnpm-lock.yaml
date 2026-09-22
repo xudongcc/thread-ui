@@ -198,6 +198,9 @@ importers:
       '@repo/input':
         specifier: workspace:*
         version: link:../../components/input
+      '@repo/layout':
+        specifier: workspace:*
+        version: link:../../components/layout
       '@repo/locales':
         specifier: workspace:*
         version: link:../../locales
@@ -228,6 +231,9 @@ importers:
       '@repo/toast':
         specifier: workspace:*
         version: link:../../components/toast
+      '@repo/topbar':
+        specifier: workspace:*
+        version: link:../../components/topbar
       i18next:
         specifier: ^26.3.1
         version: 26.3.1(typescript@5.9.3)
@@ -882,6 +888,40 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  components/layout:
+    dependencies:
+      '@base-ui/react':
+        specifier: ^1.8.0
+        version: 1.8.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
+      '@repo/topbar':
+        specifier: workspace:*
+        version: link:../topbar
+      react:
+        specifier: ^19.2.7
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.2.7
+        version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.3.0(@types/react@19.3.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   components/number-input:
     dependencies:
       react:
@@ -1070,6 +1110,40 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.3.0(react@19.3.0)
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.3.0(@types/react@19.3.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  components/topbar:
+    dependencies:
+      '@repo/button':
+        specifier: workspace:*
+        version: link:../button
+      '@repo/locales':
+        specifier: workspace:*
+        version: link:../../locales
+      lucide-react:
+        specifier: ^0.562.0
+        version: 0.562.0(react@19.3.0)
+      react:
+        specifier: ^19.2.7
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.2.7
+        version: 19.3.0(react@19.3.0)
+      react-i18next:
+        specifier: ^17.0.8
+        version: 17.0.8(i18next@26.3.1(typescript@5.9.3))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*

@@ -1,4 +1,5 @@
 import { expect, waitFor, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { functionSource, withExampleSource } from "./utils/example-source";
 import { ToastExample, restoreFile } from "./examples/toast";
 import exampleSource from "./examples/toast.tsx?raw";
@@ -63,7 +64,7 @@ export const WithAction: Story = {
 export const Dismiss: Story = {
   globals: { locale: "en" },
   args: { timeout: 0 },
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(
       canvas.getByRole("button", { name: "Show notification" }),
     );
@@ -73,5 +74,5 @@ export const Dismiss: Story = {
     await waitFor(() =>
       expect(body.queryByText("Changes saved")).not.toBeInTheDocument(),
     );
-  },
+  }),
 };

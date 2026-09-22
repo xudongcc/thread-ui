@@ -1,0 +1,108 @@
+---
+title: Topbar
+description: Responsive top bar with composable branding, navigation, and account controls.
+---
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/topbar
+```
+
+## Composition API
+
+Compose the header with `TopbarBrand`, `TopbarNavigationTrigger`,
+`TopbarActionGroup`, `TopbarAction`, and `TopbarMenu`. Arrange or omit parts to
+suit the application. The host owns navigation and account actions.
+
+```tsx
+import { BellIcon, MenuIcon } from "lucide-react";
+import {
+  Topbar,
+  TopbarBrand,
+  TopbarNavigationTrigger,
+  TopbarActionGroup,
+  TopbarAction,
+  TopbarMenu,
+  TopbarMenuTrigger,
+  TopbarMenuContent,
+  TopbarMenuUser,
+  TopbarMenuSeparator,
+  TopbarMenuItem,
+} from "@/components/thread-ui/topbar";
+
+<Topbar>
+  <TopbarNavigationTrigger>
+    <TopbarAction aria-label="Open navigation" onClick={openNavigation}>
+      <MenuIcon />
+    </TopbarAction>
+  </TopbarNavigationTrigger>
+  <TopbarBrand>Thread UI</TopbarBrand>
+  <TopbarActionGroup>
+    <TopbarAction aria-label="Notifications" onClick={openNotifications}>
+      <BellIcon />
+    </TopbarAction>
+  </TopbarActionGroup>
+  <TopbarMenu user={user}>
+    <TopbarMenuTrigger />
+    <TopbarMenuContent>
+      <TopbarMenuUser onClick={openProfile} />
+      <TopbarMenuSeparator />
+      <TopbarMenuItem onClick={signOut}>Sign out</TopbarMenuItem>
+    </TopbarMenuContent>
+  </TopbarMenu>
+</Topbar>;
+```
+
+`Topbar` accepts children, optional `variant`, and native header attributes,
+including `ref`, `className`, and `style`. CSS Grid lets the first visible child's
+column absorb remaining space; branding and navigation align left, while actions
+and account controls align right. Parts can be omitted without placeholder
+elements. Its default height is 56px, with a
+bottom border. Custom content such as a search field can be placed directly
+among its children. It does not require `Layout` or `SidebarProvider`.
+
+## Parts
+
+- `TopbarBrand`: site name and optional logo. Hidden below 768px.
+- `TopbarNavigationTrigger`: mobile container for the application's navigation
+  button. Hidden on desktop; the application supplies its handler.
+- `TopbarActionGroup`: aligns action buttons to the right.
+- `TopbarAction`: Button with a 40px icon-button default and styles that follow
+  the header appearance. Supports Button props including `render`, `ref`,
+  `disabled`, and `loading`. Supply an accessible label for icon-only actions.
+
+The brand, navigation trigger, and action group forward native div attributes,
+refs, and classes. Parts can be wrapped in fragments or custom components.
+
+## Appearance
+
+Omit `variant` to follow the application theme: white with dark text in light
+mode, and dark with white text in dark mode. Changes to the global `.dark` class
+apply immediately. Use `variant="light"` or `variant="dark"` to fix the header
+appearance independently of the global theme.
+
+```tsx
+<Topbar>{children}</Topbar>
+<Topbar variant="light">{children}</Topbar>
+<Topbar variant="dark">{children}</Topbar>
+```
+
+Actions and the TopbarMenu trigger adapt their hover, focus, and expanded styles.
+The menu trigger becomes a circular avatar button below 640px.
+
+## Site logo
+
+Place the logo and site name inside `TopbarBrand`. Mark decorative SVGs with
+`aria-hidden="true"`. The **With Logo** Storybook example uses the Thread UI logo
+and name, matching Layout. The whole brand is hidden on mobile.
+
+## Layout integration
+
+`Layout` composes the Topbar parts internally and provides the mobile sidebar
+trigger. Layout's own `brand`, `search`, `actions`, and `topbarMenu` slots remain
+available as application-shell conveniences.
+
+See [TopbarMenu](/docs/layout/topbar-menu) for workspace selection, user identity,
+language/theme preferences, and framework links. Storybook lists **Topbar** and
+**TopbarMenu** as siblings under **Layout**.

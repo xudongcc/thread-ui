@@ -1,0 +1,202 @@
+---
+title: TopbarMenu
+description: Compose a workspace and account menu with shadcn menu items.
+---
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/topbar
+```
+
+## Composition API
+
+TopbarMenu is **composition-only**. The root holds current-workspace and user
+context and popup state. Compose the trigger, workspace choices, user identity,
+and actions to suit the application.
+
+```tsx
+import { useState } from "react";
+import {
+  TopbarMenu,
+  TopbarMenuTrigger,
+  TopbarMenuContent,
+  TopbarMenuWorkspaceGroup,
+  TopbarMenuWorkspaceLabel,
+  TopbarMenuWorkspaceItem,
+  TopbarMenuUser,
+  TopbarMenuSeparator,
+  TopbarMenuItem,
+} from "@/components/thread-ui/topbar";
+
+function AccountMenu() {
+  const [workspaceId, setWorkspaceId] = useState(activeWorkspace.id);
+  const current = [activeWorkspace, ...recentWorkspaces].find(
+    (workspace) => workspace.id === workspaceId,
+  );
+  // Recent list is application data: include the current tenant and show up to three.
+  const visible = [
+    ...(current ? [current] : []),
+    ...recentWorkspaces.filter((workspace) => workspace.id !== current?.id),
+  ].slice(0, 3);
+
+  return (
+    <TopbarMenu currentWorkspace={current} user={user}>
+      <TopbarMenuTrigger />
+      <TopbarMenuContent>
+        <TopbarMenuWorkspaceGroup
+          value={workspaceId}
+          onValueChange={setWorkspaceId}
+        >
+          <TopbarMenuWorkspaceLabel />
+          {visible.map((workspace) => (
+            <TopbarMenuWorkspaceItem key={workspace.id} workspace={workspace} />
+          ))}
+        </TopbarMenuWorkspaceGroup>
+        <TopbarMenuSeparator />
+        <TopbarMenuItem onClick={openCreateWorkspace}>
+          Create workspace
+        </TopbarMenuItem>
+        <TopbarMenuSeparator />
+        <TopbarMenuUser onClick={openProfile} />
+        <TopbarMenuSeparator />
+        <TopbarMenuItem onClick={openHelp}>Help center</TopbarMenuItem>
+        <TopbarMenuSeparator />
+        <TopbarMenuItem onClick={signOut}>Sign out</TopbarMenuItem>
+      </TopbarMenuContent>
+    </TopbarMenu>
+  );
+}
+```
+
+`TopbarMenuWorkspaceGroup` uses shadcn's `DropdownMenuGroup` and
+`DropdownMenuRadioGroup`. Set `value` and `onValueChange` on the group. Each
+`TopbarMenuWorkspaceItem` uses a `DropdownMenuRadioItem` with `workspace.id` as
+its value, a current-selection checkmark, an avatar, and optional description.
+Selecting an item closes the menu by default. `workspace.disabled` prevents
+selection; native radio-item props, refs and handlers are forwarded. The group
+label is optional: omit it for a more compact list.
+
+The application owns tenant data and switching. After requesting a switch,
+update the group's value and the root's `currentWorkspace` when it succeeds;
+set root `loading` while waiting. Keep the previous tenant on failure. Supply
+the current tenant separately when it is absent from recent results. The
+Storybook example deduplicates and shows at most three recent tenants with the
+current tenant first; the composition components themselves do not truncate
+children or fetch workspace data.
+
+## Parts
+
+- `TopbarMenu`: requires children and accepts `currentWorkspace`, `user`,
+  `loading`, and `disabled`. Supports `open`, `defaultOpen`, `onOpenChange`, and
+  `onOpenChangeComplete` from the underlying menu.
+- `TopbarMenuTrigger`: current-workspace avatar and name, falling back to the user's avatar and name when no current workspace is supplied. Accepts custom children.
+  Forwards native trigger props, refs and `render`; root loading/disabled cannot
+  be overridden by the trigger. Inside Topbar it follows the header appearance.
+- `TopbarMenuContent`: responsive popup with one scrolling area; forwards
+  positioning props, refs, native popup attributes and `className`.
+- `TopbarMenuWorkspaceGroup`: controlled radio group for tenant choices.
+- `TopbarMenuWorkspaceLabel`: optional shadcn group label. Without children,
+  it uses `topbarMenu.recentWorkspaces` ("Recent workspaces" / "最近的工作空间").
+  Pass children to provide a custom heading.
+- `TopbarMenuWorkspaceItem`: tenant avatar, name and description; accepts a
+  `workspace` object and native radio-item props including `render`.
+- `TopbarMenuUser`: defaults to the root's user or accepts a separate `user`.
+  Supply `onClick` or `render` to make the whole row interactive. Without either,
+  it is informational. No separate personal-settings action is needed.
+
+`TopbarMenuSeparator` directly re-exports shadcn's `DropdownMenuSeparator`,
+including its native props and ref. Place it before the creation action to
+separate tenant choices from workspace management.
+
+`TopbarMenuItem` directly re-exports shadcn's `DropdownMenuItem`, preserving its
+`render`, event handlers, disabled state and ref.
+
+Use `TopbarMenuItem` for creation, help, sign-out, and business actions. Compose
+language/theme choices with `TopbarMenuSub`, `TopbarMenuSubTrigger`,
+`TopbarMenuSubContent`, `TopbarMenuRadioGroup`, and `TopbarMenuRadioItem`.
+These are direct aliases of the corresponding shadcn components and preserve
+native props, refs, and Base UI render behavior. All are exported from the topbar
+package. Their arrangement is entirely controlled by the caller.
+
+TopbarMenu and Layout examples include working language/theme submenus. Language
+changes are scoped to each example, and theme selection updates the preview and
+stays in sync with the Storybook theme toolbar. Applications own preference
+persistence. Layout also includes a profile page.
+
+```tsx
+<TopbarMenuSub>
+  <TopbarMenuSubTrigger>Theme</TopbarMenuSubTrigger>
+  <TopbarMenuSubContent>
+    <TopbarMenuRadioGroup value={theme} onValueChange={setTheme}>
+      <TopbarMenuRadioItem value="light" closeOnClick>
+        Light
+      </TopbarMenuRadioItem>
+      <TopbarMenuRadioItem value="dark" closeOnClick>
+        Dark
+      </TopbarMenuRadioItem>
+    </TopbarMenuRadioGroup>
+  </TopbarMenuSubContent>
+</TopbarMenuSub>
+```
+
+Below 640px the default trigger shows only the workspace avatar; its accessible
+name still includes the workspace name. Workspace/user avatars default to one
+character, including Chinese names; custom icons/avatars remain supported.
+Storybook includes Composition API, User only, Framework links, and Empty.
+The main example also covers a current tenant absent from the recent list.
+Use Controls for loading/disabled states and the viewport, theme and locale
+controls for presentation variations.
+Keyboard navigation, Escape, disabled items, and focus restoration use Base UI's
+menu behavior. The popup provides a single scrolling area for long menus.
+
+## Without workspaces
+
+Omit `currentWorkspace` and the workspace parts to create an account-only menu.
+The trigger uses `user.avatar`, falling back to the first character of `user.name`.
+On mobile it shows only the avatar, with the name retained in its accessible label.
+
+```tsx
+<TopbarMenu user={{ name: "Alex Morgan", email: "alex@example.com" }}>
+  <TopbarMenuTrigger />
+  <TopbarMenuContent>
+    <TopbarMenuUser onClick={openProfile} />
+    <TopbarMenuSeparator />
+    {/* Compose language and theme submenus here as shown above. */}
+    <TopbarMenuItem onClick={openHelp}>Help center</TopbarMenuItem>
+    <TopbarMenuSeparator />
+    <TopbarMenuItem onClick={signOut}>Sign out</TopbarMenuItem>
+  </TopbarMenuContent>
+</TopbarMenu>
+```
+
+## Framework links
+
+Use the native [Base UI render API](https://base-ui.com/react/handbook/composition)
+on the component being customized. It accepts an element or `(props, state) =>
+element`; the function must spread props including ref, children, handlers,
+styles and ARIA attributes. A framework Link must forward them to its DOM node.
+
+```tsx
+import Link from "next/link";
+
+<TopbarMenuWorkspaceItem
+  workspace={workspace}
+  render={(props, state) => (
+    <Link
+      {...props}
+      href={`/workspaces/${workspace.id}`}
+      data-selected={state.checked || undefined}
+    />
+  )}
+/>;
+
+<TopbarMenuUser render={<Link href="/account" />} />;
+
+<TopbarMenuItem render={<Link href="/billing" />}>Billing</TopbarMenuItem>;
+```
+
+Workspace render state includes `checked`, `highlighted`, and `disabled`.
+User/action render state includes `highlighted` and `disabled`. The group's
+`onValueChange` continues to control selected state when items render as links;
+avoid duplicating navigation in both the Link and the selection handler.
+Storybook uses a small router-like Link so examples run without a framework
+provider. Replace it with your app's Link.

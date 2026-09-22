@@ -29,7 +29,7 @@ const preview: Preview = {
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
-    docs: { codePanel: true },
+    docs: { codePanel: true, story: { autoplay: false } },
     backgrounds: { disable: true },
     controls: { matchers: { color: /(background|color)$/i, date: /Date$/i } },
 

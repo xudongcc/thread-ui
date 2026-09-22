@@ -1,4 +1,5 @@
 import { expect, waitFor, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import FeedbackExample from "./examples/app-provider";
 import exampleSource from "./examples/app-provider.tsx?raw";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -23,7 +24,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Feedback: Story = {
-  play: async ({ canvas, canvasElement, userEvent, globals }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent, globals }) => {
     const isChinese = globals.locale === "zh";
     await userEvent.click(
       canvas.getByRole("button", {
@@ -47,5 +48,5 @@ export const Feedback: Story = {
     await waitFor(() =>
       expect(body.queryByRole("alertdialog")).not.toBeInTheDocument(),
     );
-  },
+  }),
 };

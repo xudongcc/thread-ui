@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { expect, waitFor, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { withExampleSource } from "./utils/example-source";
 import { CompositionExample } from "./examples/alert-dialog-composition";
 import compositionSource from "./examples/alert-dialog-composition.tsx?raw";
@@ -66,7 +67,7 @@ export const CustomContent: Story = {
 };
 export const Confirm: Story = {
   globals: { locale: "en" },
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(
       canvas.getByRole("button", { name: "Open confirmation" }),
     );
@@ -79,11 +80,11 @@ export const Confirm: Story = {
     await waitFor(() =>
       expect(body.queryByRole("alertdialog")).not.toBeInTheDocument(),
     );
-  },
+  }),
 };
 export const Cancel: Story = {
   globals: { locale: "en" },
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(
       canvas.getByRole("button", { name: "Open confirmation" }),
     );
@@ -94,7 +95,7 @@ export const Cancel: Story = {
       within(dialog).getByRole("button", { name: "Cancel" }),
     );
     await expect(canvas.getByRole("status")).toHaveTextContent("Canceled");
-  },
+  }),
 };
 
 export const Composition: Story = {
@@ -109,7 +110,7 @@ export const Composition: Story = {
     },
   },
   render: (args) => <CompositionExample {...args} />,
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     const trigger = canvas.getByRole("button", { name: "Open confirmation" });
     const body = within(canvasElement.ownerDocument.body);
     for (const [action, result] of [
@@ -132,5 +133,5 @@ export const Composition: Story = {
       );
       await expect(trigger).toHaveFocus();
     }
-  },
+  }),
 };

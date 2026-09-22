@@ -1,4 +1,5 @@
 import { expect, waitFor } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { withExampleSource } from "./utils/example-source";
 import {
   AutomaticUploadExample,
@@ -61,7 +62,7 @@ export const AcceptedTypes: Story = {
 export const Disabled: Story = { args: { disabled: true } };
 export const SelectAndRemove: Story = {
   globals: { locale: "en" },
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     const input = canvasElement.querySelector(
       'input[type="file"]',
     ) as HTMLInputElement;
@@ -74,7 +75,7 @@ export const SelectAndRemove: Story = {
       canvas.getByRole("button", { name: "Remove readme.txt" }),
     );
     await expect(canvas.queryByText("readme.txt")).not.toBeInTheDocument();
-  },
+  }),
 };
 export const AutomaticUpload: Story = {
   parameters: { docs: { source: withExampleSource(workflowSource) } },
@@ -92,7 +93,7 @@ export const ManualUpload: Story = {
   },
   render: (args) => <ManualUploadExample {...args} />,
   args: { autoUpload: false, concurrency: 1 },
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.upload(
       canvasElement.querySelector('input[type="file"]') as HTMLInputElement,
       new File(["Demo"], "report.txt", { type: "text/plain" }),
@@ -106,13 +107,13 @@ export const ManualUpload: Story = {
         "Completed: report.txt",
       ),
     );
-  },
+  }),
 };
 export const RetryFailure: Story = {
   parameters: { docs: { source: withExampleSource(workflowSource) } },
   globals: { locale: "en" },
   render: (args) => <RetryFailureExample {...args} />,
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.upload(
       canvasElement.querySelector('input[type="file"]') as HTMLInputElement,
       new File(["Demo"], "retry.txt", { type: "text/plain" }),
@@ -125,7 +126,7 @@ export const RetryFailure: Story = {
         "Completed: retry.txt",
       ),
     );
-  },
+  }),
 };
 export const States: Story = {
   // TODO(a11y): color-contrast: failed upload status text.

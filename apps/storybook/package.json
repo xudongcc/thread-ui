@@ -9,7 +9,8 @@
     "check-types": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:sources": "pnpm build && node scripts/check-story-sources.mjs"
+    "test:sources": "pnpm build && node scripts/check-story-sources.mjs",
+    "test:layout": "pnpm build && node scripts/check-layout.mjs"
   },
   "dependencies": {
     "@repo/alert-dialog": "workspace:*",
@@ -29,6 +30,7 @@
     "@repo/empty": "workspace:*",
     "@repo/file-upload": "workspace:*",
     "@repo/input": "workspace:*",
+    "@repo/layout": "workspace:*",
     "@repo/locales": "workspace:*",
     "@repo/number-input": "workspace:*",
     "@repo/page": "workspace:*",
@@ -39,6 +41,7 @@
     "@repo/styles": "workspace:*",
     "@repo/textarea": "workspace:*",
     "@repo/toast": "workspace:*",
+    "@repo/topbar": "workspace:*",
     "i18next": "^26.3.1",
     "lucide-react": "^0.562.0",
     "react": "^19.2.7",

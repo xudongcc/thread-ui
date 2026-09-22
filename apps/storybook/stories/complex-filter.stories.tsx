@@ -1,4 +1,5 @@
 import { expect } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { FilterExample, filters } from "./examples/complex-filter";
 import implementation from "./examples/complex-filter.tsx?raw";
 import { withExampleParameters } from "./utils/example-source";
@@ -55,10 +56,10 @@ export const WithoutClearAll: Story = {
 export const ClearAll: Story = {
   globals: { locale: "en" },
   args: { value: { $and: [{ name: { $eq: "Thread" } }] } },
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: /clear all/i }));
     await expect(canvas.getByLabelText("Filter value")).not.toHaveTextContent(
       "Thread",
     );
-  },
+  }),
 };
