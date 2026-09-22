@@ -2,9 +2,9 @@
 
 import {
   BanIcon,
+  CloudUploadIcon,
   PlayIcon,
   RotateCcwIcon,
-  UploadIcon,
   XIcon,
 } from "lucide-react";
 import {
@@ -42,6 +42,15 @@ import {
   AttachmentMedia,
   AttachmentTitle,
 } from "@/components/ui/attachment";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 import { cn } from "@/lib/utils";
 
@@ -72,7 +81,7 @@ export interface FileUploadProps<TResult = unknown>
   value?: File[];
   defaultValue?: File[];
   onChange?: (files: File[]) => void;
-  /** Optional heading in the default dropzone. */
+  /** Heading in the default dropzone; defaults to the localized "Upload files". */
   title?: ReactNode;
   /** Default dropzone description; falls back to placeholder. */
   description?: ReactNode;
@@ -283,13 +292,14 @@ export const FileUpload = <TResult,>({
   multiple,
   disabled,
   placeholder: placeholderProp,
-  title,
+  title: titleProp,
   description,
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
   ...inputProps
 }: FileUploadProps<TResult>) => {
   const { t } = useTranslation("thread-ui");
+  const title = titleProp ?? t("fileUpload.title", "Upload files");
   const placeholder =
     placeholderProp ??
     t(
@@ -438,6 +448,10 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
   onPaste,
   ...props
 }) => {
+  const { t } = useTranslation("thread-ui");
+  const titleId = useId();
+  const descriptionId = useId();
+  const hasCustomContent = children != null;
   const {
     inputProps,
     disabled,
@@ -465,6 +479,7 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
 
     if (
       event.defaultPrevented ||
+      event.target !== event.currentTarget ||
       (event.key !== "Enter" && event.key !== " ")
     ) {
       return;
@@ -522,27 +537,41 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
     addFiles(pastedFiles);
   };
 
+  const describedBy =
+    [
+      props["aria-describedby"] ?? ariaDescribedBy,
+      !hasCustomContent && descriptionId,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
+
   return (
-    <div
+    <Empty
       {...props}
-      aria-describedby={props["aria-describedby"] ?? ariaDescribedBy}
+      aria-describedby={describedBy}
       aria-disabled={disabled}
       aria-invalid={ariaInvalid}
       aria-label={props["aria-label"] ?? inputProps["aria-label"]}
       data-disabled={disabled}
       data-dragging={isDragging}
       data-slot="file-upload"
-      role="button"
-      tabIndex={disabled ? undefined : (tabIndex ?? 0)}
+      role={hasCustomContent ? "button" : "group"}
       aria-labelledby={
-        props["aria-labelledby"] ?? inputProps["aria-labelledby"]
+        props["aria-labelledby"] ??
+        inputProps["aria-labelledby"] ??
+        (!(props["aria-label"] ?? inputProps["aria-label"]) && !hasCustomContent
+          ? titleId
+          : undefined)
       }
       className={cn(
-        "border-input bg-input/30 text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex min-h-40 w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border border-dashed p-6 text-center text-balance transition-colors outline-none focus-visible:ring-[3px] aria-invalid:ring-[3px] sm:py-8",
+        "text-foreground focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 cursor-pointer border transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3",
         "data-[dragging=false]:hover:bg-muted/50 data-[dragging=true]:border-ring data-[dragging=true]:bg-muted",
         "data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50",
         className,
       )}
+      tabIndex={
+        disabled ? undefined : (tabIndex ?? (hasCustomContent ? 0 : -1))
+      }
       onClick={handleClick}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -552,23 +581,27 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
     >
       {children ?? (
         <>
-          <div className="bg-muted flex size-12 shrink-0 items-center justify-center rounded-2xl">
-            <FileUploadDropzoneIcon />
-          </div>
-          <div className="flex max-w-sm flex-col gap-1">
-            {title != null && (
-              <span className="font-heading text-base font-medium">
-                {title}
-              </span>
-            )}
-            {title != null && " "}
-            <FileUploadDropzoneDescription>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileUploadDropzoneIcon />
+            </EmptyMedia>
+            <EmptyTitle id={titleId}>{title}</EmptyTitle>
+            <EmptyDescription id={descriptionId}>
               {description ?? placeholder}
-            </FileUploadDropzoneDescription>
-          </div>
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              aria-describedby={describedBy}
+              disabled={disabled}
+              type="button"
+            >
+              {t("fileUpload.browseFiles", "Browse files")}
+            </Button>
+          </EmptyContent>
         </>
       )}
-    </div>
+    </Empty>
   );
 };
 
@@ -578,9 +611,9 @@ export const FileUploadDropzoneIcon: FC<FileUploadDropzoneIconProps> = ({
   className,
   ...props
 }) => (
-  <UploadIcon
+  <CloudUploadIcon
     {...props}
-    className={cn("text-foreground size-6 shrink-0", className)}
+    className={cn("text-foreground size-5 shrink-0", className)}
   />
 );
 

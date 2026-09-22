@@ -1,11 +1,11 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "base-maia",
+  "style": "base-rhea",
   "rsc": true,
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "../../apps/docs/app/global.css",
+    "css": "../styles/theme.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""

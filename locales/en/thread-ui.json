@@ -211,6 +211,8 @@
     }
   },
   "fileUpload": {
+    "title": "Upload files",
+    "browseFiles": "Browse files",
     "placeholder": "Click to upload, drop files here, or paste files",
     "removeFile": "Remove {{name}}",
     "uploadFile": "Upload {{name}}",

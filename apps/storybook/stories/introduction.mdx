@@ -1,0 +1,117 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# Thread UI
+
+Develop and explore Thread UI components in isolation.
+
+Components with a Props API open with that usage first. See [API Usage](?path=/docs/api-usage--docs)
+for separate Props API, Composition API, and Function API examples and the supported modes of each component.
+
+- Browse components by functional area: **Actions**, **Forms**, **Data**, **Display**, **Feedback**, and **Layout**. Each component includes interactive examples, component states, and generated API documentation.
+- **Foundations / AppProvider** demonstrates translated confirmation dialogs and toast notifications.
+- Use **Controls** to edit props, the **theme** toolbar to switch light/dark mode, and the **language** toolbar to test English/Chinese component translations within the same story. There are no separate Chinese stories. Example labels remain as authored unless the story explicitly translates them.
+- Use the viewport toolbar to check narrow layouts, including Page, PageLayout, Dialog, and Select; screen-size variations do not need separate stories.
+- Stories with a `play` function also verify behavior. Run them from the testing panel or with `pnpm storybook:test`.
+
+## Component coverage
+
+Every visual package under `components/` has its own Storybook entry:
+
+<table>
+  <thead>
+    <tr>
+      <th scope="col">Area</th>
+      <th scope="col">Components</th>
+      <th scope="col">Representative scenarios</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Foundations</td>
+      <td>AppProvider</td>
+      <td>Global feedback and language switching</td>
+    </tr>
+    <tr>
+      <td>Actions</td>
+      <td>Button</td>
+      <td>Sizes, variants, loading, disabled states</td>
+    </tr>
+    <tr>
+      <td>Forms</td>
+      <td>
+        Input, Textarea, NumberInput, Select, CheckboxGroup, RadioGroup,
+        FileUpload, Calendar, DatePicker, DateInput
+      </td>
+      <td>
+        Controlled values, validation, selection, date ranges and restrictions,
+        formatting, upload progress and retries
+      </td>
+    </tr>
+    <tr>
+      <td>Data</td>
+      <td>DataTable, DataFilter, ComplexFilter</td>
+      <td>
+        Row selection, pagination, actions, pinned columns, async options,
+        nested conditions, query output
+      </td>
+    </tr>
+    <tr>
+      <td>Display</td>
+      <td>Badge, Empty, CodeBlock</td>
+      <td>
+        Color palette, empty-state actions, file switching, highlighting and
+        plain text
+      </td>
+    </tr>
+    <tr>
+      <td>Feedback</td>
+      <td>Dialog, AlertDialog, Toast</td>
+      <td>
+        Opening/closing, confirmation/cancellation, notification types and
+        actions
+      </td>
+    </tr>
+    <tr>
+      <td>Layout</td>
+      <td>Page, PageLayout</td>
+      <td>
+        Width variants, responsive actions, equal/unequal columns, viewport
+        resizing
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+`components/common` exports only the TypeScript `DataAttributes` helper. It has no rendered UI and therefore no visual story:
+
+```ts
+import type { DataAttributes } from "@/components/thread-ui/common";
+
+const attributes: DataAttributes = { "data-testid": "project-card" };
+```
+
+## Browser tests with Vitest
+
+The Vitest addon runs these same stories in Chromium. Stories without `play` verify mounting; stories with `play` additionally check user interactions and assertions.
+
+```sh
+pnpm --filter @repo/storybook exec playwright install chromium
+pnpm storybook:test
+pnpm storybook:test:watch
+```
+
+Use **Run tests** in the sidebar for the full suite, or the component/story menu to test a smaller selection. Use **Interactions** to inspect failed steps. For Linux CI, install Chromium with `playwright install --with-deps chromium` before running the suite.
+
+## Accessibility checks
+
+Open a named story and select the **Accessibility** panel to inspect automatic axe checks, highlight affected elements, and review incomplete checks. The toolbar also offers vision simulations. Enable **Accessibility** in the sidebar test widget to include these checks when running component tests in the UI.
+
+`pnpm storybook:test` also checks accessibility. Violations fail tests by default. There are 15 stories with pending contrast, icon labeling, table header, or keyboard access fixes; these have explicit `a11y.test: "todo"` parameters and remain visible as UI warnings. CLI runs do not report these pending accessibility findings. See `apps/storybook/README.md` for the full list, and remove each exception after fixing the underlying issue.
+
+New component examples belong in `apps/storybook/stories`. Add usage guides as MDX alongside them as documentation moves into Storybook.
+
+## Visual regression tests
+
+Open a named story and select **Visual Tests** to sign in to Chromatic and link a project. Then run visual tests from the testing widget and review screenshot changes in the panel. These tests run in Chromatic's cloud; `pnpm storybook:test` runs the local component and accessibility tests. This app's `chromatic.config.json` already selects its `build` script.

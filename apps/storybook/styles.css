@@ -1,0 +1,26 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@repo/styles/theme.css";
+
+@source "../../components";
+@source "../../packages/shadcn-ui";
+@source "./stories";
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-geist-mono: ui-monospace, monospace;
+}
+
+/* Centered stories still need a bounded container on mobile viewports. */
+.sb-main-centered #storybook-root {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Keep the docs canvas consistent with the active component theme. */
+.docs-story {
+  background: var(--background);
+  color: var(--foreground);
+}

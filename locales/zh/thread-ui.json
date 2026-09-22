@@ -224,6 +224,8 @@
     }
   },
   "fileUpload": {
+    "title": "上传文件",
+    "browseFiles": "浏览文件",
     "placeholder": "点击上传、拖放文件到此处或粘贴文件",
     "removeFile": "移除 {{name}}",
     "uploadFile": "上传 {{name}}",
