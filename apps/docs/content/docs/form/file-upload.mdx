@@ -218,7 +218,7 @@ as `name`. The default description uses `fileUpload.placeholder`. Custom `title`
 and `description` content is localized by the caller. Root `aria-label` and
 `aria-labelledby` also label the interactive dropzone.
 
-The built-in list uses `ul` / `li` semantics. Without `onUpload`, attachments stay
+Without `onUpload`, attachments stay
 in `idle`. With a handler, Attachment reflects task state and announces status
 updates. Upload, cancel, and retry labels and all status messages use the
 `fileUpload` locale keys; interpolated filenames remain literal text.
@@ -324,7 +324,7 @@ Extends all native HTML `<span>` element props.
 
 ### FileUploadListProps
 
-Extends all native HTML `<ul>` element props.
+Extends all native HTML `<div>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
@@ -333,7 +333,7 @@ Extends all native HTML `<ul>` element props.
 
 ### FileUploadItemProps
 
-Extends all native HTML `<li>` element props.
+Extends all native HTML `<div>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
@@ -342,7 +342,7 @@ Extends all native HTML `<li>` element props.
 
 ### FileUploadPreviewProps
 
-Extends all native HTML `<ul>` element props.
+Extends all native HTML `<div>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
@@ -351,7 +351,7 @@ Extends all native HTML `<ul>` element props.
 
 ### FileUploadPreviewItemProps
 
-Extends all native HTML `<li>` element props.
+Extends all native HTML `<div>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"

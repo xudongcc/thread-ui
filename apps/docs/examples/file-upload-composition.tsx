@@ -25,9 +25,9 @@ const SelectedAttachments = () => {
   return (
     <>
       {files.length > 0 && (
-        <ul className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {files.map((file, index) => (
-            <li
+            <div
               key={`${file.name}-${file.lastModified}-${index}`}
               className="max-w-full min-w-0"
             >
@@ -55,9 +55,9 @@ const SelectedAttachments = () => {
                   </AttachmentAction>
                 </AttachmentActions>
               </Attachment>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </>
   );

@@ -605,7 +605,7 @@ export const FileUploadDropzoneDescription: FC<
   </span>
 );
 
-export type FileUploadListProps = ComponentProps<"ul">;
+export type FileUploadListProps = ComponentProps<"div">;
 
 export const FileUploadList: FC<FileUploadListProps> = ({
   children,
@@ -619,7 +619,7 @@ export const FileUploadList: FC<FileUploadListProps> = ({
   }
 
   return (
-    <ul
+    <div
       {...props}
       className={cn("mt-3 flex w-full flex-col gap-2 text-left", className)}
       data-slot="file-upload-list"
@@ -637,11 +637,11 @@ export const FileUploadList: FC<FileUploadListProps> = ({
           {children ?? <FileUploadItem />}
         </FileUploadItemContext.Provider>
       ))}
-    </ul>
+    </div>
   );
 };
 
-export interface FileUploadItemProps extends ComponentProps<"li"> {
+export interface FileUploadItemProps extends ComponentProps<"div"> {
   file?: File;
   onRemove?: () => void;
 }
@@ -663,17 +663,17 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
   }
 
   return (
-    <li
+    <div
       {...props}
       className={cn("min-w-0", className)}
       data-slot="file-upload-item"
     >
       <FileUploadAttachment file={resolvedFile} onRemove={remove} />
-    </li>
+    </div>
   );
 };
 
-export type FileUploadPreviewProps = ComponentProps<"ul">;
+export type FileUploadPreviewProps = ComponentProps<"div">;
 
 export const FileUploadPreview: FC<FileUploadPreviewProps> = ({
   children,
@@ -687,7 +687,7 @@ export const FileUploadPreview: FC<FileUploadPreviewProps> = ({
   }
 
   return (
-    <ul
+    <div
       {...props}
       className={cn("mt-3 grid w-full grid-cols-2 gap-3", className)}
       data-slot="file-upload-preview"
@@ -705,11 +705,11 @@ export const FileUploadPreview: FC<FileUploadPreviewProps> = ({
           {children ?? <FileUploadPreviewItem />}
         </FileUploadItemContext.Provider>
       ))}
-    </ul>
+    </div>
   );
 };
 
-export interface FileUploadPreviewItemProps extends ComponentProps<"li"> {
+export interface FileUploadPreviewItemProps extends ComponentProps<"div"> {
   file?: File;
   onRemove?: () => void;
   mediaClassName?: string;
@@ -733,7 +733,7 @@ export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
   }
 
   return (
-    <li
+    <div
       {...props}
       className={cn("min-w-0", className)}
       data-slot="file-upload-preview-item"
@@ -744,7 +744,7 @@ export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
         mediaClassName={mediaClassName}
         onRemove={remove}
       />
-    </li>
+    </div>
   );
 };
 

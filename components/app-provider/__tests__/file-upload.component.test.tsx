@@ -74,10 +74,8 @@ it("renders default Attachment items outside the dropzone and localizes removal"
   const dropzone = screen.getByRole("button", {
     name: "Attachments Pick a document",
   });
-  const item = screen.getByRole("listitem");
-  expect(
-    item.querySelector('[data-slot="attachment"]')?.getAttribute("data-state"),
-  ).toBe("idle");
+  const item = screen.getByText(file.name).closest('[data-slot="attachment"]')!;
+  expect(item.getAttribute("data-state")).toBe("idle");
   expect(dropzone.contains(item)).toBe(false);
   expect(i18n.options.interpolation?.escapeValue).toBe(true);
   expect(
@@ -89,7 +87,7 @@ it("renders default Attachment items outside the dropzone and localizes removal"
     screen.getByRole("button", { name: `移除 ${file.name}` }),
   );
   expect(onChange).toHaveBeenLastCalledWith([]);
-  expect(screen.queryByRole("list")).toBeNull();
+  expect(container.querySelector('[data-slot="file-upload-list"]')).toBeNull();
   expect(inputClick).not.toHaveBeenCalled();
 });
 
@@ -106,7 +104,7 @@ it("lets children replace both defaults, including an explicit null", () => {
   );
   expect(screen.getAllByRole("button")).toHaveLength(1);
   expect(screen.getByRole("button", { name: "Custom picker" })).toBeTruthy();
-  expect(screen.queryByRole("list")).toBeNull();
+  expect(container.querySelector('[data-slot="file-upload-list"]')).toBeNull();
   rerender(<FileUpload defaultValue={[file]}>{null}</FileUpload>);
   expect(
     container.querySelector('[data-slot="file-upload-root"]')?.childNodes,
@@ -133,7 +131,7 @@ it("appends picked, dropped and pasted files in uncontrolled multiple mode", asy
     },
   });
   expect(onChange).toHaveBeenLastCalledWith([file, otherFile, file]);
-  expect(screen.getAllByRole("listitem")).toHaveLength(3);
+  expect(screen.getAllByRole("button", { name: /^Remove / })).toHaveLength(3);
 });
 
 it("replaces files in single mode and keeps controlled state owned by the caller", async () => {
@@ -415,7 +413,7 @@ it("aborts a removed controlled file and does not complete from its late result"
   expect(context.signal.aborted).toBe(true);
   await act(async () => finish("stale"));
   expect(onUploadComplete).not.toHaveBeenCalled();
-  expect(screen.queryByRole("listitem")).toBeNull();
+  expect(screen.queryByText(file.name)).toBeNull();
 });
 
 const BatchControls = ({
@@ -685,7 +683,7 @@ it("starts props-mode uploads through an external ref and preserves the native p
   act(() => ref.current!.openFileDialog());
   expect(inputClick).toHaveBeenCalledTimes(2);
   await userEvent.upload(input, [file, otherFile]);
-  expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  expect(screen.getAllByRole("button", { name: /^Remove / })).toHaveLength(2);
   expect(onUpload).not.toHaveBeenCalled();
   expect(ref.current!.getEntries().map((entry) => entry.status)).toEqual([
     "idle",
@@ -741,7 +739,7 @@ it("reads fresh task snapshots and supports cancel, retry and remove through the
   expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["current"]);
   act(() => ref.current!.remove(id));
   expect(getEntries()).toEqual([]);
-  expect(screen.queryByRole("listitem")).toBeNull();
+  expect(screen.queryByText(file.name)).toBeNull();
 });
 
 it("respects updated disabled and controlled props through the ref", async () => {
@@ -789,7 +787,7 @@ it("supports callback refs in composition mode and clears the handle on unmount"
   await act(async () => handle.upload());
   expect(onUpload).toHaveBeenCalledTimes(1);
   expect(handle.getEntries()[0]!.result).toBe("url");
-  expect(screen.queryByRole("listitem")).toBeNull();
+  expect(screen.queryByText(file.name)).toBeNull();
   unmount();
   expect(ref.mock.lastCall![0]).toBeNull();
 });
