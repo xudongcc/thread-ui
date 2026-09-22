@@ -73,6 +73,28 @@ The description renders its `children`. In the default UI, FileUpload supplies
 
 ## Examples
 
+### States
+
+FileUpload manages task status automatically. Uploading attachments shimmer,
+failed uploads use an error style, and each attachment exposes the actions
+available for its current state.
+
+<Preview className="h-160" path="file-upload-states" />
+
+This example starts with all six states visible. Uploads pause at 64% so you can
+inspect them. Use **Finish active upload** to complete the current task and let
+the next queued file start, or try the upload, cancel, retry, and remove actions.
+**Reset example** restores the initial states. All files and uploads are simulated.
+
+| Task status | Meaning                               | Attachment appearance         |
+| ----------- | ------------------------------------- | ----------------------------- |
+| `idle`      | Selected, waiting for a manual start  | Idle                          |
+| `queued`    | Waiting for a concurrency slot        | Idle                          |
+| `uploading` | `onUpload` is running                 | Uploading, with title shimmer |
+| `done`      | `onUpload` resolved successfully      | Done                          |
+| `error`     | `onUpload` failed                     | Error styling, with retry     |
+| `canceled`  | Explicitly canceled; retry to restart | Idle                          |
+
 ### Multiple
 
 Use the `multiple` prop to allow several files. New dropped, pasted, or selected files are appended to the current list.

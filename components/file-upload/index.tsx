@@ -538,8 +538,8 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
         props["aria-labelledby"] ?? inputProps["aria-labelledby"]
       }
       className={cn(
-        "border-input bg-background text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-center shadow-xs transition-[background-color,border-color,box-shadow] outline-none focus-visible:ring-[3px]",
-        "data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5",
+        "border-input bg-input/30 text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex min-h-40 w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border border-dashed p-6 text-center text-balance transition-colors outline-none focus-visible:ring-[3px] aria-invalid:ring-[3px] sm:py-8",
+        "data-[dragging=false]:hover:bg-muted/50 data-[dragging=true]:border-ring data-[dragging=true]:bg-muted",
         "data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50",
         className,
       )}
@@ -552,14 +552,20 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
     >
       {children ?? (
         <>
-          <FileUploadDropzoneIcon />
-          {title != null && (
-            <span className="text-sm font-medium">{title}</span>
-          )}
-          {title != null && " "}
-          <FileUploadDropzoneDescription>
-            {description ?? placeholder}
-          </FileUploadDropzoneDescription>
+          <div className="bg-muted flex size-12 shrink-0 items-center justify-center rounded-2xl">
+            <FileUploadDropzoneIcon />
+          </div>
+          <div className="flex max-w-sm flex-col gap-1">
+            {title != null && (
+              <span className="font-heading text-base font-medium">
+                {title}
+              </span>
+            )}
+            {title != null && " "}
+            <FileUploadDropzoneDescription>
+              {description ?? placeholder}
+            </FileUploadDropzoneDescription>
+          </div>
         </>
       )}
     </div>
@@ -574,7 +580,7 @@ export const FileUploadDropzoneIcon: FC<FileUploadDropzoneIconProps> = ({
 }) => (
   <UploadIcon
     {...props}
-    className={cn("text-muted-foreground size-5", className)}
+    className={cn("text-foreground size-6 shrink-0", className)}
   />
 );
 
@@ -583,7 +589,10 @@ export type FileUploadDropzoneDescriptionProps = ComponentProps<"span">;
 export const FileUploadDropzoneDescription: FC<
   FileUploadDropzoneDescriptionProps
 > = ({ children, className, ...props }) => (
-  <span {...props} className={cn("text-muted-foreground text-sm", className)}>
+  <span
+    {...props}
+    className={cn("text-muted-foreground text-sm/relaxed", className)}
+  >
     {children}
   </span>
 );
@@ -685,7 +694,7 @@ const FileUploadAttachment = ({
   const objectUrl = useObjectUrl(isImage ? file : undefined);
 
   return (
-    <Attachment className="w-full" state={state}>
+    <Attachment className="w-full focus-within:ring-0" state={state}>
       <AttachmentMedia variant={isImage ? "image" : "icon"}>
         {objectUrl ? (
           <img
