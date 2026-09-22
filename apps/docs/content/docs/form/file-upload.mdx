@@ -92,11 +92,9 @@ in selection order, including for a single-file upload.
 <FileUpload
   multiple
   concurrency={3}
-  onUpload={async ({ file, signal, setStage, onProgress }) => {
+  onUpload={async ({ file, signal, onProgress }) => {
     const target = await createUploadTarget(file, { signal });
-    setStage("uploading");
     await uploadToStorage(target, file, { signal, onProgress });
-    setStage("processing");
     return await completeUpload(target, { signal });
   }}
   onUploadComplete={(results) => {
@@ -108,9 +106,11 @@ in selection order, including for a single-file upload.
 />
 ```
 
-The handler receives `file`, `signal`, `setStage(stage)`, and `onProgress(percent)`.
-Stages are `preparing` (the initial stage), `uploading`, and `processing`. Progress
-is a transfer percentage from 0 to 100, not completion of the entire workflow.
+The handler receives `file`, `signal`, and `onProgress(percent)`. FileUpload manages
+task status: waiting for a queue slot is `queued`; invoking `onUpload` starts
+`uploading`, which includes preparation, transfer, and final confirmation.
+Resolving the handler marks it `done`; throwing marks it `error`. Progress is a
+transfer percentage from 0 to 100, so reaching 100% does not complete the workflow.
 Return the final resource URL or attachment ID from your confirmation endpoint,
 not the presigned upload URL. Throw to report a failure.
 
@@ -259,8 +259,7 @@ The hook also exposes upload state and actions:
 | `cancel(id)`  | Abort one queued/running task, or cancel an idle task                                        |
 | `remove(id)`  | Cancel and remove a selected file by its stable task ID                                      |
 
-Task statuses are `idle`, `queued`, `preparing`, `uploading`, `processing`, `done`,
-`error`, and `canceled`. Task IDs are incrementing strings scoped to each FileUpload
+Task statuses are `idle`, `queued`, `uploading`, `done`, `error`, and `canceled`. Task IDs are incrementing strings scoped to each FileUpload
 instance and remain stable through reordering and retries.
 Duplicate file selections get separate task IDs. Keep the
 same `File` objects in a controlled `value` to preserve task identity. The parent

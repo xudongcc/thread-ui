@@ -31,17 +31,15 @@ const Example = () => {
         multiple
         autoUpload={false}
         concurrency={2}
-        description="Simulated upload with preparation and processing. Files stay in your browser."
+        description="Simulated upload with preparation and confirmation. Files stay in your browser."
         title="Upload attachments"
         onChange={() => setUploaded([])}
-        onUpload={async ({ file, signal, setStage, onProgress }) => {
+        onUpload={async ({ file, signal, onProgress }) => {
           await delay(signal);
-          setStage("uploading");
           for (let progress = 20; progress <= 100; progress += 20) {
             await delay(signal);
             onProgress(progress);
           }
-          setStage("processing");
           await delay(signal);
           return { name: file.name };
         }}

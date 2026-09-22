@@ -294,9 +294,8 @@ it("renders localized upload progress and actions and completes only after confi
   );
   await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
   expect(context.file).toBe(file);
-  expect(screen.getByRole("status").textContent).toBe("Preparing");
+  expect(screen.getByRole("status").textContent).toBe("Uploading");
   await act(async () => {
-    context.setStage("uploading");
     context.onProgress(42);
   });
   expect(screen.getByRole("status").textContent).toBe("Uploading 42%");
@@ -307,9 +306,8 @@ it("renders localized upload progress and actions and completes only after confi
   ).toBeTruthy();
   await act(async () => {
     context.onProgress(100);
-    context.setStage("processing");
   });
-  expect(screen.getByRole("status").textContent).toBe("处理中");
+  expect(screen.getByRole("status").textContent).toBe("上传中 100%");
   expect(onUploadComplete).not.toHaveBeenCalled();
   await act(async () => finish({ url: "https://example.com/report.pdf" }));
   expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith([
@@ -683,7 +681,6 @@ it("reads fresh task snapshots and supports cancel, retry and remove through the
   const id = getEntries()[0]!.id;
   await act(async () => ref.current!.upload(id));
   await act(async () => {
-    contexts[0]!.setStage("uploading");
     contexts[0]!.onProgress(35);
   });
   expect(getEntries()[0]!.progress).toBe(35);

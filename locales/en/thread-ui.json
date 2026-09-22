@@ -219,9 +219,7 @@
     "status": {
       "idle": "Waiting to upload",
       "queued": "Queued",
-      "preparing": "Preparing",
       "uploading": "Uploading",
-      "processing": "Processing",
       "done": "Uploaded",
       "error": "Upload failed",
       "canceled": "Canceled"

@@ -44,6 +44,12 @@ it("limits concurrency and returns all results once in selection order", async (
   const store = setup(files, options);
   await flush();
   expect(onUpload).toHaveBeenCalledTimes(2);
+  expect(store.getSnapshot().map((entry) => entry.status)).toEqual([
+    "uploading",
+    "uploading",
+    "queued",
+    "queued",
+  ]);
   tasks[1]!.resolve("b-url");
   await flush();
   expect(onUpload).toHaveBeenCalledTimes(3);
@@ -66,7 +72,7 @@ it("limits concurrency and returns all results once in selection order", async (
   expect(onUploadComplete).toHaveBeenCalledTimes(1);
 });
 
-it("waits for appended files and includes the final processing stage", async () => {
+it("waits for appended files and handler confirmation after transfer reaches 100%", async () => {
   const tasks = [deferred<string>(), deferred<string>()];
   const contexts: FileUploadTaskContext[] = [];
   const onUpload = vi.fn((context: FileUploadTaskContext) => {
@@ -77,10 +83,8 @@ it("waits for appended files and includes the final processing stage", async () 
   const options = { onUpload, onUploadComplete };
   const store = setup([files[0]!], options);
   await flush();
-  contexts[0]!.setStage("uploading");
   contexts[0]!.onProgress(100);
-  contexts[0]!.setStage("processing");
-  expect(store.getSnapshot()[0]!.status).toBe("processing");
+  expect(store.getSnapshot()[0]!.status).toBe("uploading");
   expect(onUploadComplete).not.toHaveBeenCalled();
   store.configure(files.slice(0, 2), options);
   await flush();
@@ -90,7 +94,6 @@ it("waits for appended files and includes the final processing stage", async () 
   tasks[1]!.resolve("second");
   await flush();
   expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["first", "second"]);
-  contexts[0]!.setStage("uploading");
   contexts[0]!.onProgress(10);
   expect(store.getSnapshot()[0]!.status).toBe("done");
 });
@@ -146,11 +149,10 @@ it("cancels queued work without calling onUpload and ignores late canceled resul
   expect(contexts[0]!.signal.aborted).toBe(true);
   store.retry(first!.id);
   await flush();
-  contexts[0]!.setStage("processing");
   contexts[0]!.onProgress(99);
   tasks[0]!.resolve("stale");
   await flush();
-  expect(store.getSnapshot()[0]!.status).toBe("preparing");
+  expect(store.getSnapshot()[0]!.status).toBe("uploading");
   tasks[1]!.resolve("fresh");
   await flush();
   expect(store.getSnapshot()[0]!.result).toBe("fresh");

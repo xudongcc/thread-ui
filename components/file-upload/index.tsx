@@ -48,7 +48,6 @@ import { cn } from "@/lib/utils";
 export type {
   FileUploadEntry,
   FileUploadOptions,
-  FileUploadStage,
   FileUploadStatus,
   FileUploadTaskContext,
 } from "./upload-queue";
@@ -672,21 +671,12 @@ const FileUploadAttachment = ({
       ? itemContext.entry
       : context?.entries.find((entry) => entry.file === file);
   const status = entry?.status ?? "idle";
-  const state =
-    status === "preparing"
-      ? "processing"
-      : status === "queued" || status === "canceled"
-        ? "idle"
-        : status;
-  const active = ["queued", "preparing", "uploading", "processing"].includes(
-    status,
-  );
+  const state = status === "queued" || status === "canceled" ? "idle" : status;
+  const active = status === "queued" || status === "uploading";
   const statusLabels = {
     idle: t("fileUpload.status.idle", "Waiting to upload"),
     queued: t("fileUpload.status.queued", "Queued"),
-    preparing: t("fileUpload.status.preparing", "Preparing"),
     uploading: t("fileUpload.status.uploading", "Uploading"),
-    processing: t("fileUpload.status.processing", "Processing"),
     done: t("fileUpload.status.done", "Uploaded"),
     error: t("fileUpload.status.error", "Upload failed"),
     canceled: t("fileUpload.status.canceled", "Canceled"),

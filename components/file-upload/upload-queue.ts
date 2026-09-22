@@ -1,10 +1,9 @@
 import PQueue from "p-queue";
 
-export type FileUploadStage = "preparing" | "uploading" | "processing";
 export type FileUploadStatus =
   | "idle"
   | "queued"
-  | FileUploadStage
+  | "uploading"
   | "done"
   | "error"
   | "canceled";
@@ -22,7 +21,6 @@ export interface FileUploadEntry<TResult = unknown> {
 export interface FileUploadTaskContext {
   file: File;
   signal: AbortSignal;
-  setStage: (stage: FileUploadStage) => void;
   onProgress: (percent: number) => void;
 }
 
@@ -152,7 +150,7 @@ export class FileUploadQueue<TResult> {
     for (const id of this.controllers.keys()) this.abort(id);
     // Strict Mode may activate the same store again. Never retain aborted work.
     this.entries = this.entries.map((entry) =>
-      ["queued", "preparing", "uploading", "processing"].includes(entry.status)
+      ["queued", "uploading"].includes(entry.status)
         ? { ...entry, status: "idle", progress: undefined }
         : entry,
     );
@@ -298,23 +296,17 @@ export class FileUploadQueue<TResult> {
       this.controllers.get(entry.id) === controller &&
       this.entries.some(
         (item) =>
-          item.id === entry.id &&
-          ["queued", "preparing", "uploading", "processing"].includes(
-            item.status,
-          ),
+          item.id === entry.id && ["queued", "uploading"].includes(item.status),
       );
 
     void this.queue
       .add(
         async () => {
           if (!isCurrent()) return;
-          this.update(entry.id, { status: "preparing" });
+          this.update(entry.id, { status: "uploading" });
           const result = await onUpload({
             file: entry.file,
             signal: controller.signal,
-            setStage: (status) => {
-              if (isCurrent()) this.update(entry.id, { status });
-            },
             onProgress: (progress) => {
               if (isCurrent() && Number.isFinite(progress))
                 this.update(entry.id, {

@@ -232,9 +232,7 @@
     "status": {
       "idle": "等待上传",
       "queued": "排队中",
-      "preparing": "准备中",
       "uploading": "上传中",
-      "processing": "处理中",
       "done": "已上传",
       "error": "上传失败",
       "canceled": "已取消"
