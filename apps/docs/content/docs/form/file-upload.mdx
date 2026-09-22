@@ -50,7 +50,7 @@ Unknown files use a generic file icon. No additional props are needed.
 Passing `children` (including `null`) selects composition mode. In this mode,
 `FileUpload` adds no default dropzone or attachment list. Use `FileUploadDropzone`
 for file selection and compose Attachment components with `useFileUpload()`,
-or use the existing `FileUploadList` and `FileUploadPreview` helpers. Keep attachment
+or use `FileUploadList` with `FileUploadItem`. Keep attachment
 actions outside the dropzone so they do not open the file picker.
 
 Pass custom prompt content directly to `FileUploadDropzoneDescription`:
@@ -78,21 +78,6 @@ The description renders its `children`. In the default UI, FileUpload supplies
 Use the `multiple` prop to allow several files. New dropped, pasted, or selected files are appended to the current list.
 
 <Preview path="file-upload-multiple" />
-
-### Preview
-
-Use `FileUploadPreview` to render Attachment cards with image and video previews in a grid. Preview object URLs are released when files change or the component unmounts.
-
-```tsx
-<FileUpload multiple accept="image/*,video/*">
-  <FileUploadDropzone />
-  <FileUploadPreview>
-    <FileUploadPreviewItem />
-  </FileUploadPreview>
-</FileUpload>
-```
-
-<Preview path="file-upload-preview" />
 
 ### Staged uploads
 
@@ -338,22 +323,4 @@ Extends all native HTML `<div>` element props.
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
   type={`Pick<FileUploadItemProps, 'file' | 'onRemove' | 'className'>`}
-/>
-
-### FileUploadPreviewProps
-
-Extends all native HTML `<div>` element props.
-
-<AutoTypeTable
-  path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadPreviewProps, 'className' | 'children'>`}
-/>
-
-### FileUploadPreviewItemProps
-
-Extends all native HTML `<div>` element props.
-
-<AutoTypeTable
-  path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadPreviewItemProps, 'file' | 'onRemove' | 'className' | 'mediaClassName'>`}
 />

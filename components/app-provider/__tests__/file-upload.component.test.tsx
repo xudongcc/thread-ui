@@ -21,7 +21,6 @@ import {
   FileUpload,
   FileUploadDropzone,
   FileUploadDropzoneDescription,
-  FileUploadPreview,
   useFileUpload,
 } from "@/components/thread-ui/file-upload";
 
@@ -181,45 +180,6 @@ it("blocks selection and removal while disabled", async () => {
   await userEvent.click(remove);
   expect(onChange).not.toHaveBeenCalled();
   expect(inputClick).not.toHaveBeenCalled();
-});
-
-it("releases media URLs on removal and unmount and preserves native video controls", async () => {
-  const createObjectURL = vi.fn((file: File) => `blob:${file.name}`);
-  const revokeObjectURL = vi.fn();
-  vi.stubGlobal(
-    "URL",
-    class extends URL {
-      static createObjectURL = createObjectURL;
-      static revokeObjectURL = revokeObjectURL;
-    },
-  );
-  const image = new File(["image"], "photo.png", { type: "image/png" });
-  const video = new File(["video"], "clip.mp4", { type: "video/mp4" });
-  const { container, unmount } = localized(
-    <FileUpload defaultValue={[image, video]}>
-      <FileUploadDropzone />
-      <FileUploadPreview />
-    </FileUpload>,
-  );
-  expect(await screen.findByRole("img", { name: image.name })).toBeTruthy();
-  const player = screen.getByLabelText(video.name) as HTMLVideoElement;
-  expect(player.controls).toBe(true);
-  expect(
-    player
-      .closest('[data-slot="attachment"]')
-      ?.querySelector('[data-slot="attachment-trigger"]'),
-  ).toBeNull();
-  const inputClick = vi.spyOn(getInput(container), "click");
-  fireEvent.click(player);
-  expect(inputClick).not.toHaveBeenCalled();
-  await userEvent.click(
-    screen.getByRole("button", { name: `Remove ${image.name}` }),
-  );
-  await waitFor(() =>
-    expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${image.name}`),
-  );
-  unmount();
-  expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${video.name}`);
 });
 
 const ContextControls = () => {

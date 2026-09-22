@@ -139,8 +139,6 @@ const imageExtensions = new Set([
   "webp",
 ]);
 
-const videoExtensions = new Set(["m4v", "mov", "mp4", "ogg", "ogv", "webm"]);
-
 const FileUploadContext = createContext<FileUploadContextValue | null>(null);
 const FileUploadItemContext = createContext<FileUploadItemContextValue | null>(
   null,
@@ -221,26 +219,12 @@ const getClipboardFiles = (event: ClipboardEvent<HTMLDivElement>) => {
 const getFileKey = (file: File, index: number) =>
   `${file.name}-${file.lastModified}-${file.size}-${index}`;
 
-const getPreviewType = (file: File) => {
-  if (file.type.startsWith("image/")) {
-    return "image";
-  }
-
-  if (file.type.startsWith("video/")) {
-    return "video";
-  }
+const isImageFile = (file: File) => {
+  if (file.type.startsWith("image/")) return true;
+  if (file.type.startsWith("video/")) return false;
 
   const extension = file.name.split(".").pop()?.toLowerCase();
-
-  if (extension && imageExtensions.has(extension)) {
-    return "image";
-  }
-
-  if (extension && videoExtensions.has(extension)) {
-    return "video";
-  }
-
-  return null;
+  return !!extension && imageExtensions.has(extension);
 };
 
 const useObjectUrl = (file?: File) => {
@@ -673,90 +657,11 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
   );
 };
 
-export type FileUploadPreviewProps = ComponentProps<"div">;
-
-export const FileUploadPreview: FC<FileUploadPreviewProps> = ({
-  children,
-  className,
-  ...props
-}) => {
-  const { files, entries, removeFile } = useFileUploadContext();
-
-  if (!files.length) {
-    return null;
-  }
-
-  return (
-    <div
-      {...props}
-      className={cn("mt-3 grid w-full grid-cols-2 gap-3", className)}
-      data-slot="file-upload-preview"
-    >
-      {files.map((file, index) => (
-        <FileUploadItemContext.Provider
-          key={entries[index]?.id ?? getFileKey(file, index)}
-          value={{
-            file,
-            index,
-            entry: entries[index],
-            remove: () => removeFile(index),
-          }}
-        >
-          {children ?? <FileUploadPreviewItem />}
-        </FileUploadItemContext.Provider>
-      ))}
-    </div>
-  );
-};
-
-export interface FileUploadPreviewItemProps extends ComponentProps<"div"> {
-  file?: File;
-  onRemove?: () => void;
-  mediaClassName?: string;
-}
-
-export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
-  file,
-  onRemove,
-  className,
-  mediaClassName,
-  ...props
-}) => {
-  const itemContext = useContext(FileUploadItemContext);
-  const resolvedFile = file ?? itemContext?.file;
-  const remove = onRemove ?? itemContext?.remove;
-
-  if (!resolvedFile) {
-    throw new Error(
-      "FileUploadPreviewItem must be used within FileUploadPreview or receive a file prop.",
-    );
-  }
-
-  return (
-    <div
-      {...props}
-      className={cn("min-w-0", className)}
-      data-slot="file-upload-preview-item"
-    >
-      <FileUploadAttachment
-        preview
-        file={resolvedFile}
-        mediaClassName={mediaClassName}
-        onRemove={remove}
-      />
-    </div>
-  );
-};
-
 const FileUploadAttachment = ({
   file,
-  preview = false,
-  mediaClassName,
   onRemove,
 }: {
   file: File;
-  preview?: boolean;
-  mediaClassName?: string;
   onRemove?: () => void;
 }) => {
   const { t } = useTranslation("thread-ui");
@@ -786,36 +691,18 @@ const FileUploadAttachment = ({
     error: t("fileUpload.status.error", "Upload failed"),
     canceled: t("fileUpload.status.canceled", "Canceled"),
   };
-  const previewType = getPreviewType(file);
-  const showPreview = preview || previewType === "image";
-  const objectUrl = useObjectUrl(showPreview && previewType ? file : undefined);
+  const isImage = isImageFile(file);
+  const objectUrl = useObjectUrl(isImage ? file : undefined);
 
   return (
-    <Attachment
-      orientation={preview ? "vertical" : "horizontal"}
-      state={state}
-      className={cn(
-        "w-full",
-        preview && "has-data-[slot=attachment-content]:w-full",
-      )}
-    >
-      <AttachmentMedia variant={previewType === "image" ? "image" : "icon"}>
-        {previewType && objectUrl ? (
-          previewType === "image" ? (
-            <img
-              alt={file.name}
-              className={cn("h-full w-full object-cover", mediaClassName)}
-              src={objectUrl}
-            />
-          ) : (
-            <video
-              controls
-              playsInline
-              aria-label={file.name}
-              className={cn("h-full w-full object-cover", mediaClassName)}
-              src={objectUrl}
-            />
-          )
+    <Attachment className="w-full" state={state}>
+      <AttachmentMedia variant={isImage ? "image" : "icon"}>
+        {objectUrl ? (
+          <img
+            alt={file.name}
+            className="h-full w-full object-cover"
+            src={objectUrl}
+          />
         ) : (
           <FileUploadFileIcon className="size-4" file={file} />
         )}
