@@ -4,7 +4,8 @@ import { Building2Icon, ChevronsUpDownIcon } from "lucide-react";
 import { createContext, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import type { ComponentProps, ReactNode } from "react";
-import { Button } from "@/components/thread-ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,11 +53,19 @@ function WorkspaceIcon({ workspace }: { workspace?: Workspace }) {
       className="bg-primary text-primary-foreground items-center justify-center overflow-hidden [&_img]:size-full [&_img]:object-cover [&_svg]:size-4"
       data-slot="workspace-icon"
     >
-      {workspace?.icon ?? (
-        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-          {workspace ? getInitial(workspace.name) : <Building2Icon />}
-        </AvatarFallback>
-      )}
+      {workspace?.icon}
+      <AvatarFallback
+        className="bg-primary text-primary-foreground text-xs font-semibold"
+        // Icons leave the image idle; AvatarImage reports loading/error/loaded.
+        style={(state) => ({
+          display:
+            workspace?.icon != null && state.imageLoadingStatus === "idle"
+              ? "none"
+              : undefined,
+        })}
+      >
+        {workspace ? getInitial(workspace.name) : <Building2Icon />}
+      </AvatarFallback>
     </Avatar>
   );
 }
@@ -68,11 +77,18 @@ function UserAvatar({ user }: { user: NonNullable<TopbarMenuProps["user"]> }) {
       className="bg-muted text-foreground items-center justify-center overflow-hidden [&_img]:size-full [&_img]:object-cover [&_svg]:size-4"
       data-slot="user-avatar"
     >
-      {user.avatar ?? (
-        <AvatarFallback className="text-foreground text-xs font-semibold">
-          {getInitial(user.name)}
-        </AvatarFallback>
-      )}
+      {user.avatar}
+      <AvatarFallback
+        className="text-foreground text-xs font-semibold"
+        style={(state) => ({
+          display:
+            user.avatar != null && state.imageLoadingStatus === "idle"
+              ? "none"
+              : undefined,
+        })}
+      >
+        {getInitial(user.name)}
+      </AvatarFallback>
     </Avatar>
   );
 }
@@ -125,7 +141,6 @@ export function TopbarMenuTrigger({
     <DropdownMenuTrigger
       aria-busy={config.loading || undefined}
       aria-haspopup="menu"
-      render={<Button loading={config.loading} variant="outline" />}
       aria-label={t(
         userOnly
           ? "topbarMenu.userMenu"
@@ -142,9 +157,13 @@ export function TopbarMenuTrigger({
         },
       )}
       {...props}
+      data-loading={config.loading}
       disabled={config.disabled || config.loading || props.disabled}
       className={cn(
-        "h-10 max-w-full gap-2 bg-white p-1 max-sm:w-10 max-sm:rounded-full max-sm:p-0 sm:pr-2 dark:bg-neutral-950",
+        buttonVariants({ variant: "outline" }),
+        "relative h-10 max-w-full gap-2 bg-white dark:bg-neutral-950",
+        children === undefined &&
+          "p-1 max-sm:w-10 max-sm:rounded-full max-sm:p-0 sm:pr-2",
         "group-data-[variant=dark]/topbar:bg-neutral-950 group-data-[variant=light]/topbar:bg-white dark:group-data-[variant=light]/topbar:bg-white",
         "group-data-[variant=dark]/topbar:border-white/15 group-data-[variant=dark]/topbar:text-white group-data-[variant=dark]/topbar:hover:bg-white/10 group-data-[variant=dark]/topbar:hover:text-white group-data-[variant=dark]/topbar:aria-expanded:bg-white/10 group-data-[variant=dark]/topbar:aria-expanded:text-white",
         "group-data-[variant=light]/topbar:border-black/15 group-data-[variant=light]/topbar:text-neutral-950 group-data-[variant=light]/topbar:hover:bg-black/10 group-data-[variant=light]/topbar:hover:text-neutral-950 group-data-[variant=light]/topbar:focus-visible:ring-black/40 group-data-[variant=light]/topbar:aria-expanded:bg-black/10 group-data-[variant=light]/topbar:aria-expanded:text-neutral-950",
@@ -154,22 +173,27 @@ export function TopbarMenuTrigger({
         className,
       )}
     >
-      {children !== undefined ? (
-        children
-      ) : (
-        <>
-          {userOnly ? (
-            <UserAvatar user={userOnly} />
-          ) : (
-            <WorkspaceIcon workspace={selected} />
-          )}
-          <span className="hidden max-w-40 truncate sm:block">{label}</span>
-          <ChevronsUpDownIcon
-            aria-hidden="true"
-            className="hidden size-4 shrink-0 sm:block"
-          />
-        </>
-      )}
+      <span className="absolute inset-0 hidden items-center justify-center group-data-[loading=true]/button:flex">
+        <Spinner />
+      </span>
+      <span className="contents group-data-[loading=true]/button:invisible">
+        {children !== undefined ? (
+          children
+        ) : (
+          <>
+            {userOnly ? (
+              <UserAvatar user={userOnly} />
+            ) : (
+              <WorkspaceIcon workspace={selected} />
+            )}
+            <span className="hidden max-w-40 truncate sm:block">{label}</span>
+            <ChevronsUpDownIcon
+              aria-hidden="true"
+              className="hidden size-4 shrink-0 sm:block"
+            />
+          </>
+        )}
+      </span>
     </DropdownMenuTrigger>
   );
 }

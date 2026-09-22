@@ -13,6 +13,19 @@ export default mergeConfig(
       projects: [
         {
           extends: true,
+          test: {
+            name: "components",
+            include: ["tests/**/*.test.tsx"],
+            browser: {
+              enabled: true,
+              headless: true,
+              provider: playwright(),
+              instances: [{ browser: "chromium" }],
+            },
+          },
+        },
+        {
+          extends: true,
           plugins: [
             storybookTest({
               configDir: fileURLToPath(
