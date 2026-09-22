@@ -54,6 +54,7 @@ const eslintConfig = [
       "**/out/**",
       "**/build/**",
       "**/dist/**",
+      "**/storybook-static/**",
       "**/coverage/**",
       "**/.source/**",
       "packages/shadcn-ui/**",

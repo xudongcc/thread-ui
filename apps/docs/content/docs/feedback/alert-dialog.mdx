@@ -1,15 +1,18 @@
 ---
 title: AlertDialog
-description: A functional alert dialog component for confirmations and important actions.
+description: Alert dialogs with function and composition APIs for confirmations and important actions.
 ---
 
 <Preview path="alert-dialog" />
 
 ## API Style
 
-`AlertDialog` uses a [function-based API](/docs/api-design/function-based).
-Mount `AlertDialogProvider` once, then call `alertDialog()` and await its boolean
-result from event handlers or async workflows.
+AlertDialog supports both a [function-based API](/docs/api-design/function-based)
+and JSX composition from `@/components/thread-ui/alert-dialog`.
+Mount `AlertDialogProvider` once (or use `AppProvider`), then call `alertDialog()`
+and await its boolean result from event handlers or async workflows.
+For custom JSX layouts and local state, compose `AlertDialog` and its child
+components directly; this mode does not require a provider.
 
 ## Installation
 
@@ -19,7 +22,8 @@ pnpm dlx shadcn@latest add @thread-ui/alert-dialog
 
 ## Setup
 
-Add the `AlertDialogProvider` to your root layout:
+For function calls, add `AlertDialogProvider` to your root layout. Skip this step
+if you already use `AppProvider`, which includes it, or only use JSX composition:
 
 ```tsx
 import { AlertDialogProvider } from "@/components/thread-ui/alert-dialog";
@@ -36,6 +40,8 @@ export default function RootLayout({ children }) {
 ```
 
 ## Usage
+
+### Function API
 
 ```tsx
 import { alertDialog } from "@/components/thread-ui/alert-dialog";
@@ -58,6 +64,24 @@ const handleDelete = async () => {
 
 ## Examples
 
+### Composition API
+
+Import `AlertDialog`, `AlertDialogTrigger`, `AlertDialogContent`,
+`AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`,
+`AlertDialogFooter`, `AlertDialogCancel`, and `AlertDialogAction` from the same
+Thread UI entry point as `alertDialog()`.
+
+<Preview path="alert-dialog-composition" />
+
+`AlertDialogCancel` closes the dialog automatically. `AlertDialogAction` is a
+button: handle the action yourself and set `open` to `false` when it succeeds.
+For async operations, keep it open until the operation finishes and disable the
+button while pending. Composition does not return a `Promise<boolean>`; use your
+own callbacks and state.
+
+`AlertDialogMedia`, `AlertDialogOverlay`, and `AlertDialogPortal` are also exported
+for custom layouts. `AlertDialogContent` already includes its portal and overlay.
+
 ### With Icon
 
 Add an icon to provide visual context.
@@ -79,11 +103,11 @@ Customize the cancel and confirm button text.
 ## Features
 
 - **Function-based API**: Call `alertDialog()` anywhere without hooks
+- **Composition API**: Build JSX layouts and control open state without a provider
 - **Promise-based**: Returns a Promise that resolves to `true` or `false`
 - **Icon Support**: Add icons for visual context
 - **Size Variants**: Choose between default and small sizes
 - **Customizable**: Configure title, description, button text, and variant
-- **Queue Support**: Multiple dialogs are queued and shown sequentially
 - **Accessible**: Built on Base UI AlertDialog with proper ARIA attributes
 - **Async/Await Support**: Easily integrate with async workflows
 

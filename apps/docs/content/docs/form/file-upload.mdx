@@ -8,7 +8,8 @@ description: A file upload component with click, drag-and-drop, and paste suppor
 ## API Style
 
 `FileUpload` supports props and composition APIs. Without `children`, it renders
-an upload area and a removable [Attachment](https://ui.shadcn.com/docs/components/base/attachment)
+an Empty-based upload area with a cloud upload icon, heading, description, and
+**Browse files** button, plus a removable [Attachment](https://ui.shadcn.com/docs/components/base/attachment)
 list. Pass `children` to replace the entire default UI and compose your own layout.
 Both modes support controlled and uncontrolled file selection. An optional
 `onUpload` handler connects your upload workflow; the built-in p-queue manages
@@ -21,6 +22,8 @@ pnpm dlx shadcn@latest add @thread-ui/file-upload
 ```
 
 ## Usage
+
+### Props API
 
 ```tsx
 import { FileUpload } from "@/components/thread-ui/file-upload";
@@ -38,8 +41,10 @@ import { FileUpload } from "@/components/thread-ui/file-upload";
 ```
 
 Omit `value` to let the component manage its own files; use `defaultValue` for
-initial files. `title` is optional and `description` falls back to the localized
-`placeholder`. `className` styles the root wrapper in both modes.
+initial files. `title` defaults to the localized **Upload files** heading and
+`description` falls back to the localized `placeholder`. The **Browse files**
+button is localized as well. Click the button or the upload area to select files;
+drag-and-drop and paste also work. `className` styles the root wrapper in both modes.
 
 The built-in Attachment list shows local image thumbnails and automatically chooses
 icons for video, audio, spreadsheets, presentations, archives, and documents
@@ -48,6 +53,8 @@ this does not change the upload status. Image preview URLs are released on remov
 or unmount. Recognized
 MIME types take priority; filenames provide a case-insensitive extension fallback.
 Unknown files use a generic file icon. No additional props are needed.
+
+### Composition API
 
 Passing `children` (including `null`) selects composition mode. In this mode,
 `FileUpload` adds no default dropzone or attachment list. Use `FileUploadDropzone`
@@ -68,6 +75,8 @@ Pass custom prompt content directly to `FileUploadDropzoneDescription`:
 </FileUpload>
 ```
 
+Custom dropzone children replace the default icon, heading, description, and
+button. The custom area remains clickable and supports Enter and Space.
 The description renders its `children`. In the default UI, FileUpload supplies
 `description` or the localized `placeholder` explicitly.
 

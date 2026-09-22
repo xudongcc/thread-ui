@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@/components/thread-ui/*": ["../../components/*"],
+      "@/components/*": ["../../packages/shadcn-ui/components/*"],
+      "@/utils/*": ["../../packages/shadcn-ui/utils/*"],
+      "@/lib/*": ["../../packages/shadcn-ui/lib/*"],
+      "@/hooks/*": ["../../packages/shadcn-ui/hooks/*"]
+    }
+  },
+  "include": [
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    "stories/**/*.tsx",
+    "*.ts"
+  ]
+}

@@ -73,8 +73,8 @@ it("renders default Attachment items outside the dropzone and localizes removal"
       onChange={onChange}
     />,
   );
-  const dropzone = screen.getByRole("button", {
-    name: "Attachments Pick a document",
+  const dropzone = screen.getByRole("group", {
+    name: "Attachments",
   });
   const item = screen.getByText(file.name).closest('[data-slot="attachment"]')!;
   expect(item.getAttribute("data-state")).toBe("idle");
@@ -119,8 +119,8 @@ it("appends picked, dropped and pasted files in uncontrolled multiple mode", asy
   const input = getInput(container);
   await userEvent.upload(input, file);
   expect(input.value).toBe("");
-  const dropzone = screen.getByRole("button", {
-    name: en.fileUpload.placeholder,
+  const dropzone = screen.getByRole("group", {
+    name: en.fileUpload.title,
   });
   fireEvent.dragOver(dropzone);
   expect(dropzone.getAttribute("data-dragging")).toBe("true");
@@ -152,10 +152,41 @@ it("replaces files in single mode and keeps controlled state owned by the caller
   expect(screen.getByText(file.name)).toBeTruthy();
 });
 
-it("opens the picker with the keyboard and forwards the accessible name", () => {
-  const { container } = localized(<FileUpload aria-label="Add attachments" />);
+it("opens the picker once per button activation and localizes the default content", async () => {
+  const user = userEvent.setup();
+  const { container, i18n } = localized(
+    <FileUpload aria-label="Add attachments" />,
+  );
   const inputClick = vi.spyOn(getInput(container), "click");
-  const dropzone = screen.getByRole("button", { name: "Add attachments" });
+  const dropzone = screen.getByRole("group", { name: "Add attachments" });
+  const browse = within(dropzone).getByRole("button", {
+    name: en.fileUpload.browseFiles,
+  });
+  await user.tab();
+  expect(document.activeElement).toBe(browse);
+  await user.keyboard("{Enter}");
+  expect(inputClick).toHaveBeenCalledTimes(1);
+  await user.keyboard(" ");
+  expect(inputClick).toHaveBeenCalledTimes(2);
+  await user.click(browse);
+  expect(inputClick).toHaveBeenCalledTimes(3);
+  await user.click(screen.getByText(en.fileUpload.title));
+  expect(inputClick).toHaveBeenCalledTimes(4);
+  await act(() => i18n.changeLanguage("zh"));
+  expect(screen.getByText(zh.fileUpload.title)).toBeTruthy();
+  expect(
+    screen.getByRole("button", { name: zh.fileUpload.browseFiles }),
+  ).toBeTruthy();
+});
+
+it("keeps custom prompt content keyboard accessible", () => {
+  const { container } = localized(
+    <FileUpload>
+      <FileUploadDropzone>Custom picker</FileUploadDropzone>
+    </FileUpload>,
+  );
+  const inputClick = vi.spyOn(getInput(container), "click");
+  const dropzone = screen.getByRole("button", { name: "Custom picker" });
   fireEvent.keyDown(dropzone, { key: "Enter" });
   fireEvent.keyDown(dropzone, { key: " " });
   expect(inputClick).toHaveBeenCalledTimes(2);
@@ -168,9 +199,14 @@ it("blocks selection and removal while disabled", async () => {
   );
   const input = getInput(container);
   const inputClick = vi.spyOn(input, "click");
-  const dropzone = screen.getByRole("button", {
-    name: en.fileUpload.placeholder,
+  const dropzone = screen.getByRole("group", {
+    name: en.fileUpload.title,
   });
+  const browse = screen.getByRole("button", {
+    name: en.fileUpload.browseFiles,
+  }) as HTMLButtonElement;
+  expect(browse.disabled).toBe(true);
+  fireEvent.click(browse);
   fireEvent.click(dropzone);
   fireEvent.keyDown(dropzone, { key: "Enter" });
   fireEvent.drop(dropzone, { dataTransfer: { files: [otherFile] } });
@@ -235,14 +271,11 @@ it("shares dragging state and protects context actions when disabled", async () 
       <ContextControls />
     </FileUpload>,
   );
-  fireEvent.dragOver(
-    screen.getByRole("button", { name: en.fileUpload.placeholder }),
-  );
+  fireEvent.dragOver(screen.getByRole("group", { name: en.fileUpload.title }));
   expect(screen.getByLabelText("Dragging").textContent).toBe("true");
-  fireEvent.drop(
-    screen.getByRole("button", { name: en.fileUpload.placeholder }),
-    { dataTransfer: { files: [] } },
-  );
+  fireEvent.drop(screen.getByRole("group", { name: en.fileUpload.title }), {
+    dataTransfer: { files: [] },
+  });
   expect(screen.getByLabelText("Dragging").textContent).toBe("false");
   rerender(
     <FileUpload disabled defaultValue={[file]} onChange={onChange}>
@@ -638,7 +671,7 @@ it("starts props-mode uploads through an external ref and preserves the native p
   const input = getInput(container);
   const inputClick = vi.spyOn(input, "click");
   await userEvent.click(
-    screen.getByRole("button", { name: en.fileUpload.placeholder }),
+    screen.getByRole("button", { name: en.fileUpload.browseFiles }),
   );
   expect(inputClick).toHaveBeenCalledOnce();
   act(() => ref.current!.openFileDialog());

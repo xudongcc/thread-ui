@@ -1,6 +1,6 @@
 {
   "name": "@repo/alert-dialog",
-  "description": "A functional alert dialog component for confirmations and important actions.",
+  "description": "Alert dialogs with function and composition APIs for confirmations and important actions.",
   "version": "0.0.0",
   "private": true,
   "dependencies": {

@@ -13,14 +13,14 @@ export function PageLayout({ className, ...props }: PageLayoutProps) {
       {...props}
       data-slot="page-layout"
       className={cn(
-        "@container/page-layout grid min-w-0 grid-cols-6 items-start gap-6",
+        "@container/page-layout grid min-w-0 grid-cols-6 items-start gap-4",
         className,
       )}
     />
   );
 }
 
-const sectionVariants = cva("col-span-full min-w-0 space-y-6", {
+const sectionVariants = cva("col-span-full min-w-0 space-y-4", {
   variants: {
     span: {
       full: "",

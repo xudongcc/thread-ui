@@ -1,0 +1,131 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as CheckboxStories from "./checkbox-group.stories";
+import * as RadioStories from "./radio-group.stories";
+import * as UploadStories from "./file-upload.stories";
+import * as AlertStories from "./alert-dialog.stories";
+import * as ToastStories from "./toast.stories";
+
+<Meta title="API Usage" />
+
+# API usage
+
+Start with **Props API** whenever the component supports it. It is the first
+example and the primary Autodocs preview. **Composition API** and **Function API**
+examples are shown separately where supported. Existing story URLs remain stable.
+
+<table>
+  <thead>
+    <tr>
+      <th scope="col">Components</th>
+      <th scope="col">Supported usage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        Button, Badge, Input, Textarea, NumberInput, Calendar, DateInput,
+        DatePicker
+      </td>
+      <td>Props API</td>
+    </tr>
+    <tr>
+      <td>Select, DataTable, Empty, DataFilter, ComplexFilter</td>
+      <td>Props API</td>
+    </tr>
+    <tr>
+      <td>CheckboxGroup, RadioGroup, FileUpload</td>
+      <td>Props API first; Composition API for custom layout</td>
+    </tr>
+    <tr>
+      <td>Page, PageLayout, CodeBlock, Dialog</td>
+      <td>Composition API</td>
+    </tr>
+    <tr>
+      <td>AlertDialog</td>
+      <td>Function API and Composition API</td>
+    </tr>
+    <tr>
+      <td>Toast</td>
+      <td>Function API</td>
+    </tr>
+    <tr>
+      <td>AppProvider</td>
+      <td>Provider setup for global feedback and localization</td>
+    </tr>
+  </tbody>
+</table>
+
+Regular React props such as `open`, `className`, or `children` do not by themselves
+make a component a Props API convenience component. For example, Dialog still
+requires its content, title, and other parts to be composed. AlertDialog has no
+single-component `title`/`description` convenience API; those options belong to
+the `alertDialog()` function.
+
+## Props API
+
+Supply data and configuration to a single component. Controls edit those props.
+For collection inputs, pass `items`; for FileUpload, omit children to use its
+built-in dropzone and file list.
+
+<Canvas of={CheckboxStories.Default} story={{ autoplay: false }} />
+
+<Canvas of={RadioStories.Default} story={{ autoplay: false }} />
+
+<Canvas of={UploadStories.Default} story={{ autoplay: false }} />
+
+## Composition API
+
+Use named child components when you need to control content or layout. Import
+them from the same Thread UI entry point. CheckboxGroup and RadioGroup accept
+either `items` or item children; do not provide both. FileUpload children replace
+its default layout.
+
+<Canvas of={CheckboxStories.Compound} story={{ autoplay: false }} />
+
+<Canvas of={RadioStories.Compound} story={{ autoplay: false }} />
+
+<Canvas of={UploadStories.Composition} story={{ autoplay: false }} />
+
+AlertDialog composition works without AlertDialogProvider. `AlertDialogCancel`
+closes automatically. `AlertDialogAction` runs your handler; use controlled
+`open` state to close after the action succeeds.
+
+<Canvas
+  of={AlertStories.Composition}
+  story={{ inline: true, autoplay: false }}
+/>
+
+## Function API
+
+Mount AppProvider once, or install the corresponding AlertDialogProvider or
+ToastProvider. Then call the exported function from an event handler or workflow.
+The options object configures a function call; it is not a component Props API.
+
+```tsx
+import { alertDialog } from "@/components/thread-ui/alert-dialog";
+import { toast } from "@/components/thread-ui/toast";
+
+async function handleSave() {
+  const confirmed = await alertDialog({
+    title: "Save changes?",
+    description: "Confirm to save your current changes.",
+  });
+  if (!confirmed) return;
+
+  // Save your changes here.
+  toast.add({ title: "Changes saved", type: "success" });
+}
+```
+
+<Canvas of={AlertStories.Default} story={{ autoplay: false }} />
+
+<Canvas of={ToastStories.Default} story={{ autoplay: false }} />
+
+### FileUpload imperative actions
+
+FileUpload exposes actions through a ref or `useFileUpload()` inside its children.
+These operate on a mounted upload instance, rather than creating global UI.
+The Manual Upload example combines the default Props API layout with
+`ref.current?.upload()`.
+
+<Canvas of={UploadStories.ManualUpload} story={{ autoplay: false }} />

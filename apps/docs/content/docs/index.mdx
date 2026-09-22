@@ -14,18 +14,18 @@ Thread UI is a component library built on top of [shadcn/ui](https://ui.shadcn.c
 Create a new project with the same Base UI theme preset used by Thread UI:
 
 ```bash
-pnpm dlx shadcn@latest init --preset b1ZOMFeHQ
+pnpm dlx shadcn@latest init --base base --preset b1au7YYAi
 ```
 
-The preset selects the `base-maia` component style, Base UI primitives, neutral
-base colors, and the matching theme tokens.
+The preset selects the Rhea component style with neutral base colors and a blue
+theme. The `--base base` option selects Base UI primitives.
 
 ### Existing Projects
 
-Apply the same preset to an existing shadcn/ui project:
+Apply the same preset to an existing shadcn/ui project that uses Base UI:
 
 ```bash
-pnpm dlx shadcn@latest apply --preset b1ZOMFeHQ
+pnpm dlx shadcn@latest apply --preset b1au7YYAi
 ```
 
 The resulting `components.json` uses:
@@ -33,7 +33,7 @@ The resulting `components.json` uses:
 ```json
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "base-maia"
+  "style": "base-rhea"
 }
 ```
 
@@ -60,7 +60,7 @@ This will automatically add the Thread UI registry to your `components.json`:
 
 ## Why Base UI?
 
-The `base-maia` style uses [Base UI](https://base-ui.com) as the underlying component library, providing:
+The `base-rhea` style uses [Base UI](https://base-ui.com) as the underlying component library, providing:
 
 - **Better Accessibility** - Built with ARIA best practices from the ground up
 - **Flexible APIs** - More control over component behavior and styling

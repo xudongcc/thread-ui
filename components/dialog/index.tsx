@@ -8,8 +8,8 @@ export const DialogContent: FC<
   <DialogContentComponent
     className={cn(
       className,
-      "top-auto right-0 bottom-0 left-0 max-h-[80vh] max-w-full translate-0",
-      "sm:top-1/2 sm:right-auto sm:bottom-auto sm:left-1/2 sm:-translate-1/2",
+      "top-auto right-2 bottom-2 left-2 max-h-[80vh] w-auto max-w-full translate-0 overflow-y-auto",
+      "sm:top-1/2 sm:right-auto sm:bottom-auto sm:left-1/2 sm:w-full sm:-translate-1/2",
     )}
     {...props}
   />

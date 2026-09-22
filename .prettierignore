@@ -11,3 +11,6 @@ apps/docs/.source
 
 # Shadcn UI
 packages/shadcn-ui
+
+# Storybook
+storybook-static

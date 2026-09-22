@@ -27,7 +27,7 @@ import {
 } from "@/components/thread-ui/checkbox-group";
 ```
 
-Props-first:
+### Props API
 
 ```tsx
 <CheckboxGroup
@@ -43,7 +43,7 @@ Props-first:
 />
 ```
 
-Compound-first:
+### Composition API
 
 ```tsx
 <CheckboxGroup allValues={["option1", "option2", "option3"]}>
@@ -56,13 +56,13 @@ Compound-first:
 
 ## Examples
 
-### Props First
+### Props API
 
 Use the `items` prop when your checkbox options come from data. Add `parent` to render a select-all checkbox.
 
 <Preview path="checkbox-group" />
 
-### Compound First
+### Composition API
 
 Use `CheckboxGroupItem` children when you want to compose items directly.
 

@@ -85,6 +85,14 @@ Leaf components such as [Button](/docs/action/button),
 need a separate props-first or compound-first variant because they do not own a
 configurable child structure.
 
+## Documentation order
+
+When a component supports a Props API, its first preview and usage example show
+that API. Document supported Composition API and Function API alternatives in
+separate sections with their own examples. A function options object is not a
+component Props API. Components that only support composition or function calls
+start with their supported API instead.
+
 ## How to Choose
 
 | Situation                                            | Prefer         |
@@ -120,7 +128,8 @@ API style is independent from several other component decisions:
 | ---------------------------------------------------------------- | ---------------------------------------- |
 | Button, Badge, Input, Textarea, NumberInput, Calendar, DateInput | Single-component props                   |
 | Select, DataTable, Empty, DataFilter, ComplexFilter              | Props-first                              |
-| Page, CodeBlock, File Upload, Dialog                             | Compound-first                           |
-| CheckboxGroup, RadioGroup                                        | Dual: props-first and compound-first     |
-| Toast, AlertDialog                                               | Function-based                           |
+| Page, PageLayout, CodeBlock, Dialog                              | Compound-first                           |
+| CheckboxGroup, RadioGroup, FileUpload                            | Dual: props-first and compound-first     |
+| Toast                                                            | Function-based                           |
+| AlertDialog                                                      | Function-based and compound-first        |
 | DatePicker                                                       | Props with a render prop for the trigger |

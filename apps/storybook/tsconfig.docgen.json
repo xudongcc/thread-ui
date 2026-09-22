@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    ".storybook/**/*.tsx",
+    "stories/**/*.tsx",
+    "../../components/**/*.tsx",
+    "../../packages/shadcn-ui/**/*.tsx"
+  ],
+  "exclude": ["**/node_modules/**", "../../components/**/__tests__/**"]
+}
