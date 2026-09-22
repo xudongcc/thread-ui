@@ -262,12 +262,21 @@ Task statuses are `idle`, `queued`, `preparing`, `uploading`, `processing`, `don
 `error`, and `canceled`. Task IDs are incrementing strings scoped to each FileUpload
 instance and remain stable through reordering and retries.
 Duplicate file selections get separate task IDs. Keep the
-same `File` objects in a controlled `value` to preserve task identity.
+same `File` objects in a controlled `value` to preserve task identity. The parent
+may copy, filter, or reorder the array returned by `onChange`; it does not need
+to retain that array reference.
 Use `useFileUpload<AttachmentResult>()` to type `entry.result`; the generic must
 match the enclosing FileUpload handler's return type.
 
-Actions respect `disabled`. Controlled actions call `onChange`; the caller must
-update `value`. The hook must be used inside `FileUpload`. The native input belongs
+Selection actions can be combined in one handler: `addFiles(files); upload()`
+starts the files selected at the time of `upload()`, once the selection is accepted.
+Files added after that call require another start when `autoUpload={false}`.
+Removing and re-adding a file creates a new task; an earlier upload request does
+not transfer to the replacement.
+
+Actions respect `disabled`. Controlled selection actions call `onChange`; update
+`value` there to accept the selection. Rejected files are never uploaded, and their
+upload requests are discarded. The hook must be used inside `FileUpload`. The native input belongs
 to the root, so custom picker buttons can use `openFileDialog()` directly.
 
 ### FileUploadDropzoneProps

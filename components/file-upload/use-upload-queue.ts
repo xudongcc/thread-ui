@@ -7,8 +7,13 @@ import type { FileUploadOptions } from "./upload-queue";
 
 export const useUploadQueue = <TResult>(
   files: File[],
-  options: FileUploadOptions<TResult> & { disabled?: boolean },
+  options: FileUploadOptions<TResult> & {
+    disabled?: boolean;
+    multiple?: boolean;
+  },
+  onSelectionChange: (files: File[]) => void,
 ) => {
+  const [selectionRevision, setSelectionRevision] = useState(0);
   const [store] = useState(() => new FileUploadQueue<TResult>());
   const entries = useSyncExternalStore(
     store.subscribe,
@@ -17,7 +22,18 @@ export const useUploadQueue = <TResult>(
   );
 
   useLayoutEffect(() => {
-    store.configure(files, options);
+    store.configure(
+      files,
+      {
+        ...options,
+        onSelectionChange: (nextFiles, revision) => {
+          // Even a rejected controlled change needs a commit to settle its draft.
+          setSelectionRevision(revision);
+          onSelectionChange(nextFiles);
+        },
+      },
+      selectionRevision,
+    );
   });
   useLayoutEffect(() => {
     store.activate();
@@ -30,7 +46,8 @@ export const useUploadQueue = <TResult>(
     upload: store.upload,
     retry: store.retry,
     cancel: store.cancel,
-    prepareRemove: store.prepareRemove,
-    prepareSelection: store.prepareSelection,
+    addFiles: store.addFiles,
+    removeFile: store.removeFile,
+    remove: store.remove,
   };
 };

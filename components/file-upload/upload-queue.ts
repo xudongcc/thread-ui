@@ -37,7 +37,17 @@ export interface FileUploadOptions<TResult = unknown> {
   onUploadError?: (error: Error, entry: FileUploadEntry<TResult>) => void;
 }
 
-type Options<TResult> = FileUploadOptions<TResult> & { disabled?: boolean };
+type Options<TResult> = FileUploadOptions<TResult> & {
+  disabled?: boolean;
+  multiple?: boolean;
+  onSelectionChange?: (files: File[], revision: number) => void;
+};
+
+type SelectionItem = Pick<FileUploadEntry, "id" | "file">;
+type SelectionRequest = {
+  items: SelectionItem[];
+  baseFiles: File[] | undefined;
+};
 
 /** Internal store: selection order and task identity are independent of queue order. */
 export class FileUploadQueue<TResult> {
@@ -46,8 +56,10 @@ export class FileUploadQueue<TResult> {
   private listeners = new Set<() => void>();
   private controllers = new Map<string, AbortController>();
   private options: Options<TResult> = {};
-  private selectionIds = new WeakMap<File[], (string | undefined)[]>();
-  private removalRequests = new Set<string>();
+  private committedFiles?: File[];
+  private selectionRequests = new Map<number, SelectionRequest>();
+  private selectionRevision = 0;
+  private startRequests = new Map<string, "upload" | "retry">();
   private nextId = 0;
   private active = false;
   private scheduled = false;
@@ -72,7 +84,7 @@ export class FileUploadQueue<TResult> {
     this.publish();
   }
 
-  configure(files: File[], options: Options<TResult>) {
+  configure(files: File[], options: Options<TResult>, revision = 0) {
     const concurrency = options.concurrency ?? 3;
     if (!Number.isInteger(concurrency) || concurrency < 1) {
       throw new RangeError(
@@ -83,42 +95,48 @@ export class FileUploadQueue<TResult> {
     this.queue.pause();
     this.queue.concurrency = concurrency;
 
-    // Match each occurrence once, even when the same File is selected twice.
+    // React acknowledges selection requests by revision, independently of queue
+    // notifications. A new controlled array accepts the request; keeping the
+    // committed array rejects it. Match File occurrences, not array identity, so
+    // callers can copy, filter, or reorder the accepted selection.
+    const request = this.selectionRequests.get(revision);
+    const accepted = request && files !== request.baseFiles;
+    const candidates = [...(accepted ? request.items : this.entries)];
     const remaining = [...this.entries];
-    const removed: FileUploadEntry<TResult>[] = [];
-    for (const id of this.removalRequests) {
-      const index = remaining.findIndex((entry) => entry.id === id);
-      if (index < 0) {
-        this.removalRequests.delete(id);
-        continue;
-      }
-      const file = remaining[index]!.file;
-      if (
-        remaining.filter((entry) => entry.file === file).length >
-        files.filter((item) => item === file).length
-      ) {
-        removed.push(...remaining.splice(index, 1));
-        this.removalRequests.delete(id);
-      }
-    }
-    // Local actions know which occurrences survived a batch. Consume their IDs
-    // only when the parent accepts that exact selection array; otherwise keep
-    // reconciling external controlled values by File identity.
-    const ids = this.selectionIds.get(files);
-    this.selectionIds.delete(files);
-    const next = files.map((file, fileIndex) => {
-      const index = remaining.findIndex(
-        (entry) => entry.file === file && (!ids || entry.id === ids[fileIndex]),
+    const next = files.map((file) => {
+      const candidateIndex = candidates.findIndex((item) => item.file === file);
+      const candidate =
+        candidateIndex < 0
+          ? undefined
+          : candidates.splice(candidateIndex, 1)[0]!;
+      const index = remaining.findIndex((entry) =>
+        candidate ? entry.id === candidate.id : entry.file === file,
       );
       if (index >= 0) return remaining.splice(index, 1)[0]!;
       this.completionPending = true;
-      return { id: String(++this.nextId), file, status: "idle" as const };
+      return {
+        id: candidate?.id ?? String(++this.nextId),
+        file,
+        status: "idle" as const,
+      };
     });
     const changed =
       next.length !== this.entries.length ||
       next.some((entry, i) => entry !== this.entries[i]);
     this.entries = changed ? next : this.entries;
-    for (const entry of [...removed, ...remaining]) this.abort(entry.id);
+    this.committedFiles = files;
+    for (const pendingRevision of this.selectionRequests.keys()) {
+      if (pendingRevision <= revision)
+        this.selectionRequests.delete(pendingRevision);
+    }
+    const retainedIds = new Set([
+      ...next.map((entry) => entry.id),
+      ...this.getSelection().map((item) => item.id),
+    ]);
+    for (const id of this.startRequests.keys()) {
+      if (!retainedIds.has(id)) this.startRequests.delete(id);
+    }
+    for (const entry of remaining) this.abort(entry.id);
     if (changed) this.publish();
     this.schedule();
   }
@@ -151,9 +169,23 @@ export class FileUploadQueue<TResult> {
     this.scheduled = true;
     queueMicrotask(() => {
       this.scheduled = false;
-      if (!this.active) return;
+      // A command targets the selection at call time, but work must wait until
+      // React commits or rejects that selection (including controlled values).
+      if (!this.active || this.selectionRequests.size > 0) return;
       if (!this.options.disabled) {
-        if (this.options.autoUpload !== false) this.upload();
+        if (this.options.onUpload) {
+          for (const entry of this.entries) {
+            const request = this.startRequests.get(entry.id);
+            this.startRequests.delete(entry.id);
+            if (
+              (entry.status === "idle" &&
+                (request === "upload" || this.options.autoUpload !== false)) ||
+              (request === "retry" &&
+                (entry.status === "error" || entry.status === "canceled"))
+            )
+              this.enqueue(entry);
+          }
+        }
         this.queue.start();
       }
       if (
@@ -171,21 +203,33 @@ export class FileUploadQueue<TResult> {
 
   upload = (id?: string) => {
     if (!this.active || this.options.disabled || !this.options.onUpload) return;
-    for (const entry of this.entries) {
-      if (entry.status === "idle" && (id === undefined || entry.id === id))
-        this.enqueue(entry);
+    for (const item of this.getSelection()) {
+      const entry = this.entries.find((entry) => entry.id === item.id);
+      if (
+        (!entry || entry.status === "idle") &&
+        (id === undefined || item.id === id)
+      )
+        this.startRequests.set(item.id, "upload");
     }
+    this.schedule();
   };
 
   retry = (id: string) => {
     if (!this.active || this.options.disabled || !this.options.onUpload) return;
     const entry = this.entries.find((entry) => entry.id === id);
-    if (entry && (entry.status === "error" || entry.status === "canceled"))
-      this.enqueue(entry);
+    if (
+      entry &&
+      (entry.status === "error" || entry.status === "canceled") &&
+      this.getSelection().some((item) => item.id === id)
+    ) {
+      this.startRequests.set(id, "retry");
+      this.schedule();
+    }
   };
 
   cancel = (id: string) => {
     if (this.options.disabled) return;
+    this.startRequests.delete(id);
     const entry = this.entries.find((entry) => entry.id === id);
     if (!entry || ["done", "error", "canceled"].includes(entry.status)) return;
     this.update(id, { status: "canceled", progress: undefined });
@@ -193,14 +237,48 @@ export class FileUploadQueue<TResult> {
     this.schedule();
   };
 
-  prepareSelection = (files: File[], ids: (string | undefined)[]) => {
-    this.selectionIds.set(files, ids);
+  private getSelection(): SelectionItem[] {
+    return [...this.selectionRequests.values()].at(-1)?.items ?? this.entries;
+  }
+
+  private requestSelection(items: SelectionItem[], removedId?: string) {
+    const revision = ++this.selectionRevision;
+    const files = items.map((item) => item.file);
+    this.selectionRequests.set(revision, {
+      items,
+      baseFiles: this.committedFiles,
+    });
+    this.queue.pause();
+    if (removedId !== undefined) this.cancel(removedId);
+    this.options.onSelectionChange?.(files, revision);
+  }
+
+  addFiles = (files: File[]) => {
+    if (this.options.disabled || !files.length) return;
+    const additions = (this.options.multiple ? files : files.slice(0, 1)).map(
+      (file) => ({ id: String(++this.nextId), file }),
+    );
+    this.requestSelection(
+      this.options.multiple
+        ? [...this.getSelection(), ...additions]
+        : additions,
+    );
   };
 
-  prepareRemove = (id: string) => {
+  removeFile = (index: number) => {
     if (this.options.disabled) return;
-    this.removalRequests.add(id);
-    this.cancel(id);
+    const selection = this.getSelection();
+    const item = selection[index];
+    if (!item) return;
+    this.requestSelection(
+      selection.filter((_, i) => i !== index),
+      item.id,
+    );
+  };
+
+  remove = (id: string) => {
+    const index = this.getSelection().findIndex((item) => item.id === id);
+    if (index >= 0) this.removeFile(index);
   };
 
   private enqueue(entry: FileUploadEntry<TResult>) {

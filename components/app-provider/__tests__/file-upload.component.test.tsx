@@ -601,46 +601,55 @@ it("resets the draft to a controlled value when changes are rejected without a p
   ]);
 });
 
-it("creates a fresh task when removing and re-adding the same File in one batch", async () => {
-  const contexts: FileUploadTaskContext[] = [];
-  const finish: ((result: string) => void)[] = [];
-  const onUpload = vi.fn((context: FileUploadTaskContext) => {
-    contexts.push(context);
-    return new Promise<string>((resolve) => {
-      finish.push(resolve);
+it.each(["uncontrolled", "controlled", "copied"] as const)(
+  "creates a fresh task when removing and re-adding the same File in one batch (%s)",
+  async (mode) => {
+    const contexts: FileUploadTaskContext[] = [];
+    const finish: ((result: string) => void)[] = [];
+    const onUpload = vi.fn((context: FileUploadTaskContext) => {
+      contexts.push(context);
+      return new Promise<string>((resolve) => {
+        finish.push(resolve);
+      });
     });
-  });
-  const onUploadComplete = vi.fn();
-  localized(
-    <FileUpload
-      multiple
-      defaultValue={[file]}
-      onUpload={onUpload}
-      onUploadComplete={onUploadComplete}
-    >
-      <BatchControls
-        action={({ entries, remove, addFiles }) => {
-          remove(entries[0]!.id);
-          addFiles([file]);
-        }}
-      />
-    </FileUpload>,
-  );
-  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
-  const originalTask = screen.getByLabelText("Batch tasks").textContent;
-  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
-  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(2));
-  expect(screen.getByLabelText("Batch tasks").textContent).not.toBe(
-    originalTask,
-  );
-  expect(contexts[0]!.signal.aborted).toBe(true);
-  expect(contexts[1]!.signal.aborted).toBe(false);
-  await act(async () => {
-    finish[0]!("old");
-    finish[1]!("new");
-  });
-  expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["new"]);
-});
+    const onUploadComplete = vi.fn();
+    function Example() {
+      const [files, setFiles] = useState([file]);
+      return (
+        <FileUpload
+          multiple
+          defaultValue={[file]}
+          value={mode === "uncontrolled" ? undefined : files}
+          onChange={(next) => setFiles(mode === "copied" ? [...next] : next)}
+          onUpload={onUpload}
+          onUploadComplete={onUploadComplete}
+        >
+          <BatchControls
+            action={({ entries, remove, addFiles }) => {
+              remove(entries[0]!.id);
+              addFiles([file]);
+            }}
+          />
+        </FileUpload>
+      );
+    }
+    localized(<Example />);
+    await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
+    const originalTask = screen.getByLabelText("Batch tasks").textContent;
+    fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+    await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(2));
+    expect(screen.getByLabelText("Batch tasks").textContent).not.toBe(
+      originalTask,
+    );
+    expect(contexts[0]!.signal.aborted).toBe(true);
+    expect(contexts[1]!.signal.aborted).toBe(false);
+    await act(async () => {
+      finish[0]!("old");
+      finish[1]!("new");
+    });
+    expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["new"]);
+  },
+);
 
 it("starts props-mode uploads through an external ref and preserves the native picker", async () => {
   const ref = createRef<FileUploadHandle<{ url: string }>>();
@@ -818,4 +827,251 @@ it("shows image thumbnails in props mode and releases their URLs on removal and 
   expect(screen.getByRole("img", { name: secondPhoto.name })).toBeTruthy();
   unmount();
   expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${secondPhoto.name}`);
+});
+
+it.each(["uncontrolled", "controlled", "copied"] as const)(
+  "uploads the selection made in the same handler (%s)",
+  async (mode) => {
+    const onUpload = vi.fn(
+      async ({ file }: FileUploadTaskContext) => file.name,
+    );
+    const onUploadComplete = vi.fn();
+    function Example() {
+      const [files, setFiles] = useState<File[]>([]);
+      return (
+        <FileUpload
+          multiple
+          autoUpload={false}
+          value={mode === "uncontrolled" ? undefined : files}
+          onChange={(next) => setFiles(mode === "copied" ? [...next] : next)}
+          onUpload={onUpload}
+          onUploadComplete={onUploadComplete}
+        >
+          <BatchControls
+            action={({ addFiles, upload }) => {
+              addFiles([file]);
+              addFiles([otherFile]);
+              upload();
+            }}
+          />
+        </FileUpload>
+      );
+    }
+    localized(
+      <StrictMode>
+        <Example />
+      </StrictMode>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+    await waitFor(() =>
+      expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith([
+        file.name,
+        otherFile.name,
+      ]),
+    );
+    expect(onUpload).toHaveBeenCalledTimes(2);
+  },
+);
+
+it("lets an external ref start newly selected props-mode files from onChange", async () => {
+  const ref = createRef<FileUploadHandle<string>>();
+  const onUpload = vi.fn(async ({ file }: FileUploadTaskContext) => file.name);
+  const { container } = localized(
+    <FileUpload
+      ref={ref}
+      autoUpload={false}
+      onChange={() => ref.current!.upload()}
+      onUpload={onUpload}
+    />,
+  );
+  fireEvent.change(getInput(container), { target: { files: [file] } });
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
+  expect(onUpload.mock.calls[0]![0].file).toBe(file);
+});
+
+it("does not extend a manual upload request to files added later in the batch", async () => {
+  const onUpload = vi.fn(async ({ file }: FileUploadTaskContext) => file.name);
+  const ref = createRef<FileUploadHandle<string>>();
+  const onUploadComplete = vi.fn();
+  localized(
+    <FileUpload
+      ref={ref}
+      multiple
+      autoUpload={false}
+      onUpload={onUpload}
+      onUploadComplete={onUploadComplete}
+    >
+      <BatchControls
+        action={({ addFiles, upload }) => {
+          addFiles([file]);
+          upload();
+          addFiles([otherFile]);
+        }}
+      />
+    </FileUpload>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  await waitFor(() =>
+    expect(ref.current!.getEntries().map((entry) => entry.status)).toEqual([
+      "done",
+      "idle",
+    ]),
+  );
+  expect(onUpload).toHaveBeenCalledTimes(1);
+  expect(onUploadComplete).not.toHaveBeenCalled();
+  await act(async () => ref.current!.upload());
+  expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith([
+    file.name,
+    otherFile.name,
+  ]);
+});
+
+it("discards upload requests for files removed before the selection commits", async () => {
+  const onUpload = vi.fn(async () => "url");
+  const ref = createRef<FileUploadHandle<string>>();
+  localized(
+    <FileUpload ref={ref} multiple autoUpload={false} onUpload={onUpload}>
+      <BatchControls
+        action={({ addFiles, upload, removeFile }) => {
+          addFiles([file]);
+          upload();
+          removeFile(0);
+          addFiles([file]);
+        }}
+      />
+    </FileUpload>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  await act(async () => {});
+  expect(onUpload).not.toHaveBeenCalled();
+  expect(ref.current!.getEntries().map((entry) => entry.status)).toEqual([
+    "idle",
+  ]);
+  await act(async () => ref.current!.upload());
+  expect(onUpload).toHaveBeenCalledTimes(1);
+});
+
+it("discards a rejected controlled draft and its upload request without requiring a parent render", async () => {
+  const onUpload = vi.fn(async () => "url");
+  const onChange = vi.fn();
+  const ref = createRef<FileUploadHandle<string>>();
+  const props = { ref, multiple: true, autoUpload: false, onUpload, onChange };
+  const controls = (
+    <BatchControls
+      action={({ addFiles, upload }) => {
+        addFiles([file]);
+        upload();
+      }}
+    />
+  );
+  const { rerender } = localized(
+    <FileUpload {...props} value={[]}>
+      {controls}
+    </FileUpload>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  await act(async () => {});
+  expect(ref.current!.getEntries()).toEqual([]);
+  expect(onUpload).not.toHaveBeenCalled();
+  // An independent later selection of the same File must not inherit the request.
+  rerender(
+    <FileUpload {...props} value={[file]}>
+      {controls}
+    </FileUpload>,
+  );
+  await act(async () => {});
+  expect(ref.current!.getEntries()[0]!.status).toBe("idle");
+  expect(onUpload).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
+  expect(onChange.mock.calls).toEqual([[[file]], [[file, file]]]);
+});
+
+it.each([false, true])(
+  "preserves duplicate identities when a controlled parent copies and optionally reorders a replacement (reorder=%s)",
+  async (reorder) => {
+    const ref = createRef<FileUploadHandle<string>>();
+    const contexts: FileUploadTaskContext[] = [];
+    const finish: ((result: string) => void)[] = [];
+    const onUpload = vi.fn((context: FileUploadTaskContext) => {
+      contexts.push(context);
+      return new Promise<string>((resolve) => finish.push(resolve));
+    });
+    const onUploadComplete = vi.fn();
+    function Example() {
+      const [files, setFiles] = useState([file, otherFile, file]);
+      return (
+        <FileUpload
+          ref={ref}
+          multiple
+          value={files}
+          onUpload={onUpload}
+          onUploadComplete={onUploadComplete}
+          onChange={(next) =>
+            setFiles(reorder ? [...next].reverse() : [...next])
+          }
+        >
+          <BatchControls
+            action={({ entries, remove, addFiles }) => {
+              remove(entries[0]!.id);
+              addFiles([file]);
+            }}
+          />
+        </FileUpload>
+      );
+    }
+    localized(<Example />);
+    await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(3));
+    const [removed, other, retained] = ref.current!.getEntries();
+    fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+    await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(4));
+    const entries = ref.current!.getEntries();
+    expect(entries.some((entry) => entry.id === removed!.id)).toBe(false);
+    expect(entries.some((entry) => entry.id === retained!.id)).toBe(true);
+    expect(entries.some((entry) => entry.id === other!.id)).toBe(true);
+    expect(contexts.map((context) => context.signal.aborted)).toEqual([
+      true,
+      false,
+      false,
+      false,
+    ]);
+    await act(async () =>
+      finish.forEach((resolve, index) => resolve(String(index))),
+    );
+    // Duplicate File occurrences retain their relative identity after reordering.
+    expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(
+      reorder ? ["2", "3", "1"] : ["1", "2", "3"],
+    );
+  },
+);
+
+it("keeps a rejected same-file replacement canceled instead of treating a queue render as acceptance", async () => {
+  const ref = createRef<FileUploadHandle<string>>();
+  const onUpload = vi.fn(() => new Promise<string>(() => {}));
+  const value = [file];
+  localized(
+    <FileUpload
+      ref={ref}
+      multiple
+      value={value}
+      onChange={() => {}}
+      onUpload={onUpload}
+    >
+      <BatchControls
+        action={({ entries, remove, addFiles }) => {
+          remove(entries[0]!.id);
+          addFiles([file]);
+        }}
+      />
+    </FileUpload>,
+  );
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
+  const id = ref.current!.getEntries()[0]!.id;
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  await act(async () => {});
+  expect(ref.current!.getEntries()[0]).toMatchObject({
+    id,
+    status: "canceled",
+  });
+  expect(onUpload).toHaveBeenCalledTimes(1);
 });

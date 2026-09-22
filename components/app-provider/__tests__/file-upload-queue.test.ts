@@ -283,11 +283,18 @@ it("removes the requested duplicate occurrence without transferring its state", 
     return tasks[contexts.length - 1]!.promise;
   });
   const onUploadComplete = vi.fn();
-  const options = { onUpload, onUploadComplete };
+  let revision = 0;
+  const options = {
+    onUpload,
+    onUploadComplete,
+    onSelectionChange: (_files: File[], nextRevision: number) => {
+      revision = nextRevision;
+    },
+  };
   const store = setup([files[0]!, files[0]!], options);
   await flush();
   const [first, second] = store.getSnapshot();
-  store.prepareRemove(first!.id);
+  store.remove(first!.id);
   // A controlled parent may render again before accepting the removal.
   store.configure([files[0]!, files[0]!], options);
   await flush();
@@ -295,7 +302,7 @@ it("removes the requested duplicate occurrence without transferring its state", 
     first!.id,
     second!.id,
   ]);
-  store.configure([files[0]!], options);
+  store.configure([files[0]!], options, revision);
   await flush();
   expect(store.getSnapshot()[0]!.id).toBe(second!.id);
   expect(contexts[0]!.signal.aborted).toBe(true);
@@ -304,3 +311,44 @@ it("removes the requested duplicate occurrence without transferring its state", 
   await flush();
   expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["remaining"]);
 });
+
+it.each([false, true])(
+  "waits for selection acknowledgement and only starts accepted tasks (filtered=%s)",
+  async (filtered) => {
+    const onUpload = vi.fn(
+      async ({ file }: FileUploadTaskContext) => file.name,
+    );
+    const onUploadComplete = vi.fn();
+    let revision = 0;
+    let selection: File[] = [];
+    const options = {
+      onUpload,
+      onUploadComplete,
+      autoUpload: false,
+      multiple: true,
+      onSelectionChange: (files: File[], nextRevision: number) => {
+        selection = files;
+        revision = nextRevision;
+      },
+    };
+    const initial = [files[0]!];
+    const store = setup(initial, options);
+    await flush();
+    store.addFiles([files[1]!]);
+    store.upload();
+    // Other queue-driven renders can commit the old selection. Neither elapsed
+    // microtasks nor an unrelated configure should execute or discard the request.
+    store.configure(initial, options);
+    await flush();
+    expect(onUpload).not.toHaveBeenCalled();
+    const accepted = filtered ? [files[1]!] : [...selection];
+    store.configure(accepted, options, revision);
+    await flush();
+    expect(onUpload.mock.calls.map(([context]) => context.file)).toEqual(
+      accepted,
+    );
+    expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(
+      accepted.map((file) => file.name),
+    );
+  },
+);
