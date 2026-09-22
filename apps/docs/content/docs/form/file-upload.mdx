@@ -253,7 +253,9 @@ The hook also exposes upload state and actions:
 | `remove(id)`  | Cancel and remove a selected file by its stable task ID                                      |
 
 Task statuses are `idle`, `queued`, `preparing`, `uploading`, `processing`, `done`,
-`error`, and `canceled`. Duplicate file selections get separate task IDs. Keep the
+`error`, and `canceled`. Task IDs use `crypto.randomUUID()` and remain stable
+through reordering and retries. This requires a secure context (HTTPS or localhost).
+Duplicate file selections get separate task IDs. Keep the
 same `File` objects in a controlled `value` to preserve task identity.
 Use `useFileUpload<AttachmentResult>()` to type `entry.result`; the generic must
 match the enclosing FileUpload handler's return type.

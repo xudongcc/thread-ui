@@ -48,7 +48,6 @@ export class FileUploadQueue<TResult> {
   private options: Options<TResult> = {};
   private selectionIds = new WeakMap<File[], (string | undefined)[]>();
   private removalRequests = new Set<string>();
-  private nextId = 0;
   private active = false;
   private scheduled = false;
   private completionPending = false;
@@ -112,7 +111,7 @@ export class FileUploadQueue<TResult> {
       );
       if (index >= 0) return remaining.splice(index, 1)[0]!;
       this.completionPending = true;
-      return { id: String(++this.nextId), file, status: "idle" as const };
+      return { id: crypto.randomUUID(), file, status: "idle" as const };
     });
     const changed =
       next.length !== this.entries.length ||
