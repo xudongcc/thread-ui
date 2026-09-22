@@ -1231,3 +1231,45 @@ it("keeps unique file-only bindings and allows overriding removal", async () => 
   expect(onRemove).toHaveBeenCalledOnce();
   expect(ref.current!.getEntries()).toHaveLength(1);
 });
+
+it("falls back after an image decode failure without changing upload state and recovers for a new file", async () => {
+  const createObjectURL = vi.fn((file: File) => `blob:${file.name}`);
+  const revokeObjectURL = vi.fn();
+  vi.stubGlobal(
+    "URL",
+    class extends URL {
+      static createObjectURL = createObjectURL;
+      static revokeObjectURL = revokeObjectURL;
+    },
+  );
+  const broken = new File(["invalid image"], "broken.png", {
+    type: "image/png",
+  });
+  const next = new File(["new image"], "next.png", { type: "image/png" });
+  const ref = createRef<FileUploadHandle<string>>();
+  const props = { ref, autoUpload: false, onUpload: async () => "url" };
+  const renderItem = (file: File) => (
+    <FileUpload {...props} value={[file]}>
+      <FileUploadItem file={file} />
+    </FileUpload>
+  );
+  const { container, rerender, unmount } = localized(renderItem(broken));
+  fireEvent.error(await screen.findByRole("img", { name: broken.name }));
+  expect(screen.queryByRole("img", { name: broken.name })).toBeNull();
+  const media = container.querySelector('[data-slot="attachment-media"]')!;
+  expect(media.getAttribute("data-variant")).toBe("icon");
+  expect(media.querySelector("svg")).toBeTruthy();
+  expect(screen.getByText(broken.name)).toBeTruthy();
+  expect(ref.current!.getEntries()[0]!.status).toBe("idle");
+  await userEvent.click(
+    screen.getByRole("button", { name: `Upload ${broken.name}` }),
+  );
+  expect(ref.current!.getEntries()[0]!.status).toBe("done");
+  expect(screen.queryByRole("img")).toBeNull();
+  rerender(renderItem(next));
+  const image = await screen.findByRole("img", { name: next.name });
+  expect(image.getAttribute("src")).toBe(`blob:${next.name}`);
+  expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${broken.name}`);
+  unmount();
+  expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${next.name}`);
+});

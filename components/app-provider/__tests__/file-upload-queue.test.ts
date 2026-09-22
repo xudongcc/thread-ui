@@ -354,3 +354,19 @@ it.each([false, true])(
     );
   },
 );
+
+it("honors a cancellation issued synchronously by an earlier upload handler", async () => {
+  const onUpload = vi.fn(async ({ file }: FileUploadTaskContext) => {
+    if (file === files[0]) store.cancel(store.getSnapshot()[1]!.id);
+    return file.name;
+  });
+  const store = setup(files.slice(0, 2), { onUpload, autoUpload: false });
+  await flush();
+  store.upload();
+  await flush();
+  expect(onUpload).toHaveBeenCalledTimes(1);
+  expect(store.getSnapshot().map((entry) => entry.status)).toEqual([
+    "done",
+    "canceled",
+  ]);
+});

@@ -43,7 +43,9 @@ initial files. `title` is optional and `description` falls back to the localized
 
 The built-in Attachment list shows local image thumbnails and automatically chooses
 icons for video, audio, spreadsheets, presentations, archives, and documents
-(including PDF). Image preview URLs are released on removal or unmount. Recognized
+(including PDF). If an image preview fails to load, its file icon is shown instead;
+this does not change the upload status. Image preview URLs are released on removal
+or unmount. Recognized
 MIME types take priority; filenames provide a case-insensitive extension fallback.
 Unknown files use a generic file icon. No additional props are needed.
 

@@ -722,15 +722,19 @@ const FileUploadAttachment = ({
   };
   const isImage = isImageFile(file);
   const objectUrl = useObjectUrl(isImage ? file : undefined);
+  const [failedPreviewUrl, setFailedPreviewUrl] = useState<string>();
+  const previewUrl = objectUrl === failedPreviewUrl ? undefined : objectUrl;
 
   return (
     <Attachment className="w-full focus-within:ring-0" state={state}>
-      <AttachmentMedia variant={isImage ? "image" : "icon"}>
-        {objectUrl ? (
+      <AttachmentMedia variant={previewUrl ? "image" : "icon"}>
+        {previewUrl ? (
           <img
+            key={previewUrl}
             alt={file.name}
             className="h-full w-full object-cover"
-            src={objectUrl}
+            src={previewUrl}
+            onError={() => setFailedPreviewUrl(previewUrl)}
           />
         ) : (
           <FileUploadFileIcon className="size-4" file={file} />
