@@ -1,19 +1,27 @@
 "use client";
 
-import { FileIcon, UploadIcon, XIcon } from "lucide-react";
+import {
+  BanIcon,
+  PlayIcon,
+  RotateCcwIcon,
+  UploadIcon,
+  XIcon,
+} from "lucide-react";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useId,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { FileUploadFileIcon } from "./file-icon";
+import { useUploadQueue } from "./use-upload-queue";
 import type {
-  ChangeEvent,
   ClipboardEvent,
   ComponentProps,
   DragEvent,
@@ -21,10 +29,28 @@ import type {
   KeyboardEvent,
   MouseEvent,
   ReactNode,
-  RefObject,
+  Ref,
 } from "react";
 
+import type { FileUploadEntry, FileUploadOptions } from "./upload-queue";
+import {
+  Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentDescription,
+  AttachmentMedia,
+  AttachmentTitle,
+} from "@/components/ui/attachment";
+
 import { cn } from "@/lib/utils";
+
+export type {
+  FileUploadEntry,
+  FileUploadOptions,
+  FileUploadStatus,
+  FileUploadTaskContext,
+} from "./upload-queue";
 
 type FileUploadInputProps = Omit<
   ComponentProps<"input">,
@@ -33,28 +59,53 @@ type FileUploadInputProps = Omit<
   | "defaultValue"
   | "onChange"
   | "placeholder"
+  | "ref"
+  | "title"
   | "type"
   | "value"
 >;
 
-export interface FileUploadProps extends FileUploadInputProps {
+export interface FileUploadProps<TResult = unknown>
+  extends FileUploadInputProps, FileUploadOptions<TResult> {
+  /** Imperative actions for external controls, including in props mode. */
+  ref?: Ref<FileUploadHandle<TResult>>;
   value?: File[];
   defaultValue?: File[];
   onChange?: (files: File[]) => void;
-  /** Text shown in the drop zone when no files are selected. */
+  /** Optional heading in the default dropzone. */
+  title?: ReactNode;
+  /** Default dropzone description; falls back to placeholder. */
+  description?: ReactNode;
+  /** Text shown in the dropzone when description is not provided. */
   placeholder?: string;
   className?: string;
   children?: ReactNode;
 }
 
+export interface FileUploadHandle<TResult = unknown> {
+  upload: (id?: string) => void;
+  retry: (id: string) => void;
+  cancel: (id: string) => void;
+  remove: (id: string) => void;
+  openFileDialog: () => void;
+  /** Read current tasks on demand; this getter does not subscribe to changes. */
+  getEntries: () => FileUploadEntry<TResult>[];
+}
+
 type FileUploadContextValue = {
   files: File[];
+  entries: FileUploadEntry[];
+  upload: (id?: string) => void;
+  retry: (id: string) => void;
+  cancel: (id: string) => void;
+  remove: (id: string) => void;
+  uploadEnabled: boolean;
   inputProps: FileUploadInputProps;
-  inputId: string;
-  inputRef: RefObject<HTMLInputElement | null>;
   multiple?: boolean;
   disabled?: boolean;
   placeholder: string;
+  title?: ReactNode;
+  description?: ReactNode;
   ariaDescribedBy?: string;
   ariaInvalid?: ComponentProps<"input">["aria-invalid"];
   isDragging: boolean;
@@ -67,6 +118,7 @@ type FileUploadContextValue = {
 type FileUploadItemContextValue = {
   file: File;
   index: number;
+  entry?: FileUploadEntry;
   remove: () => void;
 };
 
@@ -86,12 +138,7 @@ const imageExtensions = new Set([
   "webp",
 ]);
 
-const videoExtensions = new Set(["m4v", "mov", "mp4", "ogg", "ogv", "webm"]);
-
 const FileUploadContext = createContext<FileUploadContextValue | null>(null);
-const FileUploadDropzoneContext = createContext<{ placeholder: string } | null>(
-  null,
-);
 const FileUploadItemContext = createContext<FileUploadItemContextValue | null>(
   null,
 );
@@ -104,6 +151,55 @@ const useFileUploadContext = () => {
   }
 
   return context;
+};
+
+export type UseFileUploadReturn<TResult = unknown> = Pick<
+  FileUploadContextValue,
+  | "files"
+  | "multiple"
+  | "disabled"
+  | "isDragging"
+  | "addFiles"
+  | "removeFile"
+  | "openFileDialog"
+  | "upload"
+  | "retry"
+  | "cancel"
+  | "remove"
+> & { entries: FileUploadEntry<TResult>[] };
+
+/** TResult should match the enclosing FileUpload's onUpload return type. */
+export const useFileUpload = <
+  TResult = unknown,
+>(): UseFileUploadReturn<TResult> => {
+  const {
+    files,
+    entries,
+    multiple,
+    disabled,
+    isDragging,
+    addFiles,
+    removeFile,
+    openFileDialog,
+    upload,
+    retry,
+    cancel,
+    remove,
+  } = useFileUploadContext();
+  return {
+    files,
+    entries: entries as FileUploadEntry<TResult>[],
+    multiple,
+    disabled,
+    isDragging,
+    addFiles,
+    removeFile,
+    openFileDialog,
+    upload,
+    retry,
+    cancel,
+    remove,
+  };
 };
 
 const getClipboardFiles = (event: ClipboardEvent<HTMLDivElement>) => {
@@ -122,26 +218,12 @@ const getClipboardFiles = (event: ClipboardEvent<HTMLDivElement>) => {
 const getFileKey = (file: File, index: number) =>
   `${file.name}-${file.lastModified}-${file.size}-${index}`;
 
-const getPreviewType = (file: File) => {
-  if (file.type.startsWith("image/")) {
-    return "image";
-  }
-
-  if (file.type.startsWith("video/")) {
-    return "video";
-  }
+const isImageFile = (file: File) => {
+  if (file.type.startsWith("image/")) return true;
+  if (file.type.startsWith("video/")) return false;
 
   const extension = file.name.split(".").pop()?.toLowerCase();
-
-  if (extension && imageExtensions.has(extension)) {
-    return "image";
-  }
-
-  if (extension && videoExtensions.has(extension)) {
-    return "video";
-  }
-
-  return null;
+  return !!extension && imageExtensions.has(extension);
 };
 
 const useObjectUrl = (file?: File) => {
@@ -185,7 +267,13 @@ const useObjectUrl = (file?: File) => {
   return currentObjectUrlState.url;
 };
 
-export const FileUpload: FC<FileUploadProps> = ({
+export const FileUpload = <TResult,>({
+  ref,
+  onUpload,
+  onUploadComplete,
+  onUploadError,
+  autoUpload = true,
+  concurrency = 3,
   value,
   defaultValue,
   onChange,
@@ -195,10 +283,12 @@ export const FileUpload: FC<FileUploadProps> = ({
   multiple,
   disabled,
   placeholder: placeholderProp,
+  title,
+  description,
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
   ...inputProps
-}) => {
+}: FileUploadProps<TResult>) => {
   const { t } = useTranslation("thread-ui");
   const placeholder =
     placeholderProp ??
@@ -217,36 +307,30 @@ export const FileUpload: FC<FileUploadProps> = ({
   const files = value ?? internalFiles;
   const isControlled = value !== undefined;
 
-  const addFiles = useCallback(
-    (nextFiles: File[]) => {
-      if (!nextFiles.length) {
-        return;
-      }
-
-      const normalizedFiles = multiple
-        ? [...files, ...nextFiles]
-        : nextFiles.slice(0, 1);
-
-      if (!isControlled) {
-        setInternalFiles(normalizedFiles);
-      }
-
-      onChange?.(normalizedFiles);
+  const {
+    entries,
+    upload,
+    retry,
+    cancel,
+    addFiles,
+    removeFile,
+    remove,
+    getEntries,
+  } = useUploadQueue(
+    files,
+    {
+      onUpload,
+      onUploadComplete,
+      onUploadError,
+      autoUpload,
+      concurrency,
+      disabled,
+      multiple,
     },
-    [files, isControlled, multiple, onChange],
-  );
-
-  const removeFile = useCallback(
-    (index: number) => {
-      const nextFiles = files.filter((_, fileIndex) => fileIndex !== index);
-
-      if (!isControlled) {
-        setInternalFiles(nextFiles);
-      }
-
+    (nextFiles) => {
+      if (!isControlled) setInternalFiles(nextFiles);
       onChange?.(nextFiles);
     },
-    [files, isControlled, onChange],
   );
 
   const openFileDialog = useCallback(() => {
@@ -257,15 +341,27 @@ export const FileUpload: FC<FileUploadProps> = ({
     inputRef.current?.click();
   }, [disabled]);
 
+  useImperativeHandle(
+    ref,
+    () => ({ upload, retry, cancel, remove, openFileDialog, getEntries }),
+    [upload, retry, cancel, remove, openFileDialog, getEntries],
+  );
+
   const contextValue = useMemo<FileUploadContextValue>(
     () => ({
       files,
+      entries,
+      upload,
+      retry,
+      cancel,
+      remove,
+      uploadEnabled: !!onUpload,
       inputProps,
-      inputId,
-      inputRef,
       multiple,
       disabled,
       placeholder,
+      title,
+      description,
       ariaDescribedBy,
       ariaInvalid,
       isDragging,
@@ -276,11 +372,18 @@ export const FileUpload: FC<FileUploadProps> = ({
     }),
     [
       files,
+      entries,
+      upload,
+      retry,
+      cancel,
+      remove,
+      onUpload,
       inputProps,
-      inputId,
       multiple,
       disabled,
       placeholder,
+      title,
+      description,
       ariaDescribedBy,
       ariaInvalid,
       isDragging,
@@ -292,28 +395,40 @@ export const FileUpload: FC<FileUploadProps> = ({
 
   return (
     <FileUploadContext.Provider value={contextValue}>
-      {children === undefined ? (
-        <>
-          <FileUploadDropzone className={className} />
-          <FileUploadList />
-        </>
-      ) : (
-        <div className={className} data-slot="file-upload-root">
-          {children}
-        </div>
-      )}
+      <input
+        ref={inputRef}
+        hidden
+        {...inputProps}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
+        disabled={disabled}
+        id={inputId}
+        multiple={multiple}
+        type="file"
+        onChange={(event) => {
+          addFiles(Array.from(event.target.files ?? []));
+          event.target.value = "";
+        }}
+      />
+      <div className={cn("w-full", className)} data-slot="file-upload-root">
+        {children === undefined ? (
+          <>
+            <FileUploadDropzone />
+            <FileUploadList />
+          </>
+        ) : (
+          children
+        )}
+      </div>
     </FileUploadContext.Provider>
   );
 };
 
-export interface FileUploadDropzoneProps extends ComponentProps<"div"> {
-  placeholder?: string;
-}
+export type FileUploadDropzoneProps = ComponentProps<"div">;
 
 export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
   children,
   className,
-  placeholder,
   tabIndex,
   onClick,
   onDragLeave,
@@ -325,11 +440,10 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
 }) => {
   const {
     inputProps,
-    inputId,
-    inputRef,
-    multiple,
     disabled,
-    placeholder: contextPlaceholder,
+    placeholder,
+    title,
+    description,
     ariaDescribedBy,
     ariaInvalid,
     isDragging,
@@ -337,16 +451,6 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
     addFiles,
     openFileDialog,
   } = useFileUploadContext();
-  const resolvedPlaceholder = placeholder ?? contextPlaceholder;
-  const dropzoneContextValue = useMemo(
-    () => ({ placeholder: resolvedPlaceholder }),
-    [resolvedPlaceholder],
-  );
-
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    addFiles(Array.from(event.target.files ?? []));
-    event.target.value = "";
-  };
 
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {
     onClick?.(event);
@@ -419,53 +523,52 @@ export const FileUploadDropzone: FC<FileUploadDropzoneProps> = ({
   };
 
   return (
-    <>
-      <input
-        ref={inputRef}
-        hidden
-        {...inputProps}
-        aria-describedby={ariaDescribedBy}
-        aria-invalid={ariaInvalid}
-        disabled={disabled}
-        id={inputId}
-        multiple={multiple}
-        type="file"
-        onChange={handleInputChange}
-      />
-
-      <FileUploadDropzoneContext.Provider value={dropzoneContextValue}>
-        <div
-          {...props}
-          aria-describedby={ariaDescribedBy}
-          aria-disabled={disabled}
-          aria-invalid={ariaInvalid}
-          data-disabled={disabled}
-          data-dragging={isDragging}
-          data-slot="file-upload"
-          role="button"
-          tabIndex={disabled ? undefined : (tabIndex ?? 0)}
-          className={cn(
-            "border-input bg-background text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-center shadow-xs transition-[background-color,border-color,box-shadow] outline-none focus-visible:ring-[3px]",
-            "data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5",
-            "data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50",
-            className,
-          )}
-          onClick={handleClick}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-        >
-          {children ?? (
-            <>
-              <FileUploadDropzoneIcon />
-              <FileUploadDropzoneDescription />
-            </>
-          )}
-        </div>
-      </FileUploadDropzoneContext.Provider>
-    </>
+    <div
+      {...props}
+      aria-describedby={props["aria-describedby"] ?? ariaDescribedBy}
+      aria-disabled={disabled}
+      aria-invalid={ariaInvalid}
+      aria-label={props["aria-label"] ?? inputProps["aria-label"]}
+      data-disabled={disabled}
+      data-dragging={isDragging}
+      data-slot="file-upload"
+      role="button"
+      tabIndex={disabled ? undefined : (tabIndex ?? 0)}
+      aria-labelledby={
+        props["aria-labelledby"] ?? inputProps["aria-labelledby"]
+      }
+      className={cn(
+        "border-input bg-input/30 text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex min-h-40 w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border border-dashed p-6 text-center text-balance transition-colors outline-none focus-visible:ring-[3px] aria-invalid:ring-[3px] sm:py-8",
+        "data-[dragging=false]:hover:bg-muted/50 data-[dragging=true]:border-ring data-[dragging=true]:bg-muted",
+        "data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50",
+        className,
+      )}
+      onClick={handleClick}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
+    >
+      {children ?? (
+        <>
+          <div className="bg-muted flex size-12 shrink-0 items-center justify-center rounded-2xl">
+            <FileUploadDropzoneIcon />
+          </div>
+          <div className="flex max-w-sm flex-col gap-1">
+            {title != null && (
+              <span className="font-heading text-base font-medium">
+                {title}
+              </span>
+            )}
+            {title != null && " "}
+            <FileUploadDropzoneDescription>
+              {description ?? placeholder}
+            </FileUploadDropzoneDescription>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 
@@ -477,227 +580,230 @@ export const FileUploadDropzoneIcon: FC<FileUploadDropzoneIconProps> = ({
 }) => (
   <UploadIcon
     {...props}
-    className={cn("text-muted-foreground size-5", className)}
+    className={cn("text-foreground size-6 shrink-0", className)}
   />
 );
 
-export interface FileUploadDropzoneDescriptionProps extends ComponentProps<"span"> {
-  placeholder?: string;
-}
+export type FileUploadDropzoneDescriptionProps = ComponentProps<"span">;
 
 export const FileUploadDropzoneDescription: FC<
   FileUploadDropzoneDescriptionProps
-> = ({ children, className, placeholder, ...props }) => {
-  const dropzoneContext = useContext(FileUploadDropzoneContext);
-  const { placeholder: contextPlaceholder } = useFileUploadContext();
+> = ({ children, className, ...props }) => (
+  <span
+    {...props}
+    className={cn("text-muted-foreground text-sm/relaxed", className)}
+  >
+    {children}
+  </span>
+);
 
-  return (
-    <span {...props} className={cn("text-muted-foreground text-sm", className)}>
-      {children ??
-        placeholder ??
-        dropzoneContext?.placeholder ??
-        contextPlaceholder}
-    </span>
-  );
-};
-
-export type FileUploadListProps = ComponentProps<"ul">;
+export type FileUploadListProps = ComponentProps<"div">;
 
 export const FileUploadList: FC<FileUploadListProps> = ({
   children,
   className,
   ...props
 }) => {
-  const { files, removeFile } = useFileUploadContext();
+  const { files, entries, removeFile } = useFileUploadContext();
 
   if (!files.length) {
     return null;
   }
 
   return (
-    <ul
+    <div
       {...props}
       className={cn("mt-3 flex w-full flex-col gap-2 text-left", className)}
       data-slot="file-upload-list"
     >
       {files.map((file, index) => (
         <FileUploadItemContext.Provider
-          key={getFileKey(file, index)}
-          value={{ file, index, remove: () => removeFile(index) }}
+          key={entries[index]?.id ?? getFileKey(file, index)}
+          value={{
+            file,
+            index,
+            entry: entries[index],
+            remove: () => removeFile(index),
+          }}
         >
           {children ?? <FileUploadItem />}
         </FileUploadItemContext.Provider>
       ))}
-    </ul>
+    </div>
   );
 };
 
-export interface FileUploadItemProps extends ComponentProps<"li"> {
+export interface FileUploadItemProps extends ComponentProps<"div"> {
+  /** Bind to a task in the enclosing FileUpload. Takes precedence over file. */
+  entryId?: string;
   file?: File;
   onRemove?: () => void;
 }
 
 export const FileUploadItem: FC<FileUploadItemProps> = ({
+  entryId,
   file,
   onRemove,
   className,
   ...props
 }) => {
-  const { t } = useTranslation("thread-ui");
+  const context = useContext(FileUploadContext);
   const itemContext = useContext(FileUploadItemContext);
-  const resolvedFile = file ?? itemContext?.file;
-  const remove = onRemove ?? itemContext?.remove;
+  const inheritedItem =
+    entryId === undefined && (file === undefined || file === itemContext?.file)
+      ? itemContext
+      : undefined;
+  const matches =
+    entryId === undefined && !inheritedItem && file
+      ? context?.entries.filter((entry) => entry.file === file)
+      : undefined;
+
+  if (matches && matches.length > 1) {
+    throw new Error(
+      "FileUploadItem matches multiple tasks. Pass entryId to identify the task.",
+    );
+  }
+
+  const entry =
+    entryId !== undefined
+      ? context?.entries.find((entry) => entry.id === entryId)
+      : (inheritedItem?.entry ?? matches?.[0]);
+
+  // A removed task must not fall back to a different occurrence of the same File.
+  if (entryId !== undefined && !entry) return null;
+
+  const resolvedFile = entry?.file ?? file ?? inheritedItem?.file;
+  const remove =
+    onRemove ??
+    (entry && context ? () => context.remove(entry.id) : inheritedItem?.remove);
 
   if (!resolvedFile) {
     throw new Error(
-      "FileUploadItem must be used within FileUploadList or receive a file prop.",
+      "FileUploadItem must be used within FileUploadList or receive an entryId or file prop.",
     );
   }
 
   return (
-    <li
+    <div
       {...props}
+      className={cn("min-w-0", className)}
       data-slot="file-upload-item"
-      className={cn(
-        "bg-muted/50 flex min-h-9 items-center gap-2 rounded-md px-2.5 py-1.5 text-sm",
-        className,
-      )}
     >
-      <FileIcon className="text-muted-foreground size-4 shrink-0" />
-      <span className="min-w-0 flex-1 truncate">{resolvedFile.name}</span>
-      <button
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex size-7 shrink-0 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-[3px]"
-        type="button"
-        aria-label={t("fileUpload.removeFile", {
-          defaultValue: "Remove {{name}}",
-          interpolation: { escapeValue: false },
-          name: resolvedFile.name,
-        })}
-        onClick={(event) => {
-          event.stopPropagation();
-          remove?.();
-        }}
-      >
-        <XIcon className="size-4" />
-      </button>
-    </li>
-  );
-};
-
-export type FileUploadPreviewProps = ComponentProps<"ul">;
-
-export const FileUploadPreview: FC<FileUploadPreviewProps> = ({
-  children,
-  className,
-  ...props
-}) => {
-  const { files, removeFile } = useFileUploadContext();
-
-  if (!files.length) {
-    return null;
-  }
-
-  return (
-    <ul
-      {...props}
-      className={cn("mt-3 grid w-full grid-cols-2 gap-3", className)}
-      data-slot="file-upload-preview"
-    >
-      {files.map((file, index) => (
-        <FileUploadItemContext.Provider
-          key={getFileKey(file, index)}
-          value={{ file, index, remove: () => removeFile(index) }}
-        >
-          {children ?? <FileUploadPreviewItem />}
-        </FileUploadItemContext.Provider>
-      ))}
-    </ul>
-  );
-};
-
-export interface FileUploadPreviewItemProps extends ComponentProps<"li"> {
-  file?: File;
-  onRemove?: () => void;
-  mediaClassName?: string;
-}
-
-export const FileUploadPreviewItem: FC<FileUploadPreviewItemProps> = ({
-  file,
-  onRemove,
-  className,
-  mediaClassName,
-  ...props
-}) => {
-  const { t } = useTranslation("thread-ui");
-  const itemContext = useContext(FileUploadItemContext);
-  const resolvedFile = file ?? itemContext?.file;
-  const remove = onRemove ?? itemContext?.remove;
-  const previewType = resolvedFile ? getPreviewType(resolvedFile) : null;
-  const objectUrl = useObjectUrl(
-    previewType && resolvedFile ? resolvedFile : undefined,
-  );
-
-  if (!resolvedFile) {
-    throw new Error(
-      "FileUploadPreviewItem must be used within FileUploadPreview or receive a file prop.",
-    );
-  }
-
-  if (!previewType || !objectUrl) {
-    return (
-      <FileUploadItem
-        {...props}
-        className={className}
+      <FileUploadAttachment
+        entry={entry}
         file={resolvedFile}
         onRemove={remove}
       />
-    );
-  }
+    </div>
+  );
+};
+
+const FileUploadAttachment = ({
+  entry,
+  file,
+  onRemove,
+}: {
+  entry?: FileUploadEntry;
+  file: File;
+  onRemove?: () => void;
+}) => {
+  const { t } = useTranslation("thread-ui");
+  const context = useContext(FileUploadContext);
+  const status = entry?.status ?? "idle";
+  const state = status === "queued" || status === "canceled" ? "idle" : status;
+  const active = status === "queued" || status === "uploading";
+  const statusLabels = {
+    idle: t("fileUpload.status.idle", "Waiting to upload"),
+    queued: t("fileUpload.status.queued", "Queued"),
+    uploading: t("fileUpload.status.uploading", "Uploading"),
+    done: t("fileUpload.status.done", "Uploaded"),
+    error: t("fileUpload.status.error", "Upload failed"),
+    canceled: t("fileUpload.status.canceled", "Canceled"),
+  };
+  const isImage = isImageFile(file);
+  const objectUrl = useObjectUrl(isImage ? file : undefined);
+  const [failedPreviewUrl, setFailedPreviewUrl] = useState<string>();
+  const previewUrl = objectUrl === failedPreviewUrl ? undefined : objectUrl;
 
   return (
-    <li
-      {...props}
-      data-slot="file-upload-preview-item"
-      className={cn(
-        "bg-muted/40 overflow-hidden rounded-md border text-sm shadow-xs",
-        className,
-      )}
-    >
-      <div className="relative aspect-square">
-        {previewType === "image" ? (
+    <Attachment className="w-full focus-within:ring-0" state={state}>
+      <AttachmentMedia variant={previewUrl ? "image" : "icon"}>
+        {previewUrl ? (
           <img
-            alt={resolvedFile.name}
-            className={cn("h-full w-full object-cover", mediaClassName)}
-            src={objectUrl}
+            key={previewUrl}
+            alt={file.name}
+            className="h-full w-full object-cover"
+            src={previewUrl}
+            onError={() => setFailedPreviewUrl(previewUrl)}
           />
         ) : (
-          <video
-            controls
-            playsInline
-            aria-label={resolvedFile.name}
-            className={cn("h-full w-full object-cover", mediaClassName)}
-            src={objectUrl}
-          />
+          <FileUploadFileIcon className="size-4" file={file} />
         )}
-        <button
-          className="bg-background/90 text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-md shadow-xs backdrop-blur transition-colors outline-none focus-visible:ring-[3px]"
+      </AttachmentMedia>
+      <AttachmentContent>
+        <AttachmentTitle title={file.name}>{file.name}</AttachmentTitle>
+        {context?.uploadEnabled && (
+          <AttachmentDescription role="status">
+            {statusLabels[status]}
+            {status === "uploading" &&
+              entry?.progress !== undefined &&
+              ` ${Math.round(entry.progress)}%`}
+          </AttachmentDescription>
+        )}
+      </AttachmentContent>
+      <AttachmentActions>
+        {context?.uploadEnabled && entry && status !== "done" && (
+          <AttachmentAction
+            disabled={context.disabled}
+            type="button"
+            aria-label={t(
+              active
+                ? "fileUpload.cancelFile"
+                : status === "idle"
+                  ? "fileUpload.uploadFile"
+                  : "fileUpload.retryFile",
+              {
+                defaultValue: active
+                  ? "Cancel upload of {{name}}"
+                  : status === "idle"
+                    ? "Upload {{name}}"
+                    : "Retry upload of {{name}}",
+                interpolation: { escapeValue: false },
+                name: file.name,
+              },
+            )}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (active) context.cancel(entry.id);
+              else if (status === "idle") context.upload(entry.id);
+              else context.retry(entry.id);
+            }}
+          >
+            {active ? (
+              <BanIcon className="size-4" />
+            ) : status === "idle" ? (
+              <PlayIcon className="size-4" />
+            ) : (
+              <RotateCcwIcon className="size-4" />
+            )}
+          </AttachmentAction>
+        )}
+        <AttachmentAction
+          disabled={context?.disabled}
           type="button"
           aria-label={t("fileUpload.removeFile", {
             defaultValue: "Remove {{name}}",
             interpolation: { escapeValue: false },
-            name: resolvedFile.name,
+            name: file.name,
           })}
           onClick={(event) => {
             event.stopPropagation();
-            remove?.();
+            onRemove?.();
           }}
         >
           <XIcon className="size-4" />
-        </button>
-      </div>
-      <div className="flex min-h-9 items-center px-2.5 py-1.5">
-        <span className="min-w-0 flex-1 truncate">{resolvedFile.name}</span>
-      </div>
-    </li>
+        </AttachmentAction>
+      </AttachmentActions>
+    </Attachment>
   );
 };

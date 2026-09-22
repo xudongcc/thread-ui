@@ -7,9 +7,12 @@ description: A file upload component with click, drag-and-drop, and paste suppor
 
 ## API Style
 
-`FileUpload` uses a [compound-first API](/docs/api-design/compound-first).
-Compose a dropzone with either a file list or a preview while the root component
-owns file selection and state.
+`FileUpload` supports props and composition APIs. Without `children`, it renders
+an upload area and a removable [Attachment](https://ui.shadcn.com/docs/components/base/attachment)
+list. Pass `children` to replace the entire default UI and compose your own layout.
+Both modes support controlled and uncontrolled file selection. An optional
+`onUpload` handler connects your upload workflow; the built-in p-queue manages
+concurrency, task state, cancellation, and explicit retries.
 
 ## Installation
 
@@ -20,31 +23,79 @@ pnpm dlx shadcn@latest add @thread-ui/file-upload
 ## Usage
 
 ```tsx
-import {
-  FileUpload,
-  FileUploadDropzone,
-  FileUploadDropzoneDescription,
-  FileUploadDropzoneIcon,
-  FileUploadItem,
-  FileUploadList,
-  FileUploadPreview,
-  FileUploadPreviewItem,
-} from "@/components/thread-ui/file-upload";
+import { FileUpload } from "@/components/thread-ui/file-upload";
 ```
 
 ```tsx
-<FileUpload multiple accept="image/*,.pdf">
+<FileUpload
+  multiple
+  accept="image/*,.pdf"
+  title="Upload attachments"
+  description="Choose files, drop them here, or paste from the clipboard."
+  value={files}
+  onChange={setFiles}
+/>
+```
+
+Omit `value` to let the component manage its own files; use `defaultValue` for
+initial files. `title` is optional and `description` falls back to the localized
+`placeholder`. `className` styles the root wrapper in both modes.
+
+The built-in Attachment list shows local image thumbnails and automatically chooses
+icons for video, audio, spreadsheets, presentations, archives, and documents
+(including PDF). If an image preview fails to load, its file icon is shown instead;
+this does not change the upload status. Image preview URLs are released on removal
+or unmount. Recognized
+MIME types take priority; filenames provide a case-insensitive extension fallback.
+Unknown files use a generic file icon. No additional props are needed.
+
+Passing `children` (including `null`) selects composition mode. In this mode,
+`FileUpload` adds no default dropzone or attachment list. Use `FileUploadDropzone`
+for file selection and compose Attachment components with `useFileUpload()`,
+or use `FileUploadList` with `FileUploadItem`. Keep attachment
+actions outside the dropzone so they do not open the file picker.
+
+Pass custom prompt content directly to `FileUploadDropzoneDescription`:
+
+```tsx
+<FileUpload>
   <FileUploadDropzone>
-    <FileUploadDropzoneIcon />
-    <FileUploadDropzoneDescription />
+    <FileUploadDropzoneDescription>
+      Drop files here.
+    </FileUploadDropzoneDescription>
   </FileUploadDropzone>
-  <FileUploadList>
-    <FileUploadItem />
-  </FileUploadList>
+  <FileUploadList />
 </FileUpload>
 ```
 
+The description renders its `children`. In the default UI, FileUpload supplies
+`description` or the localized `placeholder` explicitly.
+
+<Preview path="file-upload-composition" />
+
 ## Examples
+
+### States
+
+FileUpload manages task status automatically. Uploading attachments shimmer,
+failed uploads use an error style, and each attachment exposes the actions
+available for its current state.
+
+<Preview className="h-160" path="file-upload-states" />
+
+This example starts with all six states visible. Uploads pause at 64% so you can
+inspect them. Use **Finish active upload** to complete the current task and let
+the next queued file start, or try the upload, cancel, retry, and remove actions.
+**Reset example** restores the initial states. All files and uploads are simulated.
+
+| Task status | Meaning                               | Attachment appearance         |
+| ----------- | ------------------------------------- | ----------------------------- |
+| `idle`      | Selected, waiting for a manual start  | Idle                          |
+| `queued`    | Waiting for a concurrency slot        | Idle                          |
+| `uploading` | `onUpload` is running                 | Uploading, with title shimmer |
+| `done`      | `onUpload` resolved successfully      | Done                          |
+| `error`     | `onUpload` failed                     | Error styling, with retry     |
+| `canceled`  | Explicitly canceled; retry to restart | Idle                          |
 
 ### Multiple
 
@@ -52,24 +103,104 @@ Use the `multiple` prop to allow several files. New dropped, pasted, or selected
 
 <Preview path="file-upload-multiple" />
 
-### Preview
+### Staged uploads
 
-Use `FileUploadPreview` to render image and video previews in a grid.
+`onUpload` runs once per file with a single context argument. Return your final
+attachment object after all stages succeed. `onUploadComplete` receives all results
+in selection order, including for a single-file upload.
+
+<Preview path="file-upload-staged" />
 
 ```tsx
-<FileUpload multiple accept="image/*,video/*">
-  <FileUploadDropzone />
-  <FileUploadPreview>
-    <FileUploadPreviewItem />
-  </FileUploadPreview>
-</FileUpload>
+// These request helpers belong to your application.
+<FileUpload
+  multiple
+  concurrency={3}
+  onUpload={async ({ file, signal, onProgress }) => {
+    const target = await createUploadTarget(file, { signal });
+    await uploadToStorage(target, file, { signal, onProgress });
+    return await completeUpload(target, { signal });
+  }}
+  onUploadComplete={(results) => {
+    saveAttachments(results.map((result) => result.url));
+  }}
+  onUploadError={(error, entry) => {
+    console.error(entry.file.name, error);
+  }}
+/>
 ```
 
-<Preview path="file-upload-preview" />
+The handler receives `file`, `signal`, and `onProgress(percent)`. FileUpload manages
+task status: waiting for a queue slot is `queued`; invoking `onUpload` starts
+`uploading`, which includes preparation, transfer, and final confirmation.
+Resolving the handler marks it `done`; throwing marks it `error`. Progress is a
+transfer percentage from 0 to 100, so reaching 100% does not complete the workflow.
+Return the final resource URL or attachment ID from your confirmation endpoint,
+not the presigned upload URL. Throw to report a failure.
+
+- `concurrency` is a positive integer (default `3`). Set `1` for serial uploads.
+  One queue slot covers the entire workflow, including preparation and confirmation.
+- `autoUpload` defaults to `true` when `onUpload` is provided. With `false`, use
+  the built-in upload action, `ref.current?.upload()`, or `useFileUpload().upload()` to start idle tasks.
+- `onUploadComplete` fires only when every currently selected file succeeds.
+  Files added during uploading are included. Idle, failed, and canceled entries
+  block completion; an empty selection never completes. Re-renders do not repeat
+  the callback. Adding files or retrying tasks can produce a new completion, whose
+  results also include retained successful files.
+- `onUploadError` reports a single failed task. Retrying runs the full handler with
+  a new signal, allowing your application to obtain fresh credentials.
+- Pass `signal` to every request and stop work when aborted. Canceling, removing,
+  replacing, or unmounting aborts outstanding work; late results are ignored.
+  Removing an item does not delete a remote object. In controlled mode, update
+  `value` to accept the removal.
+- `disabled` pauses queued tasks and disables user actions; running tasks may
+  finish. Re-enabling resumes queued work. Progress updates do not call `onChange`.
+
+### Manual upload with a ref
+
+Use `autoUpload={false}` and a `ref` to start uploads from an external button while
+keeping the default dropzone and Attachment list. No `children` or Context hook
+is required. This also works in composition mode.
+
+<Preview path="file-upload-manual" />
+
+```tsx
+import { useRef } from "react";
+import {
+  FileUpload,
+  type FileUploadHandle,
+} from "@/components/thread-ui/file-upload";
+
+type AttachmentResult = { id: string; url: string };
+
+function Example() {
+  const uploadRef = useRef<FileUploadHandle<AttachmentResult>>(null);
+
+  return (
+    <>
+      <FileUpload
+        ref={uploadRef}
+        multiple
+        autoUpload={false}
+        onUpload={uploadFile}
+        onUploadComplete={(results) => saveAttachments(results)}
+      />
+      <button type="button" onClick={() => uploadRef.current?.upload()}>
+        Start upload
+      </button>
+    </>
+  );
+}
+```
+
+Here `uploadFile` is your staged-upload handler returning `Promise<AttachmentResult>`.
+The ref exposes component actions, not the hidden input DOM element. It becomes
+`null` on unmount. Actions respect `disabled` and use the same queue as
+`useFileUpload()`.
 
 ### Disabled
 
-Use the `disabled` prop to disable click, drag-and-drop, and paste handling.
+Use the `disabled` prop to disable file selection and built-in removal actions.
 
 <Preview path="file-upload-disabled" />
 
@@ -92,18 +223,85 @@ Use the `disabled` prop to disable click, drag-and-drop, and paste handling.
 
 File removal labels use `fileUpload.removeFile` in the `thread-ui` i18next
 namespace provided through `AppProvider`, with the original filename interpolated
-as `name`.
+as `name`. The default description uses `fileUpload.placeholder`. Custom `title`
+and `description` content is localized by the caller. Root `aria-label` and
+`aria-labelledby` also label the interactive dropzone.
+
+Without `onUpload`, attachments stay
+in `idle`. With a handler, Attachment reflects task state and announces status
+updates. Upload, cancel, and retry labels and all status messages use the
+`fileUpload` locale keys; interpolated filenames remain literal text.
 
 ## API Reference
 
 ### FileUploadProps
 
-Extends all native HTML `<input>` element props except `type`, `value`, `defaultValue`, `onChange`, and `placeholder`.
+Extends native HTML `<input>` props, with `type`, `value`, `defaultValue`, `onChange`, `placeholder`, `title`, `className`, `ref`, and `children` owned by FileUpload.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadProps, 'value' | 'defaultValue' | 'onChange' | 'placeholder' | 'multiple' | 'accept' | 'disabled' | 'className' | 'children'>`}
+  type={`Pick<FileUploadProps, 'value' | 'defaultValue' | 'onChange' | 'title' | 'description' | 'placeholder' | 'multiple' | 'accept' | 'disabled' | 'className' | 'children' | 'onUpload' | 'onUploadComplete' | 'onUploadError' | 'autoUpload' | 'concurrency'>`}
 />
+
+### FileUploadHandle
+
+| Method             | Behavior                                                             |
+| ------------------ | -------------------------------------------------------------------- |
+| `upload(id?)`      | Start one idle task, or all idle tasks when omitted                  |
+| `retry(id)`        | Restart a failed or canceled task                                    |
+| `cancel(id)`       | Cancel an idle, queued, or running task                              |
+| `remove(id)`       | Cancel and remove a file; controlled callers must update `value`     |
+| `openFileDialog()` | Open the native file picker                                          |
+| `getEntries()`     | Read the current tasks, including IDs, status, progress, and results |
+
+`getEntries()` is an on-demand snapshot, not a React subscription. Use callbacks
+for external UI updates, or `useFileUpload()` in descendants for reactive state.
+The handle's generic type describes the result returned by `onUpload`.
+
+### useFileUpload
+
+Call `useFileUpload()` in any descendant of `FileUpload` to share its built-in
+Context. It works with both `value` / `onChange` and `defaultValue`; the composition
+example above does not need its own state.
+
+| Member                  | Behavior                                                       |
+| ----------------------- | -------------------------------------------------------------- |
+| `files`                 | Current `File[]`                                               |
+| `multiple` / `disabled` | Selection settings from the root                               |
+| `isDragging`            | Whether files are being dragged over the dropzone              |
+| `addFiles(files)`       | Append in multiple mode, otherwise replace with the first file |
+| `removeFile(index)`     | Remove a file by its current index                             |
+| `openFileDialog()`      | Open the native picker, even without a `FileUploadDropzone`    |
+
+The hook also exposes upload state and actions:
+
+| Member        | Behavior                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| `entries`     | Ordered tasks with stable `id`, `file`, `status`, optional `progress`, `result`, and `error` |
+| `upload(id?)` | Enqueue one idle task, or all idle tasks when omitted                                        |
+| `retry(id)`   | Restart an error or canceled task                                                            |
+| `cancel(id)`  | Abort one queued/running task, or cancel an idle task                                        |
+| `remove(id)`  | Cancel and remove a selected file by its stable task ID                                      |
+
+Task statuses are `idle`, `queued`, `uploading`, `done`, `error`, and `canceled`. Task IDs are incrementing strings scoped to each FileUpload
+instance and remain stable through reordering and retries.
+Duplicate file selections get separate task IDs. Keep the
+same `File` objects in a controlled `value` to preserve task identity. The parent
+may copy, filter, or reorder the array returned by `onChange`; it does not need
+to retain that array reference.
+Use `useFileUpload<AttachmentResult>()` to type `entry.result`; the generic must
+match the enclosing FileUpload handler's return type.
+
+Selection actions can be combined in one handler: `addFiles(files); upload()`
+starts the files selected at the time of `upload()`, once the selection is accepted.
+Files added after that call require another start when `autoUpload={false}`.
+Removing and re-adding a file creates a new task; an earlier upload request does
+not transfer to the replacement.
+
+Actions respect `disabled`. Controlled selection actions call `onChange`; update
+`value` there to accept the selection. Rejected files are never uploaded, and their
+upload requests are discarded. The hook must be used inside `FileUpload`. The native input belongs
+to the root, so custom picker buttons can use `openFileDialog()` directly.
 
 ### FileUploadDropzoneProps
 
@@ -111,7 +309,7 @@ Extends all native HTML `<div>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadDropzoneProps, 'placeholder' | 'className' | 'children'>`}
+  type={`Pick<FileUploadDropzoneProps, 'className' | 'children'>`}
 />
 
 ### FileUploadDropzoneIconProps
@@ -129,12 +327,12 @@ Extends all native HTML `<span>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadDropzoneDescriptionProps, 'placeholder' | 'className' | 'children'>`}
+  type={`Pick<FileUploadDropzoneDescriptionProps, 'className' | 'children'>`}
 />
 
 ### FileUploadListProps
 
-Extends all native HTML `<ul>` element props.
+Extends all native HTML `<div>` element props.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
@@ -143,27 +341,27 @@ Extends all native HTML `<ul>` element props.
 
 ### FileUploadItemProps
 
-Extends all native HTML `<li>` element props.
+Extends all native HTML `<div>` element props.
+
+Use `entryId` when rendering tasks in a custom layout. It binds the filename,
+status, upload/cancel/retry actions, and default removal to that task, including
+when the same `File` appears more than once:
+
+```tsx
+const { entries } = useFileUpload();
+
+return entries.map((entry) => (
+  <FileUploadItem key={entry.id} entryId={entry.id} />
+));
+```
+
+Inside `FileUploadList`, the task is inherited automatically. A `file` prop alone
+can render a standalone attachment or bind to a unique matching task; multiple
+matches require `entryId`. An explicit `entryId` takes precedence over `file` and
+the list context. Removed or unknown task IDs render nothing. `onRemove` overrides
+the default removal action.
 
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadItemProps, 'file' | 'onRemove' | 'className'>`}
-/>
-
-### FileUploadPreviewProps
-
-Extends all native HTML `<ul>` element props.
-
-<AutoTypeTable
-  path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadPreviewProps, 'className' | 'children'>`}
-/>
-
-### FileUploadPreviewItemProps
-
-Extends all native HTML `<li>` element props.
-
-<AutoTypeTable
-  path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadPreviewItemProps, 'file' | 'onRemove' | 'className' | 'mediaClassName'>`}
+  type={`Pick<FileUploadItemProps, 'entryId' | 'file' | 'onRemove' | 'className'>`}
 />

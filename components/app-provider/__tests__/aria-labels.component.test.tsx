@@ -18,10 +18,7 @@ import {
   CodeBlockSelectTrigger,
 } from "@/components/thread-ui/code-block";
 import { ComplexFilter } from "@/components/thread-ui/complex-filter";
-import {
-  FileUploadItem,
-  FileUploadPreviewItem,
-} from "@/components/thread-ui/file-upload";
+import { FileUploadItem } from "@/components/thread-ui/file-upload";
 import {
   PageActions,
   PageBackAction,
@@ -76,11 +73,9 @@ describe("accessible labels", () => {
         <DataFilterSearch />
         <DataFilterSort options={[]} />
         <FileUploadItem file={file} />
-        <FileUploadPreviewItem file={file} />
       </>,
     );
 
-    // Wait for the image branch instead of testing the text-file fallback twice.
     expect(await screen.findByRole("img", { name: file.name })).toBeTruthy();
     expect(i18n.options.interpolation?.escapeValue).toBe(true);
     expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
@@ -94,8 +89,8 @@ describe("accessible labels", () => {
     expect(screen.getByRole("textbox", { name: "Search" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Sort" })).toBeTruthy();
     expect(
-      screen.getAllByRole("button", { name: `Remove ${file.name}` }),
-    ).toHaveLength(2);
+      screen.getByRole("button", { name: `Remove ${file.name}` }),
+    ).toBeTruthy();
 
     await act(() => i18n.changeLanguage("zh"));
 
@@ -106,8 +101,8 @@ describe("accessible labels", () => {
     expect(screen.getByRole("textbox", { name: "搜索" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "排序" })).toBeTruthy();
     expect(
-      screen.getAllByRole("button", { name: `移除 ${file.name}` }),
-    ).toHaveLength(2);
+      screen.getByRole("button", { name: `移除 ${file.name}` }),
+    ).toBeTruthy();
   });
 
   it("preserves explicit labels and visible button text", () => {
