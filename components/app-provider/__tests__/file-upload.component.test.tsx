@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
@@ -21,6 +22,8 @@ import {
   FileUpload,
   FileUploadDropzone,
   FileUploadDropzoneDescription,
+  FileUploadItem,
+  FileUploadList,
   useFileUpload,
 } from "@/components/thread-ui/file-upload";
 
@@ -1034,4 +1037,197 @@ it("keeps a rejected same-file replacement canceled instead of treating a queue 
     status: "canceled",
   });
   expect(onUpload).toHaveBeenCalledTimes(1);
+});
+
+it.each(["default", "custom"])(
+  "binds duplicate file statuses and actions to task IDs in %s layouts",
+  async (layout) => {
+    const ref = createRef<FileUploadHandle<string>>();
+    const tasks: {
+      context: FileUploadTaskContext;
+      resolve: (value: string) => void;
+    }[] = [];
+    const onUpload = vi.fn(
+      (context: FileUploadTaskContext) =>
+        new Promise<string>((resolve) => tasks.push({ context, resolve })),
+    );
+    const onUploadComplete = vi.fn();
+    function Items() {
+      const { entries } = useFileUpload();
+      const [reversed, setReversed] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setReversed(!reversed)}>
+            Reverse rows
+          </button>
+          {(reversed ? [...entries].reverse() : entries).map((entry) => (
+            <FileUploadItem
+              key={entry.id}
+              data-testid={entry.id}
+              entryId={entry.id}
+            />
+          ))}
+        </>
+      );
+    }
+    const { container } = localized(
+      <FileUpload
+        ref={ref}
+        multiple
+        autoUpload={false}
+        defaultValue={[file, file]}
+        onUpload={onUpload}
+        onUploadComplete={onUploadComplete}
+      >
+        {layout === "custom" ? <Items /> : <FileUploadList />}
+      </FileUpload>,
+    );
+    const [first, second] = ref.current!.getEntries();
+    const row = (id: string) =>
+      layout === "custom"
+        ? screen.getByTestId(id)
+        : container.querySelectorAll<HTMLElement>(
+            '[data-slot="file-upload-item"]',
+          )[ref.current!.getEntries().findIndex((entry) => entry.id === id)]!;
+    const action = (id: string, name: string) =>
+      within(row(id)).getByRole("button", { name });
+    await userEvent.click(action(second!.id, `Upload ${file.name}`));
+    await act(async () => tasks[0]!.context.onProgress(37));
+    expect(within(row(first!.id)).getByRole("status").textContent).toBe(
+      "Waiting to upload",
+    );
+    expect(within(row(second!.id)).getByRole("status").textContent).toBe(
+      "Uploading 37%",
+    );
+    if (layout === "custom") {
+      await userEvent.click(
+        screen.getByRole("button", { name: "Reverse rows" }),
+      );
+      expect(
+        container
+          .querySelector('[data-slot="file-upload-item"]')
+          ?.getAttribute("data-testid"),
+      ).toBe(second!.id);
+    }
+    await userEvent.click(action(second!.id, `Cancel upload of ${file.name}`));
+    expect(tasks[0]!.context.signal.aborted).toBe(true);
+    expect(ref.current!.getEntries().map((entry) => entry.status)).toEqual([
+      "idle",
+      "canceled",
+    ]);
+    await userEvent.click(action(second!.id, `Retry upload of ${file.name}`));
+    await userEvent.click(action(first!.id, `Upload ${file.name}`));
+    expect(onUpload).toHaveBeenCalledTimes(3);
+    await act(async () => {
+      tasks[1]!.context.onProgress(64);
+      tasks[2]!.context.onProgress(12);
+    });
+    expect(within(row(first!.id)).getByRole("status").textContent).toBe(
+      "Uploading 12%",
+    );
+    expect(within(row(second!.id)).getByRole("status").textContent).toBe(
+      "Uploading 64%",
+    );
+    await userEvent.click(action(second!.id, `Remove ${file.name}`));
+    expect(ref.current!.getEntries().map((entry) => entry.id)).toEqual([
+      first!.id,
+    ]);
+    expect(tasks[1]!.context.signal.aborted).toBe(true);
+    expect(tasks[2]!.context.signal.aborted).toBe(false);
+    await act(async () => {
+      tasks[0]!.resolve("canceled");
+      tasks[1]!.resolve("removed");
+      tasks[2]!.resolve("retained");
+    });
+    expect(within(row(first!.id)).getByRole("status").textContent).toBe(
+      "Uploaded",
+    );
+    expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["retained"]);
+  },
+);
+
+it("does not rebind a removed explicit task ID to a duplicate file or inherited list item", async () => {
+  const ref = createRef<FileUploadHandle<string>>();
+  function Items() {
+    const { entries } = useFileUpload();
+    const [selectedId, setSelectedId] = useState<string>();
+    return (
+      <>
+        <button type="button" onClick={() => setSelectedId(entries[1]!.id)}>
+          Select second task
+        </button>
+        {selectedId && (
+          <FileUploadList>
+            <FileUploadItem entryId={selectedId} file={otherFile} />
+          </FileUploadList>
+        )}
+      </>
+    );
+  }
+  const { container } = localized(
+    <FileUpload
+      ref={ref}
+      multiple
+      autoUpload={false}
+      defaultValue={[file, file]}
+      onUpload={async () => "url"}
+    >
+      <Items />
+    </FileUpload>,
+  );
+  const [first, second] = ref.current!.getEntries();
+  await userEvent.click(
+    screen.getByRole("button", { name: "Select second task" }),
+  );
+  await act(async () => ref.current!.cancel(second!.id));
+  expect(screen.getAllByRole("status").map((el) => el.textContent)).toEqual([
+    "Canceled",
+    "Canceled",
+  ]);
+  expect(screen.queryByText(otherFile.name)).toBeNull();
+  await userEvent.click(
+    screen.getAllByRole("button", { name: `Remove ${file.name}` })[0]!,
+  );
+  expect(ref.current!.getEntries().map((entry) => entry.id)).toEqual([
+    first!.id,
+  ]);
+  expect(container.querySelector('[data-slot="file-upload-item"]')).toBeNull();
+});
+
+it("rejects ambiguous file-only task bindings instead of selecting the first task", () => {
+  expect(() =>
+    localized(
+      <FileUpload multiple defaultValue={[file, file]}>
+        <FileUploadItem file={file} />
+      </FileUpload>,
+    ),
+  ).toThrow(
+    "FileUploadItem matches multiple tasks. Pass entryId to identify the task.",
+  );
+});
+
+it("keeps unique file-only bindings and allows overriding removal", async () => {
+  const onRemove = vi.fn();
+  const ref = createRef<FileUploadHandle<string>>();
+  localized(
+    <FileUpload
+      ref={ref}
+      autoUpload={false}
+      defaultValue={[file]}
+      onUpload={async () => "url"}
+    >
+      <FileUploadItem file={file} onRemove={onRemove} />
+    </FileUpload>,
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: `Upload ${file.name}` }),
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("status").textContent).toBe("Uploaded"),
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: `Remove ${file.name}` }),
+  );
+  expect(onRemove).toHaveBeenCalledOnce();
+  expect(ref.current!.getEntries()).toHaveLength(1);
 });

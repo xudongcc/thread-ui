@@ -634,23 +634,52 @@ export const FileUploadList: FC<FileUploadListProps> = ({
 };
 
 export interface FileUploadItemProps extends ComponentProps<"div"> {
+  /** Bind to a task in the enclosing FileUpload. Takes precedence over file. */
+  entryId?: string;
   file?: File;
   onRemove?: () => void;
 }
 
 export const FileUploadItem: FC<FileUploadItemProps> = ({
+  entryId,
   file,
   onRemove,
   className,
   ...props
 }) => {
+  const context = useContext(FileUploadContext);
   const itemContext = useContext(FileUploadItemContext);
-  const resolvedFile = file ?? itemContext?.file;
-  const remove = onRemove ?? itemContext?.remove;
+  const inheritedItem =
+    entryId === undefined && (file === undefined || file === itemContext?.file)
+      ? itemContext
+      : undefined;
+  const matches =
+    entryId === undefined && !inheritedItem && file
+      ? context?.entries.filter((entry) => entry.file === file)
+      : undefined;
+
+  if (matches && matches.length > 1) {
+    throw new Error(
+      "FileUploadItem matches multiple tasks. Pass entryId to identify the task.",
+    );
+  }
+
+  const entry =
+    entryId !== undefined
+      ? context?.entries.find((entry) => entry.id === entryId)
+      : (inheritedItem?.entry ?? matches?.[0]);
+
+  // A removed task must not fall back to a different occurrence of the same File.
+  if (entryId !== undefined && !entry) return null;
+
+  const resolvedFile = entry?.file ?? file ?? inheritedItem?.file;
+  const remove =
+    onRemove ??
+    (entry && context ? () => context.remove(entry.id) : inheritedItem?.remove);
 
   if (!resolvedFile) {
     throw new Error(
-      "FileUploadItem must be used within FileUploadList or receive a file prop.",
+      "FileUploadItem must be used within FileUploadList or receive an entryId or file prop.",
     );
   }
 
@@ -660,25 +689,26 @@ export const FileUploadItem: FC<FileUploadItemProps> = ({
       className={cn("min-w-0", className)}
       data-slot="file-upload-item"
     >
-      <FileUploadAttachment file={resolvedFile} onRemove={remove} />
+      <FileUploadAttachment
+        entry={entry}
+        file={resolvedFile}
+        onRemove={remove}
+      />
     </div>
   );
 };
 
 const FileUploadAttachment = ({
+  entry,
   file,
   onRemove,
 }: {
+  entry?: FileUploadEntry;
   file: File;
   onRemove?: () => void;
 }) => {
   const { t } = useTranslation("thread-ui");
   const context = useContext(FileUploadContext);
-  const itemContext = useContext(FileUploadItemContext);
-  const entry =
-    itemContext?.entry?.file === file
-      ? itemContext.entry
-      : context?.entries.find((entry) => entry.file === file);
   const status = entry?.status ?? "idle";
   const state = status === "queued" || status === "canceled" ? "idle" : status;
   const active = status === "queued" || status === "uploading";

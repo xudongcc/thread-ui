@@ -26,7 +26,7 @@ const StateItems = ({
   onFinish: () => void;
   onReset: () => void;
 }) => {
-  const { entries, remove } = useFileUpload();
+  const { entries } = useFileUpload();
 
   return (
     <div className="space-y-4">
@@ -34,11 +34,7 @@ const StateItems = ({
         {samples.map((sample) => {
           const entry = entries.find((item) => item.file.name === sample.name);
           return entry ? (
-            <FileUploadItem
-              key={entry.id}
-              file={entry.file}
-              onRemove={() => remove(entry.id)}
-            />
+            <FileUploadItem key={entry.id} entryId={entry.id} />
           ) : null;
         })}
       </div>

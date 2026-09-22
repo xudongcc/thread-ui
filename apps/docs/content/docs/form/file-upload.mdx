@@ -341,7 +341,25 @@ Extends all native HTML `<div>` element props.
 
 Extends all native HTML `<div>` element props.
 
+Use `entryId` when rendering tasks in a custom layout. It binds the filename,
+status, upload/cancel/retry actions, and default removal to that task, including
+when the same `File` appears more than once:
+
+```tsx
+const { entries } = useFileUpload();
+
+return entries.map((entry) => (
+  <FileUploadItem key={entry.id} entryId={entry.id} />
+));
+```
+
+Inside `FileUploadList`, the task is inherited automatically. A `file` prop alone
+can render a standalone attachment or bind to a unique matching task; multiple
+matches require `entryId`. An explicit `entryId` takes precedence over `file` and
+the list context. Removed or unknown task IDs render nothing. `onRemove` overrides
+the default removal action.
+
 <AutoTypeTable
   path="../../components/file-upload/index.tsx"
-  type={`Pick<FileUploadItemProps, 'file' | 'onRemove' | 'className'>`}
+  type={`Pick<FileUploadItemProps, 'entryId' | 'file' | 'onRemove' | 'className'>`}
 />
