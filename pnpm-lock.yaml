@@ -896,9 +896,6 @@ importers:
       '@repo/locales':
         specifier: workspace:*
         version: link:../../locales
-      '@repo/topbar':
-        specifier: workspace:*
-        version: link:../topbar
       react:
         specifier: ^19.2.7
         version: 19.3.0

@@ -18,7 +18,7 @@ import {
   TagIcon,
   UsersIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import type { LayoutProps } from "@/components/thread-ui/layout";
 import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
@@ -27,9 +27,12 @@ import type {
   DataFilterItemProps,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
-import { Layout } from "@/components/thread-ui/layout";
+import { Layout, LayoutContent } from "@/components/thread-ui/layout";
 import {
+  Topbar,
   TopbarAction,
+  TopbarActionGroup,
+  TopbarBrand,
   TopbarMenu,
   TopbarMenuContent,
   TopbarMenuItem,
@@ -43,6 +46,7 @@ import {
   TopbarMenuUser,
   TopbarMenuWorkspaceGroup,
   TopbarMenuWorkspaceItem,
+  TopbarNavigationTrigger,
 } from "@/components/thread-ui/topbar";
 import { Button } from "@/components/thread-ui/button";
 import {
@@ -73,6 +77,19 @@ import {
   PageLayout,
   PageLayoutSection,
 } from "@/components/thread-ui/page-layout";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { toast } from "@/components/thread-ui/toast";
 
 const workspaces = [
@@ -100,22 +117,31 @@ const pages = [
 
 type LayoutExampleProps = LayoutProps & { initialPage?: string };
 
-export function LayoutExample(args: LayoutExampleProps) {
+export function LayoutExample({
+  initialPage,
+  children,
+  ...args
+}: LayoutExampleProps) {
   const { i18n } = useTranslation();
   // Keep language changes local to this example, including portaled menus.
   const instance = useMemo(() => i18n.cloneInstance(), [i18n]);
   return (
     <I18nextProvider i18n={instance}>
-      <LayoutContent {...args} />
+      <Layout {...args}>
+        <ApplicationContent initialPage={initialPage}>
+          {children}
+        </ApplicationContent>
+      </Layout>
     </I18nextProvider>
   );
 }
 
-function LayoutContent({
+function ApplicationContent({
   initialPage = "home",
   children,
-  ...args
 }: LayoutExampleProps) {
+  const { isMobile, openMobile, setOpenMobile } = useSidebar();
+  const navigationId = useId();
   const { t, i18n } = useTranslation("thread-ui");
   const [theme, setTheme] = useState("light");
   useEffect(() => {
@@ -171,44 +197,50 @@ function LayoutContent({
     },
   ];
   return (
-    <Layout
-      {...args}
-      navigation={navigation}
-      actions={
-        <TopbarAction
-          aria-label="Notifications"
-          onClick={() =>
-            toast.add({
-              title: "You're all caught up",
-              description: "No new notifications.",
-            })
-          }
-        >
-          <BellIcon />
-        </TopbarAction>
-      }
-      brand={
-        <span className="inline-flex items-center gap-2.5 align-middle">
-          <svg
-            aria-hidden="true"
-            className="text-primary size-8 shrink-0"
-            fill="none"
-            viewBox="0 0 32 32"
+    <>
+      <Topbar>
+        <TopbarNavigationTrigger>
+          <SidebarTrigger
+            aria-controls={isMobile && !openMobile ? undefined : navigationId}
+            aria-expanded={openMobile}
+            aria-label={t("layout.toggleNavigation", "Toggle navigation")}
+            className="size-10 shrink-0 text-neutral-950 hover:bg-black/5 hover:text-neutral-950 focus-visible:ring-black/40 aria-expanded:bg-black/5 aria-expanded:text-neutral-950 dark:text-white dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white/60 dark:aria-expanded:bg-white/10 dark:aria-expanded:text-white"
+          />
+        </TopbarNavigationTrigger>
+        <TopbarBrand>
+          <span className="inline-flex items-center gap-2.5 align-middle">
+            <svg
+              aria-hidden="true"
+              className="text-primary size-8 shrink-0"
+              fill="none"
+              viewBox="0 0 32 32"
+            >
+              <rect fill="currentColor" height="32" rx="9" width="32" />
+              <path
+                className="text-primary-foreground"
+                d="M8 10h16M11 15h10M16 10v14"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+              />
+            </svg>
+            <span>Thread UI</span>
+          </span>
+        </TopbarBrand>
+        <TopbarActionGroup>
+          <TopbarAction
+            aria-label="Notifications"
+            onClick={() =>
+              toast.add({
+                title: "You're all caught up",
+                description: "No new notifications.",
+              })
+            }
           >
-            <rect fill="currentColor" height="32" rx="9" width="32" />
-            <path
-              className="text-primary-foreground"
-              d="M8 10h16M11 15h10M16 10v14"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-            />
-          </svg>
-          <span>{args.brand}</span>
-        </span>
-      }
-      topbarMenu={
+            <BellIcon />
+          </TopbarAction>
+        </TopbarActionGroup>
         <TopbarMenu
           currentWorkspace={current}
           user={{ name: "Alex Morgan", email: "alex@example.com" }}
@@ -334,163 +366,207 @@ function LayoutContent({
             </TopbarMenuItem>
           </TopbarMenuContent>
         </TopbarMenu>
-      }
-    >
-      {page === "profile" ? (
-        <Page
-          className="max-w-3xl space-y-4 py-6 md:px-8 md:py-8"
-          variant="full"
-        >
-          <h1 className="text-2xl font-semibold">
-            {i18n.language === "zh" ? "个人中心" : "Profile"}
-          </h1>
-          <Card>
-            <CardContent className="space-y-4">
-              <div
-                aria-hidden="true"
-                className="bg-muted flex size-14 items-center justify-center rounded-full font-semibold"
-              >
-                A
-              </div>
-              <h2 className="text-lg font-semibold">Alex Morgan</h2>
-              <p className="text-muted-foreground">alex@example.com</p>
-            </CardContent>
-          </Card>
-          <Button variant="outline" onClick={() => setPage("home")}>
-            {i18n.language === "zh" ? "返回首页" : "Back to home"}
-          </Button>
-        </Page>
-      ) : children && page === initialPage ? (
-        <div key={workspace} className="flex min-w-0 flex-1 flex-col">
-          {children}
-        </div>
-      ) : (
-        <Page
-          className="max-w-6xl space-y-8 py-6 md:px-8 md:py-8"
-          variant="full"
-        >
-          <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span>Last 30 days · All channels</span>
-            <span className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="size-2 rounded-full bg-emerald-500"
-              />
-              Store is live
-            </span>
-          </div>
-          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[
-              ["Visits", "1,284"],
-              ["Total sales", "$4,860"],
-              ["Orders", "36"],
-              ["Conversion", "2.8%"],
-            ].map(([label, value]) => (
-              <div key={label} className="space-y-1">
-                <dt className="text-muted-foreground text-sm">{label}</dt>
-                <dd className="text-xl font-semibold tracking-tight">
-                  {value}
-                </dd>
-              </div>
+      </Topbar>
+      <Sidebar>
+        <SidebarContent className="py-2" id={navigationId}>
+          <nav aria-label={t("layout.navigation", "Navigation")}>
+            {navigation.map((group) => (
+              <SidebarGroup key={group.id}>
+                {group.label && (
+                  <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                )}
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton
+                          aria-current={item.active ? "page" : undefined}
+                          className={`h-10 md:h-9 ${"badge" in item ? "pr-12" : ""}`}
+                          isActive={item.active}
+                          onClick={() => {
+                            item.onClick();
+                            if (isMobile) setOpenMobile(false);
+                          }}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="shrink-0 [&_svg]:size-4"
+                          >
+                            {item.icon}
+                          </span>
+                          <span className="truncate">{item.label}</span>
+                        </SidebarMenuButton>
+                        {"badge" in item && (
+                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                        )}
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
             ))}
-          </dl>
-          <section className="mx-auto w-full max-w-2xl space-y-5 py-6 text-center md:py-14">
-            <p className="text-muted-foreground text-sm font-medium">
-              {current.name}
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {page === "home"
-                ? "Let's build something great."
-                : (pages.find((item) => item.id === page)?.label ??
-                  (page === "store"
-                    ? "Online store"
-                    : page === "settings"
-                      ? "Settings"
-                      : "Apps"))}
+          </nav>
+        </SidebarContent>
+      </Sidebar>
+      <LayoutContent>
+        {page === "profile" ? (
+          <Page
+            className="max-w-3xl space-y-4 py-6 md:px-8 md:py-8"
+            variant="full"
+          >
+            <h1 className="text-2xl font-semibold">
+              {i18n.language === "zh" ? "个人中心" : "Profile"}
             </h1>
-            <p className="text-muted-foreground">
-              Your next chapter starts with a few small steps.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button variant="outline" onClick={() => setPage("orders")}>
-                <ShoppingBagIcon />
-                Review orders
-                <span className="bg-muted text-foreground rounded-full px-2 text-xs">
-                  6
-                </span>
-              </Button>
-              <Button variant="secondary" onClick={() => setPage("store")}>
-                <StoreIcon />
-                View store
-              </Button>
+            <Card>
+              <CardContent className="space-y-4">
+                <div
+                  aria-hidden="true"
+                  className="bg-muted flex size-14 items-center justify-center rounded-full font-semibold"
+                >
+                  A
+                </div>
+                <h2 className="text-lg font-semibold">Alex Morgan</h2>
+                <p className="text-muted-foreground">alex@example.com</p>
+              </CardContent>
+            </Card>
+            <Button variant="outline" onClick={() => setPage("home")}>
+              {i18n.language === "zh" ? "返回首页" : "Back to home"}
+            </Button>
+          </Page>
+        ) : children && page === initialPage ? (
+          <div key={workspace} className="flex min-w-0 flex-1 flex-col">
+            {children}
+          </div>
+        ) : (
+          <Page
+            className="max-w-6xl space-y-8 py-6 md:px-8 md:py-8"
+            variant="full"
+          >
+            <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
+              <span>Last 30 days · All channels</span>
+              <span className="flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="size-2 rounded-full bg-emerald-500"
+                />
+                Store is live
+              </span>
             </div>
-          </section>
-          <PageLayout>
-            {[
-              {
-                title: "Make it yours",
-                description: "Create a storefront that feels like your brand.",
-                icon: <SparklesIcon className="size-12" />,
-                action: "Customize store",
-                destination: "store",
-                color:
-                  "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
-              },
-              {
-                title: "Get ready to sell",
-                description: "Offer your customers a smooth, secure checkout.",
-                icon: <CreditCardIcon className="size-12" />,
-                action: "Set up payments",
-                destination: "settings",
-                color:
-                  "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-              },
-              {
-                title: "Find your home online",
-                description: "Connect a domain customers will remember.",
-                icon: <GlobeIcon className="size-12" />,
-                action: "Connect domain",
-                destination: "settings",
-                color:
-                  "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
-              },
-            ].map((card) => (
-              <PageLayoutSection key={card.title} span="1/3">
-                <Card role="article">
-                  <CardHeader>
-                    <CardTitle>
-                      <h2>{card.title}</h2>
-                    </CardTitle>
-                    <CardDescription className="min-h-10">
-                      {card.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div
-                      aria-hidden="true"
-                      className={`flex h-32 items-center justify-center rounded-xl ${card.color}`}
-                    >
-                      {card.icon}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setPage(card.destination)}
-                    >
-                      {card.action}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </PageLayoutSection>
-            ))}
-          </PageLayout>
-          <p className="text-muted-foreground pb-4 text-center text-xs">
-            Everything you need to grow, in one place.
-          </p>
-        </Page>
-      )}
-    </Layout>
+            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {[
+                ["Visits", "1,284"],
+                ["Total sales", "$4,860"],
+                ["Orders", "36"],
+                ["Conversion", "2.8%"],
+              ].map(([label, value]) => (
+                <div key={label} className="space-y-1">
+                  <dt className="text-muted-foreground text-sm">{label}</dt>
+                  <dd className="text-xl font-semibold tracking-tight">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <section className="mx-auto w-full max-w-2xl space-y-5 py-6 text-center md:py-14">
+              <p className="text-muted-foreground text-sm font-medium">
+                {current.name}
+              </p>
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                {page === "home"
+                  ? "Let's build something great."
+                  : (pages.find((item) => item.id === page)?.label ??
+                    (page === "store"
+                      ? "Online store"
+                      : page === "settings"
+                        ? "Settings"
+                        : "Apps"))}
+              </h1>
+              <p className="text-muted-foreground">
+                Your next chapter starts with a few small steps.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button variant="outline" onClick={() => setPage("orders")}>
+                  <ShoppingBagIcon />
+                  Review orders
+                  <span className="bg-muted text-foreground rounded-full px-2 text-xs">
+                    6
+                  </span>
+                </Button>
+                <Button variant="secondary" onClick={() => setPage("store")}>
+                  <StoreIcon />
+                  View store
+                </Button>
+              </div>
+            </section>
+            <PageLayout>
+              {[
+                {
+                  title: "Make it yours",
+                  description:
+                    "Create a storefront that feels like your brand.",
+                  icon: <SparklesIcon className="size-12" />,
+                  action: "Customize store",
+                  destination: "store",
+                  color:
+                    "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
+                },
+                {
+                  title: "Get ready to sell",
+                  description:
+                    "Offer your customers a smooth, secure checkout.",
+                  icon: <CreditCardIcon className="size-12" />,
+                  action: "Set up payments",
+                  destination: "settings",
+                  color:
+                    "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+                },
+                {
+                  title: "Find your home online",
+                  description: "Connect a domain customers will remember.",
+                  icon: <GlobeIcon className="size-12" />,
+                  action: "Connect domain",
+                  destination: "settings",
+                  color:
+                    "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+                },
+              ].map((card) => (
+                <PageLayoutSection key={card.title} span="1/3">
+                  <Card role="article">
+                    <CardHeader>
+                      <CardTitle>
+                        <h2>{card.title}</h2>
+                      </CardTitle>
+                      <CardDescription className="min-h-10">
+                        {card.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div
+                        aria-hidden="true"
+                        className={`flex h-32 items-center justify-center rounded-xl ${card.color}`}
+                      >
+                        {card.icon}
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setPage(card.destination)}
+                      >
+                        {card.action}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </PageLayoutSection>
+              ))}
+            </PageLayout>
+            <p className="text-muted-foreground pb-4 text-center text-xs">
+              Everything you need to grow, in one place.
+            </p>
+          </Page>
+        )}
+      </LayoutContent>
+    </>
   );
 }
 
@@ -985,3 +1061,36 @@ export function LayoutSplitPageExample(args: LayoutProps) {
   );
 }
 LayoutSplitPageExample.displayName = "LayoutSplitPageExample";
+
+export function LayoutWithoutSidebarExample(args: LayoutProps) {
+  return (
+    <Layout {...args}>
+      <Topbar>
+        <TopbarBrand>Thread UI</TopbarBrand>
+        <TopbarMenu user={{ name: "Alex Morgan", email: "alex@example.com" }}>
+          <TopbarMenuTrigger />
+          <TopbarMenuContent>
+            <TopbarMenuUser />
+          </TopbarMenuContent>
+        </TopbarMenu>
+      </Topbar>
+      <LayoutContent id="account-content">
+        <Page className="space-y-4 py-6" variant="full">
+          <PageHeader>
+            <PageTitle>Profile</PageTitle>
+            <PageDescription>Manage your account details.</PageDescription>
+          </PageHeader>
+          <PageContent>
+            <Card>
+              <CardContent className="space-y-4">
+                <Input defaultValue="Alex Morgan" label="Name" />
+                <Input defaultValue="alex@example.com" label="Email" />
+              </CardContent>
+            </Card>
+          </PageContent>
+        </Page>
+      </LayoutContent>
+    </Layout>
+  );
+}
+LayoutWithoutSidebarExample.displayName = "LayoutWithoutSidebarExample";

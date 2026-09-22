@@ -10,7 +10,7 @@ const registryPackages = [
   {
     name: "layout",
     dependencies: ["@base-ui/react", "react-i18next"],
-    repoDependencies: ["@repo/locales", "@repo/topbar"],
+    repoDependencies: ["@repo/locales"],
   },
   {
     name: "topbar",

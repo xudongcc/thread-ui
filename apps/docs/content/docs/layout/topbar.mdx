@@ -99,9 +99,9 @@ and name, matching Layout. The whole brand is hidden on mobile.
 
 ## Layout integration
 
-`Layout` composes the Topbar parts internally and provides the mobile sidebar
-trigger. Layout's own `brand`, `search`, `actions`, and `topbarMenu` slots remain
-available as application-shell conveniences.
+Place Topbar directly inside Layout, alongside shadcn Sidebar and LayoutContent.
+Compose a shadcn SidebarTrigger inside TopbarNavigationTrigger to control the
+mobile drawer through Layout's SidebarProvider.
 
 See [TopbarMenu](/docs/layout/topbar-menu) for workspace selection, user identity,
 language/theme preferences, and framework links. Storybook lists **Topbar** and

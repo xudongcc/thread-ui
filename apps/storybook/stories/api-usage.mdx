@@ -33,11 +33,11 @@ examples are shown separately where supported. Existing story URLs remain stable
       <td>Props API</td>
     </tr>
     <tr>
-      <td>CheckboxGroup, RadioGroup, FileUpload, Layout</td>
+      <td>CheckboxGroup, RadioGroup, FileUpload</td>
       <td>Props API first; Composition API for custom layout</td>
     </tr>
     <tr>
-      <td>Page, PageLayout, CodeBlock, Dialog, Topbar, TopbarMenu</td>
+      <td>Page, PageLayout, CodeBlock, Dialog, Layout, Topbar, TopbarMenu</td>
       <td>Composition API</td>
     </tr>
     <tr>
@@ -139,12 +139,12 @@ on local sample data. The collection editor supports save/discard and stacks
 its columns on mobile.
 
 `Layout` supplies the application shell; `Page` and `PageLayout` organize its
-content. It uses shadcn `SidebarProvider`, `Sidebar`, and `SidebarInset`, and a
-Sheet on mobile. Use navigation groups for the Props API, or pass `sidebar`
-with composed shadcn menu components for custom navigation. Search, actions,
-topbarMenu, and sidebarFooter are independent slots. Layout composes the
-independent `Topbar` and supplies its mobile sidebar trigger. `Topbar` supports
-**Composition API only**. Arrange `TopbarBrand`, `TopbarNavigationTrigger`, and
+content. It supplies SidebarProvider and a responsive Grid. Compose Topbar,
+the original shadcn Sidebar, and LayoutContent as children. LayoutContent
+provides the independently scrolling main landmark. Missing Sidebar or Topbar
+parts leave their space available to the content. Navigation uses composed
+shadcn menu components and useSidebar for mobile dismissal. Layout and Topbar
+support **Composition API only**. Arrange `TopbarBrand`, `TopbarNavigationTrigger`, and
 `TopbarActionGroup` as children. Place `TopbarAction` buttons inside the group,
 with `TopbarMenu` alongside it. Custom content can be composed directly into the
 header. It follows the application theme unless `variant` is set to light or

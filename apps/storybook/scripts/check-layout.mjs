@@ -54,6 +54,27 @@ try {
     );
     const header = page.locator('[data-slot="topbar"]');
     assert.equal((await header.boundingBox()).y, 0);
+    if (!mobile) {
+      const sidebar = await page
+        .locator('[data-slot="sidebar-container"]')
+        .boundingBox();
+      const content = await main.boundingBox();
+      assert.equal(
+        sidebar.y,
+        (await header.boundingBox()).height,
+        "Sidebar starts below the top bar",
+      );
+      assert.equal(
+        sidebar.height,
+        content.height,
+        "Sidebar and content share the grid row",
+      );
+      assert.equal(
+        sidebar.x + sidebar.width,
+        content.x,
+        "Sidebar occupies its own grid column",
+      );
+    }
     if (mobile) {
       await page.waitForFunction(
         (dark) => document.documentElement.classList.contains("dark") === dark,
@@ -367,6 +388,29 @@ try {
       console.log(`Layout integration passed: ${story}, ${width}px`);
       await page.close();
     }
+  }
+  for (const width of [1440, 375]) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    await page.goto(
+      `${url}/iframe.html?id=components-layout--without-sidebar&viewMode=story`,
+    );
+    const main = page.getByRole("main");
+    await main.waitFor();
+    assert.equal(
+      (await main.boundingBox()).width,
+      width,
+      "Content fills the width without Sidebar",
+    );
+    await page
+      .locator('[data-slot="topbar"]')
+      .evaluate((element) => element.remove());
+    assert.equal(
+      (await main.boundingBox()).height,
+      900,
+      "Content fills the height without Topbar",
+    );
+    console.log(`Layout optional parts passed: ${width}px`);
+    await page.close();
   }
 } finally {
   await browser?.close();

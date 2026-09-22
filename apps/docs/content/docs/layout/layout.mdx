@@ -1,105 +1,111 @@
 ---
 title: Layout
-description: Application shell with a top bar, shadcn sidebar, and mobile drawer navigation.
+description: Grid application shell composed with Topbar, shadcn Sidebar, and scrolling content.
 ---
-
-`Layout` provides the application frame. Use `Page` and `PageLayout` inside it
-to organize page content. The top bar remains visible while the main area and
-navigation scroll independently. The main area uses Base UI ScrollArea with
-shadcn scrollbars. Its viewport renders as the main landmark, so
-`contentProps.ref` and `contentProps.onScroll` still refer to the scrolling
-element. Scrollbars appear when content overflows; nested tables can retain
-their own horizontal scrolling.
 
 ## Installation
 
 ```bash
 pnpm dlx shadcn@latest add @thread-ui/layout
+pnpm dlx shadcn@latest add @thread-ui/topbar
 ```
-
-## Props API
-
-```tsx
-import { Layout } from "@/components/thread-ui/layout";
-import {
-  TopbarMenu,
-  TopbarMenuTrigger,
-  TopbarMenuContent,
-  TopbarMenuWorkspaceGroup,
-  TopbarMenuWorkspaceItem,
-} from "@/components/thread-ui/topbar";
-
-<Layout
-  brand="Acme"
-  navigation={[
-    {
-      id: "main",
-      items: [
-        { id: "home", label: "Home", href: "/", active: true },
-        { id: "orders", label: "Orders", href: "/orders", badge: 6 },
-      ],
-    },
-  ]}
-  search={<input type="search" aria-label="Search" />}
-  topbarMenu={
-    <TopbarMenu currentWorkspace={currentWorkspace}>
-      <TopbarMenuTrigger />
-      <TopbarMenuContent>
-        <TopbarMenuWorkspaceGroup
-          value={workspaceId}
-          onValueChange={switchWorkspace}
-        >
-          {workspaces.map((workspace) => (
-            <TopbarMenuWorkspaceItem key={workspace.id} workspace={workspace} />
-          ))}
-        </TopbarMenuWorkspaceGroup>
-      </TopbarMenuContent>
-    </TopbarMenu>
-  }
->
-  <h1>Overview</h1>
-</Layout>;
-```
-
-`brand` is required. Optional `search`, `actions`, `topbarMenu`, and
-`sidebarFooter` slots accept React nodes. Navigation items support icons,
-badges, links, active/disabled states, and an `onClick` handler. Calling
-`event.preventDefault()` also prevents automatic mobile drawer dismissal.
-
-The header is the independent [Topbar](/docs/layout/topbar) component. Layout
-provides its mobile navigation trigger and sidebar state. `topbarMenu` accepts a
-`TopbarMenu` or a custom control.
-
-The desktop sidebar is always visible, with no collapse button.
-`contentProps` forwards
-attributes to the main landmark. The component fills the viewport and supplies
-a keyboard skip link. Mount one application Layout per page.
 
 ## Composition API
 
-Pass `sidebar` to replace generated navigation. Compose shadcn `SidebarGroup`,
-`SidebarMenu`, and `SidebarMenuButton` there, or use the exported
-`LayoutNavigation` helper inside Layout. Custom router links can use shadcn's
-`render` prop. Call `useSidebar().setOpenMobile(false)` after custom navigation.
+`Layout` provides `SidebarProvider` and a viewport-height Grid. Compose `Topbar`,
+the original shadcn `Sidebar`, and `LayoutContent` directly as children. These
+parts can also be returned through fragments or custom components.
+
+```tsx
+import { Layout, LayoutContent } from "@/components/thread-ui/layout";
+import { Page } from "@/components/thread-ui/page";
+import {
+  Topbar,
+  TopbarBrand,
+  TopbarNavigationTrigger,
+} from "@/components/thread-ui/topbar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+
+function Navigation() {
+  const { isMobile, setOpenMobile } = useSidebar();
+  return (
+    <Sidebar>
+      <SidebarContent>
+        <nav aria-label="Navigation">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                render={<a href="/orders" />}
+                onClick={() => {
+                  if (isMobile) setOpenMobile(false);
+                }}
+              >
+                Orders
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </nav>
+      </SidebarContent>
+    </Sidebar>
+  );
+}
+
+<Layout>
+  <Topbar>
+    <TopbarNavigationTrigger>
+      <SidebarTrigger aria-label="Toggle navigation" />
+    </TopbarNavigationTrigger>
+    <TopbarBrand>Thread UI</TopbarBrand>
+  </Topbar>
+  <Navigation />
+  <LayoutContent>
+    <Page>{/* Page content */}</Page>
+  </LayoutContent>
+</Layout>;
+```
+
+Layout does not generate navigation or header content. Compose shadcn
+`SidebarGroup`, `SidebarMenuBadge`, `SidebarFooter`, and other Sidebar parts
+as needed. Framework links can use the menu button's native `render` prop.
+Navigation callbacks should call `setOpenMobile(false)` after accepting a
+navigation action.
+
+## Grid and scrolling
+
+The top bar spans the full first row. Desktop sidebars occupy an automatic-width
+column beside the remaining content area; their positioning is scoped to Layout
+instead of the browser viewport. The content row uses the remaining height.
+Omitting Sidebar makes content fill the width. Omitting Topbar makes content fill
+the height. A right-side Sidebar uses the right column.
+
+`LayoutContent` wraps Base UI ScrollArea with shadcn scrollbars. Its viewport is
+the `main` landmark; native attributes, `ref`, `className`, and `onScroll` apply
+to this element. Use one LayoutContent per Layout. Its optional `id` is also used
+by the keyboard skip link. Put `Page` and `PageLayout` inside it to organize
+content. Nested tables can retain their own horizontal scrolling.
+
+`Layout` accepts native div attributes, refs, classes, and styles. For example,
+set `--sidebar-width` through `style` to customize the sidebar width. Default
+height is `100svh`; use a class such as `h-full` to fit a sized container.
 
 ## Mobile
 
-Below 768px, the sidebar becomes a shadcn Sheet. The menu button, Escape,
-outside clicks, and selecting a destination dismiss it. Focus returns to the
-menu button. The mobile drawer starts directly with navigation, without a brand
-header. The brand remains in the desktop top bar. Resize back to desktop to dismiss an open
-drawer. The navigation toggle is only visible on mobile.
+The desktop sidebar stays expanded. Below 768px, shadcn Sidebar opens as a Sheet,
+with Escape/outside-click dismissal and focus management. Use SidebarTrigger
+inside TopbarNavigationTrigger to open it on mobile. Layout closes an open
+drawer when returning to desktop. Omit the navigation trigger when no Sidebar
+is present.
 
-Full interactive examples live under **Storybook → Layout → Layout**; use the
-viewport, theme, and language toolbars on the same examples.
+## Examples
 
-## Integrated examples
-
-Storybook includes three distinct examples: the application dashboard, an orders
-page using `Page`, `DataFilter`, and `DataTable`, and a collection detail page using
-`PageLayout` with two-thirds content and one-third settings. The detail columns
-stack on narrow screens.
-
-The orders example filters sample data by search, fulfillment, and amount.
-Search commits on Enter or blur. Filters reset pagination and row selection;
-the table supports previous/next navigation and bulk fulfillment.
+Storybook includes the dashboard, an orders page using Page/DataFilter/DataTable,
+a two-column collection editor, and a layout without a sidebar. Use the viewport,
+theme, and language toolbars to inspect responsive behavior.

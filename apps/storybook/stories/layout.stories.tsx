@@ -4,6 +4,7 @@ import {
   LayoutExample,
   LayoutOrdersExample,
   LayoutSplitPageExample,
+  LayoutWithoutSidebarExample,
 } from "./examples/layout";
 import implementation from "./examples/layout.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
@@ -14,16 +15,7 @@ const meta = {
   id: "components-layout",
   title: "Layout/Layout",
   component: Layout,
-  args: { brand: "Thread UI" },
-  argTypes: {
-    navigation: { control: false },
-    sidebar: { control: false },
-    sidebarFooter: { control: false },
-    search: { control: false },
-    actions: { control: false },
-    topbarMenu: { control: false },
-    children: { control: false },
-  },
+  argTypes: { children: { control: false } },
   render: (args) => <LayoutExample {...args} />,
   parameters: {
     layout: "fullscreen",
@@ -32,14 +24,14 @@ const meta = {
       story: { inline: false, height: "720px" },
       description: {
         component:
-          "Responsive application layout with a top bar, sidebar navigation, and independently scrolling content. The sidebar stays visible on desktop and opens as a drawer on mobile. Supports custom navigation, header actions, and a workspace/account menu.",
+          "Responsive application layout with a top bar, sidebar navigation, and independently scrolling content. The sidebar stays visible on desktop and opens as a drawer on mobile. Compose Topbar, shadcn Sidebar, and LayoutContent directly. CSS Grid adapts when the sidebar or top bar is omitted.",
       },
     },
   },
 } satisfies Meta<typeof Layout>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const Default: Story = { name: "Props API" };
+export const Default: Story = { name: "Composition API" };
 export const SplitPage: Story = {
   name: "Two-column detail page",
   render: (args) => <LayoutSplitPageExample {...args} />,
@@ -180,5 +172,23 @@ export const PageAndDataTable: Story = {
         ).length,
       ).toBe(0);
     });
+  }),
+};
+
+export const WithoutSidebar: Story = {
+  render: (args) => <LayoutWithoutSidebarExample {...args} />,
+  globals: { locale: "en" },
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
+    const root = canvasElement.querySelector('[data-slot="layout"]')!;
+    const main = canvas.getByRole("main");
+    await expect(root.querySelector('[data-slot="sidebar"]')).toBeNull();
+    await expect(main.getBoundingClientRect().width).toBe(
+      root.getBoundingClientRect().width,
+    );
+    const skip = canvas.getByRole("link", { name: "Skip to content" });
+    await expect(skip).toHaveAttribute("href", "#account-content");
+    skip.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(main).toHaveFocus();
   }),
 };
