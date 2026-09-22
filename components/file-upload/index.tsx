@@ -2,7 +2,6 @@
 
 import {
   BanIcon,
-  FileIcon,
   PlayIcon,
   RotateCcwIcon,
   UploadIcon,
@@ -21,6 +20,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { FileUploadFileIcon } from "./file-icon";
 import { useUploadQueue } from "./use-upload-queue";
 import type {
   ClipboardEvent,
@@ -874,8 +874,9 @@ const FileUploadAttachment = ({
     error: t("fileUpload.status.error", "Upload failed"),
     canceled: t("fileUpload.status.canceled", "Canceled"),
   };
-  const previewType = preview ? getPreviewType(file) : null;
-  const objectUrl = useObjectUrl(previewType ? file : undefined);
+  const previewType = getPreviewType(file);
+  const showPreview = preview || previewType === "image";
+  const objectUrl = useObjectUrl(showPreview && previewType ? file : undefined);
 
   return (
     <Attachment
@@ -904,7 +905,7 @@ const FileUploadAttachment = ({
             />
           )
         ) : (
-          <FileIcon className="size-4" />
+          <FileUploadFileIcon className="size-4" file={file} />
         )}
       </AttachmentMedia>
       <AttachmentContent>

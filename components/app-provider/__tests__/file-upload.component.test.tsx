@@ -779,3 +779,43 @@ it("supports callback refs in composition mode and clears the handle on unmount"
   unmount();
   expect(ref.mock.lastCall![0]).toBeNull();
 });
+
+it("shows image thumbnails in props mode and releases their URLs on removal and unmount", async () => {
+  const createObjectURL = vi.fn((file: File) => `blob:${file.name}`);
+  const revokeObjectURL = vi.fn();
+  vi.stubGlobal(
+    "URL",
+    class extends URL {
+      static createObjectURL = createObjectURL;
+      static revokeObjectURL = revokeObjectURL;
+    },
+  );
+  const photo = new File(["photo"], "photo.png", { type: "image/png" });
+  const secondPhoto = new File(["photo"], "second.jpg", { type: "image/jpeg" });
+  const { unmount } = localized(
+    <FileUpload multiple defaultValue={[photo, secondPhoto, file]} />,
+  );
+  const image = await screen.findByRole("img", { name: photo.name });
+  expect(image.getAttribute("src")).toBe(`blob:${photo.name}`);
+  expect(
+    image
+      .closest('[data-slot="attachment-media"]')
+      ?.getAttribute("data-variant"),
+  ).toBe("image");
+  expect(
+    image.closest('[data-slot="attachment"]')?.getAttribute("data-orientation"),
+  ).toBe("horizontal");
+  expect(
+    createObjectURL.mock.calls.every(([file]) =>
+      file.type.startsWith("image/"),
+    ),
+  ).toBe(true);
+  await userEvent.click(
+    screen.getByRole("button", { name: `Remove ${photo.name}` }),
+  );
+  expect(screen.queryByRole("img", { name: photo.name })).toBeNull();
+  expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${photo.name}`);
+  expect(screen.getByRole("img", { name: secondPhoto.name })).toBeTruthy();
+  unmount();
+  expect(revokeObjectURL).toHaveBeenCalledWith(`blob:${secondPhoto.name}`);
+});

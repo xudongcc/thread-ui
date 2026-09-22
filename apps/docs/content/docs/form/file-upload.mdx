@@ -41,6 +41,12 @@ Omit `value` to let the component manage its own files; use `defaultValue` for
 initial files. `title` is optional and `description` falls back to the localized
 `placeholder`. `className` styles the root wrapper in both modes.
 
+The built-in Attachment list shows local image thumbnails and automatically chooses
+icons for video, audio, spreadsheets, presentations, archives, code, and documents
+(including PDF). Image preview URLs are released on removal or unmount. Recognized
+MIME types take priority; filenames provide a case-insensitive extension fallback.
+Unknown files use a generic file icon. No additional props are needed.
+
 Passing `children` (including `null`) selects composition mode. In this mode,
 `FileUpload` adds no default dropzone or attachment list. Use `FileUploadDropzone`
 for file selection and compose Attachment components with `useFileUpload()`,

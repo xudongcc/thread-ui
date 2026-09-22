@@ -80,8 +80,10 @@ describe("accessible labels", () => {
       </>,
     );
 
-    // Wait for the image branch instead of testing the text-file fallback twice.
-    expect(await screen.findByRole("img", { name: file.name })).toBeTruthy();
+    // Both the default item and the preview item render local images.
+    expect(await screen.findAllByRole("img", { name: file.name })).toHaveLength(
+      2,
+    );
     expect(i18n.options.interpolation?.escapeValue).toBe(true);
     expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
     expect(
