@@ -14,6 +14,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -311,59 +312,85 @@ export const FileUpload = <TResult,>({
   const files = value ?? internalFiles;
   const isControlled = value !== undefined;
 
-  const { entries, upload, retry, cancel, prepareRemove } = useUploadQueue(
-    files,
-    {
+  const { entries, upload, retry, cancel, prepareRemove, prepareSelection } =
+    useUploadQueue(files, {
       onUpload,
       onUploadComplete,
       onUploadError,
       autoUpload,
       concurrency,
       disabled,
+    });
+
+  // Keep a synchronous draft so actions in the same React batch accumulate.
+  // IDs distinguish duplicate File occurrences while their indexes shift.
+  const initialSelection = files.map((file): { file: File; id?: string } => ({
+    file,
+  }));
+  const selectionRef = useRef(initialSelection);
+  const committedSelectionRef = useRef(initialSelection);
+  useLayoutEffect(() => {
+    const selection = files.map((file, index) => ({
+      file,
+      id: entries[index]?.file === file ? entries[index].id : undefined,
+    }));
+    committedSelectionRef.current = selection;
+    selectionRef.current = selection;
+  });
+
+  const updateSelection = useCallback(
+    (selection: { file: File; id?: string }[]) => {
+      selectionRef.current = selection;
+      const nextFiles = selection.map((item) => item.file);
+      prepareSelection(
+        nextFiles,
+        selection.map((item) => item.id),
+      );
+      if (isControlled) {
+        // A parent may reject onChange without rendering. Its committed value
+        // remains authoritative once this synchronous batch has finished.
+        queueMicrotask(() => {
+          selectionRef.current = committedSelectionRef.current;
+        });
+      } else {
+        setInternalFiles(nextFiles);
+      }
+      onChange?.(nextFiles);
     },
+    [isControlled, onChange, prepareSelection],
   );
 
   const addFiles = useCallback(
     (nextFiles: File[]) => {
-      if (disabled || !nextFiles.length) {
-        return;
-      }
-
-      const normalizedFiles = multiple
-        ? [...files, ...nextFiles]
-        : nextFiles.slice(0, 1);
-
-      if (!isControlled) {
-        setInternalFiles(normalizedFiles);
-      }
-
-      onChange?.(normalizedFiles);
+      if (disabled || !nextFiles.length) return;
+      const additions = nextFiles.map((file) => ({ file }));
+      updateSelection(
+        multiple
+          ? [...selectionRef.current, ...additions]
+          : additions.slice(0, 1),
+      );
     },
-    [disabled, files, isControlled, multiple, onChange],
+    [disabled, multiple, updateSelection],
   );
 
   const removeFile = useCallback(
     (index: number) => {
       if (disabled) return;
-
-      if (entries[index]) prepareRemove(entries[index].id);
-      const nextFiles = files.filter((_, fileIndex) => fileIndex !== index);
-
-      if (!isControlled) {
-        setInternalFiles(nextFiles);
-      }
-
-      onChange?.(nextFiles);
+      const selection = selectionRef.current;
+      const item = selection[index];
+      if (!item) return;
+      if (item.id) prepareRemove(item.id);
+      updateSelection(selection.filter((_, fileIndex) => fileIndex !== index));
     },
-    [prepareRemove, disabled, entries, files, isControlled, onChange],
+    [disabled, prepareRemove, updateSelection],
   );
 
   const remove = useCallback(
     (id: string) => {
-      const index = entries.findIndex((entry) => entry.id === id);
+      const index = selectionRef.current.findIndex((item) => item.id === id);
       if (index >= 0) removeFile(index);
     },
-    [entries, removeFile],
+    [removeFile],
   );
 
   const openFileDialog = useCallback(() => {

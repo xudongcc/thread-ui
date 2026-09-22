@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import { afterEach, expect, it, vi } from "vitest";
 
@@ -405,4 +405,233 @@ it("aborts a removed controlled file and does not complete from its late result"
   await act(async () => finish("stale"));
   expect(onUploadComplete).not.toHaveBeenCalled();
   expect(screen.queryByRole("listitem")).toBeNull();
+});
+
+const BatchControls = ({
+  action,
+}: {
+  action: (context: ReturnType<typeof useFileUpload>) => void;
+}) => {
+  const context = useFileUpload();
+  return (
+    <>
+      <output aria-label="Batch files">
+        {context.files.map((file) => file.name).join(",")}
+      </output>
+      <output aria-label="Batch tasks">
+        {context.entries
+          .map((entry) => `${entry.id}:${entry.status}`)
+          .join(",")}
+      </output>
+      <button type="button" onClick={() => action(context)}>
+        Batch action
+      </button>
+    </>
+  );
+};
+
+const ControlledBatchUpload = ({
+  action,
+  onChange,
+  initialFiles = [],
+}: {
+  action: (context: ReturnType<typeof useFileUpload>) => void;
+  onChange: (files: File[]) => void;
+  initialFiles?: File[];
+}) => {
+  const [files, setFiles] = useState(initialFiles);
+  return (
+    <FileUpload
+      multiple
+      value={files}
+      onChange={(next) => {
+        onChange(next);
+        setFiles(next);
+      }}
+    >
+      <BatchControls action={action} />
+    </FileUpload>
+  );
+};
+
+it.each([false, true])(
+  "accumulates batched additions without duplicate notifications in Strict Mode (controlled=%s)",
+  (controlled) => {
+    const onChange = vi.fn();
+    const action = ({ addFiles }: ReturnType<typeof useFileUpload>) => {
+      addFiles([file]);
+      addFiles([otherFile]);
+    };
+    localized(
+      <StrictMode>
+        {controlled ? (
+          <ControlledBatchUpload action={action} onChange={onChange} />
+        ) : (
+          <FileUpload multiple onChange={onChange}>
+            <BatchControls action={action} />
+          </FileUpload>
+        )}
+      </StrictMode>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+    expect(screen.getByLabelText("Batch files").textContent).toBe(
+      `${file.name},${otherFile.name}`,
+    );
+    expect(onChange.mock.calls).toEqual([[[file]], [[file, otherFile]]]);
+  },
+);
+
+it.each([false, true])(
+  "removes every task by ID in one batch, including duplicate files (controlled=%s)",
+  (controlled) => {
+    const onChange = vi.fn();
+    const initialFiles = [file, file, otherFile];
+    const action = ({ entries, remove }: ReturnType<typeof useFileUpload>) =>
+      entries.forEach((entry) => remove(entry.id));
+    localized(
+      controlled ? (
+        <ControlledBatchUpload
+          action={action}
+          initialFiles={initialFiles}
+          onChange={onChange}
+        />
+      ) : (
+        <FileUpload multiple defaultValue={initialFiles} onChange={onChange}>
+          <BatchControls action={action} />
+        </FileUpload>
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+    expect(screen.getByLabelText("Batch files").textContent).toBe("");
+    expect(screen.getByLabelText("Batch tasks").textContent).toBe("");
+    expect(onChange.mock.calls).toEqual([
+      [[file, otherFile]],
+      [[otherFile]],
+      [[]],
+    ]);
+  },
+);
+
+it("aborts all tasks removed in a batch and ignores their late results", async () => {
+  const contexts: FileUploadTaskContext[] = [];
+  const finish: ((result: string) => void)[] = [];
+  const onUpload = vi.fn((context: FileUploadTaskContext) => {
+    contexts.push(context);
+    return new Promise<string>((resolve) => {
+      finish.push(resolve);
+    });
+  });
+  const onUploadComplete = vi.fn();
+  localized(
+    <FileUpload
+      multiple
+      defaultValue={[file, file, otherFile]}
+      onUpload={onUpload}
+      onUploadComplete={onUploadComplete}
+    >
+      <BatchControls
+        action={({ entries, remove }) =>
+          entries.forEach((entry) => remove(entry.id))
+        }
+      />
+    </FileUpload>,
+  );
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(3));
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  expect(contexts.every(({ signal }) => signal.aborted)).toBe(true);
+  await act(async () => {
+    finish.forEach((resolve) => resolve("stale"));
+  });
+  expect(screen.getByLabelText("Batch files").textContent).toBe("");
+  expect(screen.getByLabelText("Batch tasks").textContent).toBe("");
+  expect(onUploadComplete).not.toHaveBeenCalled();
+});
+
+it("applies mixed add/remove actions against the latest draft and ignores repeated removal of an ID", () => {
+  const onChange = vi.fn();
+  localized(
+    <FileUpload multiple defaultValue={[file]} onChange={onChange}>
+      <BatchControls
+        action={({ entries, addFiles, remove, removeFile }) => {
+          addFiles([otherFile]);
+          remove(entries[0]!.id);
+          remove(entries[0]!.id);
+          removeFile(0);
+          addFiles([file]);
+        }}
+      />
+    </FileUpload>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  expect(screen.getByLabelText("Batch files").textContent).toBe(file.name);
+  expect(onChange.mock.calls).toEqual([
+    [[file, otherFile]],
+    [[otherFile]],
+    [[]],
+    [[file]],
+  ]);
+});
+
+it("resets the draft to a controlled value when changes are rejected without a parent render", async () => {
+  const onChange = vi.fn();
+  localized(
+    <FileUpload multiple value={[]} onChange={onChange}>
+      <BatchControls
+        action={({ addFiles }) => {
+          addFiles([file]);
+          addFiles([otherFile]);
+        }}
+      />
+    </FileUpload>,
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  await userEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  expect(screen.getByLabelText("Batch files").textContent).toBe("");
+  expect(onChange.mock.calls).toEqual([
+    [[file]],
+    [[file, otherFile]],
+    [[file]],
+    [[file, otherFile]],
+  ]);
+});
+
+it("creates a fresh task when removing and re-adding the same File in one batch", async () => {
+  const contexts: FileUploadTaskContext[] = [];
+  const finish: ((result: string) => void)[] = [];
+  const onUpload = vi.fn((context: FileUploadTaskContext) => {
+    contexts.push(context);
+    return new Promise<string>((resolve) => {
+      finish.push(resolve);
+    });
+  });
+  const onUploadComplete = vi.fn();
+  localized(
+    <FileUpload
+      multiple
+      defaultValue={[file]}
+      onUpload={onUpload}
+      onUploadComplete={onUploadComplete}
+    >
+      <BatchControls
+        action={({ entries, remove, addFiles }) => {
+          remove(entries[0]!.id);
+          addFiles([file]);
+        }}
+      />
+    </FileUpload>,
+  );
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(1));
+  const originalTask = screen.getByLabelText("Batch tasks").textContent;
+  fireEvent.click(screen.getByRole("button", { name: "Batch action" }));
+  await waitFor(() => expect(onUpload).toHaveBeenCalledTimes(2));
+  expect(screen.getByLabelText("Batch tasks").textContent).not.toBe(
+    originalTask,
+  );
+  expect(contexts[0]!.signal.aborted).toBe(true);
+  expect(contexts[1]!.signal.aborted).toBe(false);
+  await act(async () => {
+    finish[0]!("old");
+    finish[1]!("new");
+  });
+  expect(onUploadComplete).toHaveBeenCalledExactlyOnceWith(["new"]);
 });

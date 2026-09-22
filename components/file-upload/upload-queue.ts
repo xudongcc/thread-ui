@@ -46,6 +46,7 @@ export class FileUploadQueue<TResult> {
   private listeners = new Set<() => void>();
   private controllers = new Map<string, AbortController>();
   private options: Options<TResult> = {};
+  private selectionIds = new WeakMap<File[], (string | undefined)[]>();
   private removalRequests = new Set<string>();
   private nextId = 0;
   private active = false;
@@ -100,8 +101,15 @@ export class FileUploadQueue<TResult> {
         this.removalRequests.delete(id);
       }
     }
-    const next = files.map((file) => {
-      const index = remaining.findIndex((entry) => entry.file === file);
+    // Local actions know which occurrences survived a batch. Consume their IDs
+    // only when the parent accepts that exact selection array; otherwise keep
+    // reconciling external controlled values by File identity.
+    const ids = this.selectionIds.get(files);
+    this.selectionIds.delete(files);
+    const next = files.map((file, fileIndex) => {
+      const index = remaining.findIndex(
+        (entry) => entry.file === file && (!ids || entry.id === ids[fileIndex]),
+      );
       if (index >= 0) return remaining.splice(index, 1)[0]!;
       this.completionPending = true;
       return { id: String(++this.nextId), file, status: "idle" as const };
@@ -183,6 +191,10 @@ export class FileUploadQueue<TResult> {
     this.update(id, { status: "canceled", progress: undefined });
     this.abort(id);
     this.schedule();
+  };
+
+  prepareSelection = (files: File[], ids: (string | undefined)[]) => {
+    this.selectionIds.set(files, ids);
   };
 
   prepareRemove = (id: string) => {

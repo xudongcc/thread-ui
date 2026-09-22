@@ -30,5 +30,6 @@ export const useUploadQueue = <TResult>(
     retry: store.retry,
     cancel: store.cancel,
     prepareRemove: store.prepareRemove,
+    prepareSelection: store.prepareSelection,
   };
 };
