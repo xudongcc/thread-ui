@@ -64,6 +64,7 @@ import { DataFilter } from "@/components/thread-ui/data-filter";
 import { Input } from "@/components/thread-ui/input";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -417,16 +418,18 @@ function ApplicationContent({
                   {i18n.language === "zh" ? "个人中心" : "Profile"}
                 </h1>
                 <Card>
-                  <CardContent className="space-y-4">
+                  <CardHeader>
                     <div
                       aria-hidden="true"
                       className="bg-muted flex size-14 items-center justify-center rounded-full font-semibold"
                     >
                       A
                     </div>
-                    <h2 className="text-lg font-semibold">Alex Morgan</h2>
-                    <p className="text-muted-foreground">alex@example.com</p>
-                  </CardContent>
+                    <CardTitle>
+                      <h2>Alex Morgan</h2>
+                    </CardTitle>
+                    <CardDescription>alex@example.com</CardDescription>
+                  </CardHeader>
                 </Card>
                 <Button variant="outline" onClick={() => setPage("home")}>
                   {i18n.language === "zh" ? "返回首页" : "Back to home"}
@@ -889,8 +892,12 @@ function CollectionPage() {
         <PageLayout>
           <PageLayoutSection span="2/3">
             <Card aria-label="Collection details" role="region">
+              <CardHeader>
+                <CardTitle>
+                  <h2>Collection details</h2>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-4">
-                <h2 className="font-semibold">Collection details</h2>
                 <Input
                   label="Title"
                   value={draft.title}
@@ -907,14 +914,16 @@ function CollectionPage() {
               </CardContent>
             </Card>
             <Card aria-label="Collection products" role="region">
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="font-semibold">
+              <CardHeader>
+                <CardTitle>
+                  <h2>
                     Products{" "}
                     <span className="text-muted-foreground ml-1 font-normal">
                       {draft.products.length}
                     </span>
                   </h2>
+                </CardTitle>
+                <CardAction>
                   <Button
                     disabled={!nextProduct}
                     variant="outline"
@@ -927,51 +936,54 @@ function CollectionPage() {
                   >
                     Add product
                   </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {draft.products.map((id) => {
-                    const product = collectionProducts.find(
-                      (item) => item.id === id,
-                    )!;
-                    return (
-                      <Card key={id} className="pt-0" role="article">
-                        <div
-                          aria-hidden="true"
-                          className={`flex aspect-4/3 items-center justify-center ${product.color}`}
-                        >
-                          {id === "bag" ? (
-                            <ShoppingBagIcon className="size-12" />
-                          ) : (
-                            <PackageIcon className="size-12" />
-                          )}
-                        </div>
-                        <CardContent className="space-y-2">
-                          <h3 className="text-sm font-medium">
-                            {product.name}
-                          </h3>
-                          <p className="text-muted-foreground text-sm">
-                            {product.price}
-                          </p>
-                          <Button
-                            aria-label={`Remove ${product.name}`}
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              update({
-                                products: draft.products.filter(
-                                  (item) => item !== id,
-                                ),
-                              })
-                            }
+                </CardAction>
+              </CardHeader>
+              <CardContent>
+                {draft.products.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {draft.products.map((id) => {
+                      const product = collectionProducts.find(
+                        (item) => item.id === id,
+                      )!;
+                      return (
+                        <Card key={id} className="pt-0" role="article">
+                          <div
+                            aria-hidden="true"
+                            className={`flex aspect-4/3 items-center justify-center ${product.color}`}
                           >
-                            Remove
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-                {draft.products.length === 0 && (
+                            {id === "bag" ? (
+                              <ShoppingBagIcon className="size-12" />
+                            ) : (
+                              <PackageIcon className="size-12" />
+                            )}
+                          </div>
+                          <CardHeader>
+                            <CardTitle>
+                              <h3>{product.name}</h3>
+                            </CardTitle>
+                            <CardDescription>{product.price}</CardDescription>
+                          </CardHeader>
+                          <CardFooter>
+                            <Button
+                              aria-label={`Remove ${product.name}`}
+                              size="sm"
+                              variant="ghost"
+                              onClick={() =>
+                                update({
+                                  products: draft.products.filter(
+                                    (item) => item !== id,
+                                  ),
+                                })
+                              }
+                            >
+                              Remove
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
                   <p className="text-muted-foreground text-sm">
                     Add a product to start this collection.
                   </p>
@@ -979,8 +991,12 @@ function CollectionPage() {
               </CardContent>
             </Card>
             <Card aria-label="Theme template" role="region">
-              <CardContent className="space-y-4">
-                <h2 className="font-semibold">Theme template</h2>
+              <CardHeader>
+                <CardTitle>
+                  <h2>Theme template</h2>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <Select
                   aria-label="Theme template"
                   value={draft.template}
@@ -995,8 +1011,12 @@ function CollectionPage() {
               </CardContent>
             </Card>
             <Card aria-label="Search engine listing" role="region">
+              <CardHeader>
+                <CardTitle>
+                  <h2>Search engine listing</h2>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-2">
-                <h2 className="font-semibold">Search engine listing</h2>
                 <p className="text-muted-foreground text-xs break-all">
                   north.example.com / collections / summer-essentials
                 </p>
@@ -1011,8 +1031,12 @@ function CollectionPage() {
           </PageLayoutSection>
           <PageLayoutSection span="1/3">
             <Card aria-label="Collection status" role="region">
+              <CardHeader>
+                <CardTitle>
+                  <h2>Status</h2>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-4">
-                <h2 className="font-semibold">Status</h2>
                 <Select
                   aria-label="Collection status"
                   value={draft.status}
@@ -1030,8 +1054,12 @@ function CollectionPage() {
               </CardContent>
             </Card>
             <Card aria-label="Publishing" role="region">
+              <CardHeader>
+                <CardTitle>
+                  <h2>Publishing</h2>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-4">
-                <h2 className="font-semibold">Publishing</h2>
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <span className="flex items-center gap-2">
                     <StoreIcon aria-hidden="true" className="size-4" />
