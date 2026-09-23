@@ -134,7 +134,7 @@ export const PageDescription: FC<PageDescriptionProps> = ({
     <p
       data-slot="page-description"
       className={cn(
-        "text-muted-foreground col-span-full row-start-2 min-w-0 text-sm wrap-anywhere",
+        "text-muted-foreground col-span-full row-start-2 min-w-0 text-sm wrap-anywhere sm:group-has-data-[slot=page-breadcrumb-actions]/page-header:col-start-2",
         className,
       )}
       {...props}

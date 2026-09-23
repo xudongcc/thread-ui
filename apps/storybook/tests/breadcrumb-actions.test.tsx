@@ -309,7 +309,9 @@ for (const width of [320, 1024]) {
             await expect.element(paragraph).toBeVisible();
             const bounds = paragraph.element().getBoundingClientRect();
             expect(bounds.top).toBeGreaterThanOrEqual(title.bottom);
-            expect(bounds.left).toBeCloseTo(header.left);
+            expect(bounds.left).toBeCloseTo(
+              width >= 640 ? title.left : header.left,
+            );
             expect(bounds.right).toBeCloseTo(header.right);
             expect(bounds.height).toBeGreaterThan(20);
           } else {
