@@ -9,6 +9,7 @@ import {
   LayoutGridIcon,
   LogOutIcon,
   PackageIcon,
+  PanelLeftIcon,
   PlusIcon,
   SettingsIcon,
   ShoppingBagIcon,
@@ -89,7 +90,6 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { toast } from "@/components/thread-ui/toast";
@@ -142,7 +142,7 @@ function ApplicationContent({
   initialPage = "home",
   children,
 }: LayoutExampleProps) {
-  const { isMobile, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, openMobile, setOpenMobile, toggleSidebar } = useSidebar();
   const navigationId = useId();
   const { t, i18n } = useTranslation("thread-ui");
   const [theme, setTheme] = useState("light");
@@ -202,12 +202,14 @@ function ApplicationContent({
     <>
       <Topbar>
         <TopbarNavigationTrigger>
-          <SidebarTrigger
+          <TopbarAction
             aria-controls={isMobile && !openMobile ? undefined : navigationId}
             aria-expanded={openMobile}
             aria-label={t("layout.toggleNavigation", "Toggle navigation")}
-            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:hover:bg-accent size-10 shrink-0"
-          />
+            onClick={toggleSidebar}
+          >
+            <PanelLeftIcon aria-hidden="true" />
+          </TopbarAction>
         </TopbarNavigationTrigger>
         <TopbarBrand>
           <span className="inline-flex items-center gap-2.5 align-middle">

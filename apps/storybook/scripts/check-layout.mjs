@@ -83,7 +83,9 @@ try {
       // Button transition-colors can still be running after the theme class changes.
       await page.waitForFunction(() => {
         const header = document.querySelector('[data-slot="topbar"]');
-        const trigger = header?.querySelector('[data-sidebar="trigger"]');
+        const trigger = header?.querySelector(
+          '[data-slot="topbar-navigation-trigger"] button',
+        );
         return (
           trigger &&
           getComputedStyle(trigger).color === getComputedStyle(header).color
@@ -212,7 +214,7 @@ try {
       await page.waitForFunction(
         () =>
           document
-            .querySelector('[data-slot="sidebar-trigger"]')
+            .querySelector('[data-slot="topbar-navigation-trigger"] button')
             ?.getAttribute("aria-expanded") === "false",
       );
     } else {
