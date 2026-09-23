@@ -164,7 +164,7 @@ export function TopbarMenuTrigger({
         "relative h-10 max-w-full gap-2",
         children === undefined &&
           "p-1 max-sm:w-10 max-sm:rounded-full max-sm:p-0 sm:pr-2",
-        "border-topbar-menu-border bg-topbar text-topbar-foreground hover:bg-topbar-menu-accent hover:text-topbar-accent-foreground focus-visible:ring-topbar-ring aria-expanded:bg-topbar-menu-accent aria-expanded:text-topbar-accent-foreground dark:bg-topbar dark:hover:bg-topbar-menu-accent",
+        "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:bg-background dark:hover:bg-accent",
         className,
       )}
     >

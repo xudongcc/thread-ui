@@ -154,16 +154,6 @@ export const getPackage = async (packageName: string) => {
     // Parse the processed CSS and convert to JSON structure
     const ast = postcss.parse(processed.css);
 
-    // Preserve component-owned Tailwind v4 tokens in installed registry items.
-    ast.walkAtRules("theme", (atRule) => {
-      const key = `@theme${atRule.params ? ` ${atRule.params}` : ""}`;
-      const declarations: Record<string, string> = {};
-      atRule.walkDecls((decl) => {
-        declarations[decl.prop] = decl.value;
-      });
-      css[key] = { ...css[key], ...declarations };
-    });
-
     ast.walkAtRules("layer", (atRule) => {
       const layerName = `@layer ${atRule.params}`;
       css[layerName] = {};
@@ -218,6 +208,23 @@ export const getPackage = async (packageName: string) => {
       });
     });
   }
+
+  // Export local appearance scopes from the same theme used by the preview.
+  // Keep the existing variable names and leave the consumer's global theme intact.
+  const theme = postcss.parse(
+    await fs.readFile(join(rootDir, "packages/styles/theme.css"), "utf-8"),
+  );
+  theme.walkRules((rule) => {
+    const selectors = rule.selectors.filter((selector) =>
+      selector.startsWith(`[data-slot="${packageName}"]`),
+    );
+    if (!selectors.length) return;
+    const declarations: Record<string, string> = {};
+    rule.walkDecls((decl) => {
+      declarations[decl.prop] = decl.value;
+    });
+    css[selectors.join(", ")] = declarations;
+  });
 
   let type: RegistryItem["type"] = isLocalesPackage
     ? "registry:item"

@@ -204,7 +204,7 @@ function ApplicationContent({
             aria-controls={isMobile && !openMobile ? undefined : navigationId}
             aria-expanded={openMobile}
             aria-label={t("layout.toggleNavigation", "Toggle navigation")}
-            className="text-topbar-foreground hover:bg-topbar-accent hover:text-topbar-accent-foreground focus-visible:ring-topbar-ring aria-expanded:bg-topbar-accent aria-expanded:text-topbar-accent-foreground dark:hover:bg-topbar-accent size-10 shrink-0"
+            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:hover:bg-accent size-10 shrink-0"
           />
         </TopbarNavigationTrigger>
         <TopbarBrand>

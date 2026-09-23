@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Root } from "react-dom/client";
 import type { TopbarMenuTriggerProps } from "@/components/thread-ui/topbar";
 import {
@@ -226,7 +226,9 @@ for (const globalDark of [false, true]) {
         </Topbar>,
       );
       const dark = variant === "dark" || (variant === undefined && globalDark);
-      const foreground = dark ? [255, 255, 255, 255] : [10, 10, 10, 255];
+      const foreground = dark ? [250, 250, 250, 255] : [10, 10, 10, 255];
+      const accent = dark ? [38, 38, 38, 255] : [245, 245, 245, 255];
+      const accentForeground = dark ? [250, 250, 250, 255] : [23, 23, 23, 255];
       const background = dark ? [10, 10, 10, 255] : [255, 255, 255, 255];
       const header = container.querySelector("header")!;
       expect(pixel(getComputedStyle(header).backgroundColor)).toEqual(
@@ -249,15 +251,53 @@ for (const globalDark of [false, true]) {
       await action.hover();
       await expect
         .poll(() => pixel(getComputedStyle(action.element()).backgroundColor))
-        .toEqual(dark ? [255, 255, 255, 26] : [0, 0, 0, 13]);
+        .toEqual(accent);
       await trigger.click();
       await expect.element(page.getByRole("menu")).toBeVisible();
       await expect
         .poll(() => pixel(getComputedStyle(trigger.element()).backgroundColor))
-        .toEqual(dark ? [255, 255, 255, 26] : [0, 0, 0, 26]);
+        .toEqual(accent);
       expect(pixel(getComputedStyle(trigger.element()).color)).toEqual(
-        foreground,
+        accentForeground,
       );
+      // The portaled popup remains in the page's theme, outside the header scope.
+      expect(
+        pixel(
+          getComputedStyle(page.getByRole("menu").element()).getPropertyValue(
+            "--background",
+          ),
+        ),
+      ).toEqual(globalDark ? [10, 10, 10, 255] : [255, 255, 255, 255]);
     });
   }
 }
+
+test("automatic Topbar inherits custom application colors", async () => {
+  mount(
+    <div
+      style={
+        {
+          "--background": "rgb(20 40 60)",
+          "--foreground": "rgb(240 230 220)",
+          "--accent": "rgb(60 80 100)",
+          "--accent-foreground": "rgb(250 250 250)",
+        } as CSSProperties
+      }
+    >
+      {menu()}
+    </div>,
+  );
+  const header = container.querySelector("header")!;
+  expect(pixel(getComputedStyle(header).backgroundColor)).toEqual([
+    20, 40, 60, 255,
+  ]);
+  expect(pixel(getComputedStyle(header).color)).toEqual([240, 230, 220, 255]);
+  const trigger = page.getByRole("button", { name: "Account: Alex Morgan" });
+  expect(pixel(getComputedStyle(trigger.element()).backgroundColor)).toEqual([
+    20, 40, 60, 255,
+  ]);
+  await trigger.hover();
+  await expect
+    .poll(() => pixel(getComputedStyle(trigger.element()).backgroundColor))
+    .toEqual([60, 80, 100, 255]);
+});

@@ -1,50 +1,47 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import process from "node:process";
 import { test } from "node:test";
+import postcss from "postcss";
 import { registryItemSchema } from "shadcn/schema";
 import { getPackage } from "../package.ts";
 
-test("installed Topbar includes semantic theme tokens and scoped appearance overrides", async () => {
+test("Topbar installs scoped existing theme variables without overriding the global theme", async () => {
   const previousCwd = process.cwd();
   process.chdir(resolve(import.meta.dirname, "../.."));
   try {
     const item = registryItemSchema.parse(await getPackage("topbar"));
-    const rules = item.css["@layer base"];
-    const theme = item.css["@theme inline"];
-    const variablesFor = (selector) =>
-      Object.entries(rules).find(([selectors]) =>
-        selectors
-          .split(",")
-          .map((value) => value.trim())
-          .includes(selector),
-      )?.[1];
-    const light = variablesFor(":root");
-    const dark = variablesFor(".dark");
-    for (const part of [
-      "",
-      "-foreground",
-      "-accent",
-      "-accent-foreground",
-      "-border",
-      "-ring",
-      "-menu-accent",
-      "-menu-border",
+    const theme = postcss.parse(
+      await readFile(
+        resolve(process.cwd(), "../../packages/styles/theme.css"),
+        "utf8",
+      ),
+    );
+    for (const [variant, selector] of [
+      ["light", ":root"],
+      ["dark", ".dark"],
     ]) {
-      const name = `topbar${part}`;
-      assert.ok(light[`--${name}`], `Missing light ${name} in installed CSS`);
-      assert.ok(dark[`--${name}`], `Missing dark ${name} in installed CSS`);
-      assert.equal(theme[`--color-${name}`], `var(--${name})`);
+      const expected = {};
+      theme.walkRules((rule) => {
+        if (rule.selectors.includes(selector))
+          rule.walkDecls((decl) => {
+            expected[decl.prop] = decl.value;
+          });
+      });
+      delete expected["--radius"];
+      assert.ok(expected["--background"]);
+      assert.deepEqual(
+        item.css[`[data-slot="topbar"][data-variant="${variant}"]`],
+        expected,
+      );
     }
-    assert.notEqual(light["--topbar"], dark["--topbar"]);
-    assert.deepEqual(
-      variablesFor('[data-slot="topbar"][data-variant="light"]'),
-      light,
-    );
-    assert.deepEqual(
-      variablesFor('[data-slot="topbar"][data-variant="dark"]'),
-      dark,
-    );
+    assert.deepEqual(Object.keys(item.css).sort(), [
+      '[data-slot="topbar"][data-variant="dark"]',
+      '[data-slot="topbar"][data-variant="light"]',
+    ]);
+    assert.doesNotMatch(JSON.stringify(item), /--topbar/);
+    assert.deepEqual((await getPackage("layout")).css, {});
   } finally {
     process.chdir(previousCwd);
   }

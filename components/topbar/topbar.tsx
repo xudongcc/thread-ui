@@ -66,7 +66,7 @@ export function TopbarAction({ className, ...props }: TopbarActionProps) {
       {...props}
       data-slot="topbar-action"
       className={cn(
-        "text-topbar-foreground hover:bg-topbar-accent hover:text-topbar-accent-foreground focus-visible:ring-topbar-ring aria-expanded:bg-topbar-accent aria-expanded:text-topbar-accent-foreground dark:hover:bg-topbar-accent size-10 shrink-0 focus-visible:border-transparent",
+        "text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:hover:bg-accent size-10 shrink-0 focus-visible:border-transparent",
         className,
       )}
     />
@@ -86,7 +86,7 @@ export function Topbar({
       data-slot="topbar"
       data-variant={variant ?? "auto"}
       className={cn(
-        "group/topbar border-topbar-border bg-topbar text-topbar-foreground z-20 grid h-14 min-w-0 shrink-0 auto-cols-[minmax(0,auto)] grid-flow-col grid-cols-[minmax(0,1fr)] items-center justify-items-end gap-2 border-b px-3 md:gap-4 md:px-4",
+        "group/topbar border-border bg-background text-foreground z-20 grid h-14 min-w-0 shrink-0 auto-cols-[minmax(0,auto)] grid-flow-col grid-cols-[minmax(0,1fr)] items-center justify-items-end gap-2 border-b px-3 md:gap-4 md:px-4",
         className,
       )}
     >
