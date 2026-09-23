@@ -1,3 +1,4 @@
+/* eslint shadcn/no-raw-colors: "off" -- Badge intentionally exposes Tailwind palette variants through its color API. */
 "use client";
 
 import { cva } from "class-variance-authority";
