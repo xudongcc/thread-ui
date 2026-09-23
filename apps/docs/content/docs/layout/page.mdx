@@ -147,8 +147,12 @@ must forward the supplied props and ref. A custom render defaults to a non-butto
 link; set `nativeButton` when rendering a native button. The component does not
 infer routes or call browser history. It replaces the removed `PageBackAction`.
 
-In narrow containers, navigation and page actions share the first row while the
-title and description move below. Wider headers place navigation beside the title.
+Navigation, title, and page actions share the first row at every screen size.
+The title takes the remaining width and truncates to one line with an ellipsis;
+its full text remains available to assistive technology. Mobile titles use a
+smaller font size. Optional descriptions span the full second row and wrap
+naturally, including on mobile. Omitted navigation and actions leave their space
+available to the title.
 
 ## API Reference
 

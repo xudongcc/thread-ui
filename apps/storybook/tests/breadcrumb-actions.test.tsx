@@ -16,6 +16,7 @@ import {
   PageDescription,
   PageHeader,
   PagePrimaryAction,
+  PageSecondaryAction,
   PageTitle,
 } from "@/components/thread-ui/page";
 import "../styles.css";
@@ -189,11 +190,10 @@ for (const width of [320, 1024]) {
       .getByRole("heading", { name: "Edit product" })
       .element()
       .getBoundingClientRect();
-    if (width === 320) expect(title.top).toBeGreaterThanOrEqual(nav.bottom);
-    else {
-      expect(title.left).toBeGreaterThanOrEqual(nav.right);
-      expect(Math.abs(title.top - nav.top)).toBeLessThan(2);
-    }
+    expect(title.left).toBeGreaterThanOrEqual(nav.right);
+    expect(
+      Math.abs((title.top + title.bottom) / 2 - (nav.top + nav.bottom) / 2),
+    ).toBeLessThan(2);
     await page.getByRole("button", { name: "Parent pages" }).click();
     const popup = page.getByRole("menu").element();
     const bounds = popup.getBoundingClientRect();
@@ -225,3 +225,103 @@ test("lazy action references are counted without relying on component identity",
     .element(page.getByRole("menuitem", { name: "Acme Widget" }))
     .toBeVisible();
 });
+
+for (const width of [320, 1024]) {
+  for (const ancestors of [0, 1, 2]) {
+    for (const actions of [false, true]) {
+      for (const description of [false, true]) {
+        test(`page header at ${width}px: ${ancestors} ancestors, actions=${actions}, description=${description}`, async () => {
+          await page.viewport(width, 800);
+          const longTitle =
+            "编辑商品：秋季限定系列 — " + "UnbrokenProductIdentifier".repeat(6);
+          const longDescription =
+            "Manage product details and availability. " +
+            "UnbrokenDescription".repeat(12);
+          mount(
+            <Page variant="full">
+              <PageHeader data-testid="header">
+                <BreadcrumbActions>
+                  {Array.from({ length: ancestors }, (_, index) => (
+                    <BreadcrumbAction key={index}>
+                      Parent {index + 1}
+                    </BreadcrumbAction>
+                  ))}
+                </BreadcrumbActions>
+                <PageTitle>{longTitle}</PageTitle>
+                {description && (
+                  <PageDescription data-testid="description">
+                    {longDescription}
+                  </PageDescription>
+                )}
+                {actions && (
+                  <PageActions data-testid="actions">
+                    <PagePrimaryAction>Save</PagePrimaryAction>
+                    <PageSecondaryAction>Preview</PageSecondaryAction>
+                  </PageActions>
+                )}
+              </PageHeader>
+            </Page>,
+          );
+          const heading = page.getByRole("heading", { name: longTitle });
+          await expect.element(heading).toBeVisible();
+          const element = heading.element();
+          const title = element.getBoundingClientRect();
+          const header = page
+            .getByTestId("header")
+            .element()
+            .getBoundingClientRect();
+          expect(title.width).toBeGreaterThan(20);
+          expect(element.scrollWidth).toBeGreaterThan(element.clientWidth);
+          expect(getComputedStyle(element).textOverflow).toBe("ellipsis");
+          expect(getComputedStyle(element).whiteSpace).toBe("nowrap");
+          expect(getComputedStyle(element).fontSize).toBe(
+            width === 320 ? "20px" : "24px",
+          );
+          if (ancestors === 0) expect(title.left).toBeCloseTo(header.left);
+          else {
+            const nav = page
+              .getByRole("navigation")
+              .element()
+              .getBoundingClientRect();
+            expect(title.left).toBeGreaterThanOrEqual(nav.right);
+            expect(
+              Math.abs(title.top + title.height / 2 - nav.top - nav.height / 2),
+            ).toBeLessThan(2);
+          }
+          if (actions) {
+            const buttons = page
+              .getByTestId("actions")
+              .element()
+              .getBoundingClientRect();
+            expect(title.right).toBeLessThanOrEqual(buttons.left);
+            expect(buttons.right).toBeCloseTo(header.right);
+            expect(
+              Math.abs(
+                title.top + title.height / 2 - buttons.top - buttons.height / 2,
+              ),
+            ).toBeLessThan(2);
+            await expect
+              .element(page.getByRole("button", { name: "Save" }))
+              .toBeVisible();
+          } else expect(title.right).toBeCloseTo(header.right);
+          if (description) {
+            const paragraph = page.getByTestId("description");
+            await expect.element(paragraph).toBeVisible();
+            const bounds = paragraph.element().getBoundingClientRect();
+            expect(bounds.top).toBeGreaterThanOrEqual(title.bottom);
+            expect(bounds.left).toBeCloseTo(header.left);
+            expect(bounds.right).toBeCloseTo(header.right);
+            expect(bounds.height).toBeGreaterThan(20);
+          } else {
+            expect(header.height).toBeCloseTo(
+              Math.max(title.height, actions || ancestors ? 32 : 0) + 16,
+            );
+          }
+          expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+            width,
+          );
+        });
+      }
+    }
+  }
+}

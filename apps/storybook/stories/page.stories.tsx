@@ -122,3 +122,47 @@ export const SingleParent: Story = {
     </Page>
   ),
 };
+
+export const LongTitle: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The title truncates within the header while actions stay visible. The description spans a separate row and wraps at every viewport size.",
+      },
+    },
+  },
+  render: (args) => (
+    <Page {...args}>
+      <PageHeader>
+        <BreadcrumbActions>
+          <BreadcrumbAction render={<a href="#products" />}>
+            Products
+          </BreadcrumbAction>
+          <BreadcrumbAction render={<a href="#collection" />}>
+            Autumn collection
+          </BreadcrumbAction>
+        </BreadcrumbActions>
+        <PageTitle>
+          Edit product — Limited edition organic cotton oversized blue T-shirt
+        </PageTitle>
+        <PageDescription>
+          Manage product details, pricing, and availability across your sales
+          channels.
+        </PageDescription>
+        <PageActions>
+          <PagePrimaryAction onClick={fn()}>Save</PagePrimaryAction>
+          <PageSecondaryAction onAction={fn()}>Preview</PageSecondaryAction>
+          <PageSecondaryAction destructive onAction={fn()}>
+            Delete
+          </PageSecondaryAction>
+        </PageActions>
+      </PageHeader>
+      <PageContent>
+        <Card>
+          <CardContent>Product details</CardContent>
+        </Card>
+      </PageContent>
+    </Page>
+  ),
+};

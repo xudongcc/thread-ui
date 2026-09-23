@@ -62,7 +62,7 @@ export function BreadcrumbActions({
         {...props}
         data-slot="page-breadcrumb-actions"
         className={cn(
-          "col-start-1 row-start-1 flex items-center gap-1 self-start justify-self-start @3xl/page:row-span-2",
+          "col-start-1 row-start-1 flex shrink-0 items-center gap-1 justify-self-start",
           className,
         )}
       >
