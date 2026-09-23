@@ -44,18 +44,15 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-function getCommonPinningStyles<TData>(column: Column<TData>): CSSProperties {
+function getCommonPinningClassNames<TData>(column: Column<TData>): string {
   const isPinned = column.getIsPinned();
 
-  return {
-    left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
-    right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
-    width: column.getSize(),
-  };
-}
-
-function getCommonPinningClassNames<TData>(column: Column<TData>): string {
-  return cn(column.getIsPinned() ? "sticky z-1" : "relative z-0");
+  return cn(
+    "w-(--column-width)",
+    isPinned ? "sticky z-1" : "relative z-0",
+    isPinned === "left" && "left-(--column-offset)",
+    isPinned === "right" && "right-(--column-offset)",
+  );
 }
 
 export interface DataTablePaginationProps {
@@ -319,9 +316,16 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                       "bg-card group-hover:bg-muted whitespace-normal",
                       getCommonPinningClassNames<TData>(header.column),
                     )}
-                    style={{
-                      ...getCommonPinningStyles<TData>(header.column),
-                    }}
+                    style={
+                      {
+                        "--column-width": `${header.column.getSize()}px`,
+                        "--column-offset": `${
+                          header.column.getIsPinned() === "right"
+                            ? header.column.getAfter("right")
+                            : header.column.getStart("left")
+                        }px`,
+                      } as CSSProperties
+                    }
                   >
                     {header.isPlaceholder
                       ? null
@@ -354,9 +358,16 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                         getCommonPinningClassNames<TData>(cell.column),
                         cell.column.id === "$actions" && "text-right",
                       )}
-                      style={{
-                        ...getCommonPinningStyles<TData>(cell.column),
-                      }}
+                      style={
+                        {
+                          "--column-width": `${cell.column.getSize()}px`,
+                          "--column-offset": `${
+                            cell.column.getIsPinned() === "right"
+                              ? cell.column.getAfter("right")
+                              : cell.column.getStart("left")
+                          }px`,
+                        } as CSSProperties
+                      }
                       onClick={
                         cell.column.id === "$actions"
                           ? (event) => event.stopPropagation()

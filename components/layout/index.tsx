@@ -110,10 +110,7 @@ export function LayoutContent({
           />
         }
       >
-        <ScrollArea.Content
-          className="flex min-h-full flex-col"
-          style={{ minWidth: 0 }}
-        >
+        <ScrollArea.Content className="flex min-h-full min-w-0! flex-col">
           {children}
         </ScrollArea.Content>
       </ScrollArea.Viewport>
