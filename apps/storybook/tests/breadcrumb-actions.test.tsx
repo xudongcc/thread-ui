@@ -275,7 +275,7 @@ for (const width of [320, 1024]) {
           expect(getComputedStyle(element).textOverflow).toBe("ellipsis");
           expect(getComputedStyle(element).whiteSpace).toBe("nowrap");
           expect(getComputedStyle(element).fontSize).toBe(
-            width === 320 ? "20px" : "24px",
+            width === 320 ? "18px" : "20px",
           );
           if (ancestors === 0) expect(title.left).toBeCloseTo(header.left);
           else {

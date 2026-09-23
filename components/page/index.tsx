@@ -55,7 +55,7 @@ export const PageHeader: FC<PageHeaderProps> = ({ className, ...props }) => {
     <header
       data-slot="page-header"
       className={cn(
-        "group/page-header grid grid-cols-[minmax(0,1fr)] items-center gap-x-2 gap-y-1 pb-4 has-data-[slot=page-actions]:grid-cols-[minmax(0,1fr)_auto] has-data-[slot=page-breadcrumb-actions]:grid-cols-[auto_minmax(0,1fr)] has-data-[slot=page-breadcrumb-actions]:has-data-[slot=page-actions]:grid-cols-[auto_minmax(0,1fr)_auto]",
+        "group/page-header grid grid-cols-[minmax(0,1fr)] items-center gap-1 pb-4 has-data-[slot=page-actions]:grid-cols-[minmax(0,1fr)_auto] has-data-[slot=page-breadcrumb-actions]:grid-cols-[auto_minmax(0,1fr)] has-data-[slot=page-breadcrumb-actions]:has-data-[slot=page-actions]:grid-cols-[auto_minmax(0,1fr)_auto]",
         className,
       )}
       {...props}
@@ -116,7 +116,7 @@ export const PageTitle: FC<PageTitleProps> = ({ className, ...props }) => {
     <h2
       data-slot="page-title"
       className={cn(
-        "col-start-1 row-start-1 min-w-0 truncate py-0.5 text-xl font-semibold tracking-tight group-has-data-[slot=page-breadcrumb-actions]/page-header:col-start-2 sm:text-2xl",
+        "col-start-1 row-start-1 min-w-0 truncate py-0.5 text-lg font-semibold tracking-tight group-has-data-[slot=page-breadcrumb-actions]/page-header:col-start-2 sm:text-xl",
         className,
       )}
       {...props}
