@@ -1,9 +1,10 @@
 "use client";
 
 import {
+  BreadcrumbAction,
+  BreadcrumbActions,
   Page,
   PageActions,
-  PageBackAction,
   PageContent,
   PageDescription,
   PageHeader,
@@ -15,7 +16,14 @@ import {
 const Example = () => (
   <Page>
     <PageHeader>
-      <PageBackAction />
+      <BreadcrumbActions>
+        <BreadcrumbAction render={<a href="#products" />}>
+          Products
+        </BreadcrumbAction>
+        <BreadcrumbAction render={<a href="#pet-accessories" />}>
+          Pet accessories
+        </BreadcrumbAction>
+      </BreadcrumbActions>
       <PageTitle>3/4 inch Leather pet collar</PageTitle>
       <PageDescription>Perfect for any pet</PageDescription>
       <PageActions>

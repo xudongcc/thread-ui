@@ -20,8 +20,9 @@ import {
 import { ComplexFilter } from "@/components/thread-ui/complex-filter";
 import { FileUploadItem } from "@/components/thread-ui/file-upload";
 import {
+  BreadcrumbAction,
+  BreadcrumbActions,
   PageActions,
-  PageBackAction,
   PageSecondaryAction,
 } from "@/components/thread-ui/page";
 import { Select } from "@/components/thread-ui/select";
@@ -60,7 +61,10 @@ describe("accessible labels", () => {
     });
     const i18n = renderLocalized(
       <>
-        <PageBackAction />
+        <BreadcrumbActions>
+          <BreadcrumbAction>Home</BreadcrumbAction>
+          <BreadcrumbAction>Projects</BreadcrumbAction>
+        </BreadcrumbActions>
         <PageActions>
           {[1, 2, 3, 4].map((key) => (
             <PageSecondaryAction key={key}>Action {key}</PageSecondaryAction>
@@ -78,7 +82,10 @@ describe("accessible labels", () => {
 
     expect(await screen.findByRole("img", { name: file.name })).toBeTruthy();
     expect(i18n.options.interpolation?.escapeValue).toBe(true);
-    expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Parent pages" })).toBeTruthy();
+    expect(
+      screen.getByRole("navigation", { name: "Breadcrumbs" }),
+    ).toBeTruthy();
     expect(
       screen.getAllByRole("button", { name: "More actions" }),
     ).toHaveLength(2);
@@ -94,7 +101,8 @@ describe("accessible labels", () => {
 
     await act(() => i18n.changeLanguage("zh"));
 
-    expect(screen.getByRole("button", { name: "返回" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "上级页面" })).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "面包屑导航" })).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "更多操作" })).toHaveLength(2);
     expect(screen.getByRole("button", { name: "复制代码" })).toBeTruthy();
     expect(screen.getByRole("combobox", { name: "选择代码语言" })).toBeTruthy();
@@ -108,8 +116,14 @@ describe("accessible labels", () => {
   it("preserves explicit labels and visible button text", () => {
     renderLocalized(
       <>
-        <PageBackAction aria-label="Return to settings" />
-        <PageBackAction>Previous step</PageBackAction>
+        <BreadcrumbActions>
+          <BreadcrumbAction aria-label="Return to settings">
+            Settings
+          </BreadcrumbAction>
+        </BreadcrumbActions>
+        <BreadcrumbActions>
+          <BreadcrumbAction>Previous step</BreadcrumbAction>
+        </BreadcrumbActions>
         <PageActions secondaryMenuLabel="Document actions">
           <PageSecondaryAction>Archive</PageSecondaryAction>
         </PageActions>
@@ -131,13 +145,7 @@ describe("accessible labels", () => {
     ]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
-    // Tailwind is not loaded in jsdom, so the hidden spinner also contributes text.
-    expect(
-      screen
-        .getByText("Previous step")
-        .closest("button")
-        ?.hasAttribute("aria-label"),
-    ).toBe(false);
+    expect(screen.getByRole("button", { name: "Previous step" })).toBeTruthy();
     expect(
       screen.getByRole("combobox", { name: "Choose a file" }),
     ).toBeTruthy();

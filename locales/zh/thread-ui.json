@@ -244,7 +244,8 @@
     "copy": "复制"
   },
   "page": {
-    "back": "返回",
+    "breadcrumbs": "面包屑导航",
+    "parentPages": "上级页面",
     "moreActions": "更多操作"
   },
   "codeBlock": {
