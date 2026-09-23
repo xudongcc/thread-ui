@@ -17,7 +17,7 @@ import {
   TopbarMenuUser,
   TopbarMenuWorkspaceGroup,
   TopbarMenuWorkspaceItem,
-  TopbarNavigationTrigger,
+  TopbarSidebarTrigger,
 } from "@/components/thread-ui/topbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AvatarImage } from "@/components/ui/avatar";
@@ -400,7 +400,7 @@ test("navigation trigger works without props and hides on desktop", async () => 
   mount(
     <SidebarProvider>
       <Topbar>
-        <TopbarNavigationTrigger />
+        <TopbarSidebarTrigger />
       </Topbar>
     </SidebarProvider>,
   );
@@ -428,7 +428,7 @@ test("navigation trigger forwards ref and render, and allows cancelling the togg
   mount(
     <SidebarProvider>
       <Topbar>
-        <TopbarNavigationTrigger
+        <TopbarSidebarTrigger
           ref={ref}
           aria-label="Open menu"
           render={<button data-testid="custom-navigation" />}
@@ -453,7 +453,7 @@ test("disabled navigation trigger does not open the sidebar", async () => {
   mount(
     <SidebarProvider>
       <Topbar>
-        <TopbarNavigationTrigger disabled onClick={onClick} />
+        <TopbarSidebarTrigger disabled onClick={onClick} />
       </Topbar>
     </SidebarProvider>,
   );

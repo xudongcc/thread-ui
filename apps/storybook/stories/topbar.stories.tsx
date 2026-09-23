@@ -25,7 +25,7 @@ const meta = {
       source: withExampleSource(implementation),
       description: {
         component:
-          "Responsive top bar composed with TopbarBrand, TopbarNavigationTrigger, TopbarActionGroup, TopbarAction, and TopbarMenu. It follows the global theme unless variant is set. The brand is hidden below 768px. Use TopbarNavigationTrigger inside Layout or SidebarProvider to toggle a mobile sidebar; see the Layout examples.",
+          "Responsive top bar composed with TopbarBrand, TopbarSidebarTrigger, TopbarActionGroup, TopbarAction, and TopbarMenu. It follows the global theme unless variant is set. The brand is hidden below 768px. Use TopbarSidebarTrigger inside Layout or SidebarProvider to toggle a mobile sidebar; see the Layout examples.",
       },
     },
   },

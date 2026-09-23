@@ -13,7 +13,7 @@ export type TopbarProps = ComponentProps<"header"> & {
 };
 
 export type TopbarBrandProps = ComponentProps<"div">;
-export type TopbarNavigationTriggerProps = ComponentProps<typeof Button>;
+export type TopbarSidebarTriggerProps = ComponentProps<typeof Button>;
 export type TopbarActionGroupProps = ComponentProps<"div">;
 export type TopbarActionProps = ComponentProps<typeof Button>;
 
@@ -31,12 +31,12 @@ export function TopbarBrand({ className, ...props }: TopbarBrandProps) {
 }
 
 /** Mobile navigation button connected to the nearest SidebarProvider. */
-export function TopbarNavigationTrigger({
+export function TopbarSidebarTrigger({
   className,
   children,
   onClick,
   ...props
-}: TopbarNavigationTriggerProps) {
+}: TopbarSidebarTriggerProps) {
   const { openMobile, toggleSidebar } = useSidebar();
   const { t } = useTranslation("thread-ui");
   return (
@@ -46,7 +46,7 @@ export function TopbarNavigationTrigger({
       variant="ghost"
       {...props}
       aria-expanded={openMobile}
-      data-slot="topbar-navigation-trigger"
+      data-slot="topbar-sidebar-trigger"
       className={cn(
         "text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:hover:bg-accent size-10 shrink-0 justify-self-start focus-visible:border-transparent md:hidden",
         className,

@@ -144,11 +144,11 @@ the original shadcn Sidebar, and LayoutContent as children. LayoutContent
 provides the independently scrolling main landmark. Missing Sidebar or Topbar
 parts leave their space available to the content. Navigation uses composed
 shadcn menu components and useSidebar for mobile dismissal. Layout and Topbar
-support **Composition API only**. Arrange `TopbarBrand`, `TopbarNavigationTrigger`, and
+support **Composition API only**. Arrange `TopbarBrand`, `TopbarSidebarTrigger`, and
 `TopbarActionGroup` as children. Place `TopbarAction` buttons inside the group,
 with `TopbarMenu` alongside it. Custom content can be composed directly into the
 header. It follows the application theme unless `variant` is set to light or
-dark. Use `<TopbarNavigationTrigger />` inside Layout or SidebarProvider; it
+dark. Use `<TopbarSidebarTrigger />` inside Layout or SidebarProvider; it
 includes the navigation icon, accessible label, and sidebar toggle. It is hidden
 on desktop. Topbar itself does not require a provider. The parts and
 `TopbarMenu` are exported from the same topbar package.

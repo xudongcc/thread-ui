@@ -46,7 +46,7 @@ import {
   TopbarMenuUser,
   TopbarMenuWorkspaceGroup,
   TopbarMenuWorkspaceItem,
-  TopbarNavigationTrigger,
+  TopbarSidebarTrigger,
 } from "@/components/thread-ui/topbar";
 import { Button } from "@/components/thread-ui/button";
 import {
@@ -198,7 +198,7 @@ function ApplicationContent({
   return (
     <>
       <Topbar>
-        <TopbarNavigationTrigger />
+        <TopbarSidebarTrigger />
         <TopbarBrand>
           <span className="inline-flex items-center gap-2.5 align-middle">
             <svg

@@ -11,7 +11,7 @@ pnpm dlx shadcn@latest add @thread-ui/topbar
 
 ## Composition API
 
-Compose the header with `TopbarBrand`, `TopbarNavigationTrigger`,
+Compose the header with `TopbarBrand`, `TopbarSidebarTrigger`,
 `TopbarActionGroup`, `TopbarAction`, and `TopbarMenu`. Arrange or omit parts to
 suit the application. The navigation trigger connects to shadcn Sidebar; the host
 owns navigation items and account actions.
@@ -21,7 +21,7 @@ import { BellIcon } from "lucide-react";
 import {
   Topbar,
   TopbarBrand,
-  TopbarNavigationTrigger,
+  TopbarSidebarTrigger,
   TopbarActionGroup,
   TopbarAction,
   TopbarMenu,
@@ -34,7 +34,7 @@ import {
 
 // Inside Layout or SidebarProvider:
 <Topbar>
-  <TopbarNavigationTrigger />
+  <TopbarSidebarTrigger />
   <TopbarBrand>Thread UI</TopbarBrand>
   <TopbarActionGroup>
     <TopbarAction aria-label="Notifications" onClick={openNotifications}>
@@ -59,14 +59,14 @@ and account controls align right. Parts can be omitted without placeholder
 elements. Its default height is 56px, with a
 bottom border. Custom content such as a search field can be placed directly
 among its children. Topbar itself does not require a provider;
-`TopbarNavigationTrigger` requires `SidebarProvider`, which Layout supplies.
+`TopbarSidebarTrigger` requires `SidebarProvider`, which Layout supplies.
 
 ## Parts
 
 - `TopbarBrand`: site name and optional logo. Hidden below 768px.
-- `TopbarNavigationTrigger`: a 40px mobile navigation button with a built-in
+- `TopbarSidebarTrigger`: a 40px mobile navigation button with a built-in
   icon, translated accessible label, and sidebar toggle. Hidden on desktop.
-  Use `<TopbarNavigationTrigger />` inside Layout or SidebarProvider. It accepts
+  Use `<TopbarSidebarTrigger />` inside Layout or SidebarProvider. It accepts
   Button props, including `render`, `ref`, and `disabled`. An optional `onClick`
   runs before toggling; call `event.preventDefault()` to cancel the toggle.
 - `TopbarActionGroup`: aligns action buttons to the right.
@@ -114,7 +114,7 @@ and name, matching Layout. The whole brand is hidden on mobile.
 ## Layout integration
 
 Place Topbar directly inside Layout, alongside shadcn Sidebar and LayoutContent.
-Use `<TopbarNavigationTrigger />` to control the mobile drawer through Layout's
+Use `<TopbarSidebarTrigger />` to control the mobile drawer through Layout's
 SidebarProvider. No additional button, icon, or hook is needed.
 
 See [TopbarMenu](/docs/layout/topbar-menu) for workspace selection, user identity,

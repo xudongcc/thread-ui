@@ -22,7 +22,7 @@ import { Page } from "@/components/thread-ui/page";
 import {
   Topbar,
   TopbarBrand,
-  TopbarNavigationTrigger,
+  TopbarSidebarTrigger,
 } from "@/components/thread-ui/topbar";
 import {
   Sidebar,
@@ -59,7 +59,7 @@ function Navigation() {
 
 <Layout>
   <Topbar>
-    <TopbarNavigationTrigger />
+    <TopbarSidebarTrigger />
     <TopbarBrand>Thread UI</TopbarBrand>
   </Topbar>
   <Navigation />
@@ -97,7 +97,7 @@ height is `100svh`; use a class such as `h-full` to fit a sized container.
 
 The desktop sidebar stays expanded. Below 768px, shadcn Sidebar opens as a Sheet,
 with Escape/outside-click dismissal and focus management. Use
-`<TopbarNavigationTrigger />` to open it on mobile; its icon, accessible label,
+`<TopbarSidebarTrigger />` to open it on mobile; its icon, accessible label,
 and sidebar toggle are built in. Layout closes an open
 drawer when returning to desktop. Omit the navigation trigger when no Sidebar
 is present.

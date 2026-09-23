@@ -1,14 +1,14 @@
 export {
   Topbar,
   TopbarBrand,
-  TopbarNavigationTrigger,
+  TopbarSidebarTrigger,
   TopbarAction,
   TopbarActionGroup,
 } from "./topbar";
 export type {
   TopbarProps,
   TopbarBrandProps,
-  TopbarNavigationTriggerProps,
+  TopbarSidebarTriggerProps,
   TopbarActionProps,
   TopbarActionGroupProps,
 } from "./topbar";
