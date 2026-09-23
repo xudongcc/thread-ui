@@ -86,7 +86,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -108,7 +107,7 @@ const workspaces = [
 ];
 const pages = [
   { id: "home", label: "Home", icon: <HouseIcon /> },
-  { id: "orders", label: "Orders", icon: <ShoppingBagIcon />, badge: "6" },
+  { id: "orders", label: "Orders", icon: <ShoppingBagIcon /> },
   { id: "products", label: "Products", icon: <PackageIcon /> },
   { id: "customers", label: "Customers", icon: <UsersIcon /> },
   { id: "marketing", label: "Marketing", icon: <ChartNoAxesCombinedIcon /> },
@@ -374,7 +373,7 @@ function ApplicationContent({
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton
                           aria-current={item.active ? "page" : undefined}
-                          className={`h-10 md:h-9 ${"badge" in item ? "pr-12" : ""}`}
+                          className="h-10 md:h-9"
                           isActive={item.active}
                           onClick={() => {
                             item.onClick();
@@ -389,9 +388,6 @@ function ApplicationContent({
                           </span>
                           <span className="truncate">{item.label}</span>
                         </SidebarMenuButton>
-                        {"badge" in item && (
-                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                        )}
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
