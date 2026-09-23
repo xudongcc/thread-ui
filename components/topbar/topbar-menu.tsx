@@ -57,12 +57,17 @@ function WorkspaceIcon({ workspace }: { workspace?: Workspace }) {
       <AvatarFallback
         className="bg-primary text-primary-foreground text-xs font-semibold"
         // Icons leave the image idle; AvatarImage reports loading/error/loaded.
-        style={(state) => ({
-          display:
-            workspace?.icon != null && state.imageLoadingStatus === "idle"
-              ? "none"
-              : undefined,
-        })}
+        render={(props: ComponentProps<"span">, state) => (
+          <span
+            {...props}
+            className={cn(
+              props.className,
+              workspace?.icon != null &&
+                state.imageLoadingStatus === "idle" &&
+                "hidden",
+            )}
+          />
+        )}
       >
         {workspace ? getInitial(workspace.name) : <Building2Icon />}
       </AvatarFallback>
@@ -80,12 +85,17 @@ function UserAvatar({ user }: { user: NonNullable<TopbarMenuProps["user"]> }) {
       {user.avatar}
       <AvatarFallback
         className="text-foreground text-xs font-semibold"
-        style={(state) => ({
-          display:
-            user.avatar != null && state.imageLoadingStatus === "idle"
-              ? "none"
-              : undefined,
-        })}
+        render={(props: ComponentProps<"span">, state) => (
+          <span
+            {...props}
+            className={cn(
+              props.className,
+              user.avatar != null &&
+                state.imageLoadingStatus === "idle" &&
+                "hidden",
+            )}
+          />
+        )}
       >
         {getInitial(user.name)}
       </AvatarFallback>
