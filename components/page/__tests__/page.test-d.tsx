@@ -1,7 +1,8 @@
 import { createRef } from "react";
 import {
+  BreadcrumbAction,
+  BreadcrumbActions,
   PageActions,
-  PageBackAction,
   PageHeader,
   PagePrimaryAction,
   PageSecondaryAction,
@@ -23,7 +24,11 @@ const PageActionTypeApi = (props: PageActionProps) => {
 
 const PageActionApi = () => (
   <PageHeader>
-    <PageBackAction loading aria-label="Back" className="custom-back" />
+    <BreadcrumbActions>
+      <BreadcrumbAction aria-label="Back" className="custom-back">
+        Projects
+      </BreadcrumbAction>
+    </BreadcrumbActions>
     <PageActions>
       <PageSecondaryAction
         className="custom-secondary"
@@ -52,8 +57,10 @@ const PageActionPropLimits = () => (
     <PagePrimaryAction className={() => "custom-action"}>
       Save
     </PagePrimaryAction>
-    {/* @ts-expect-error PageBackAction only supports string class names. */}
-    <PageBackAction className={() => "custom-action"} />
+    {/* @ts-expect-error BreadcrumbAction only supports string class names. */}
+    <BreadcrumbAction className={() => "custom-action"}>
+      Projects
+    </BreadcrumbAction>
     {/* @ts-expect-error PageSecondaryAction only supports string class names. */}
     <PageSecondaryAction className={() => "custom-action"}>
       Edit
@@ -74,7 +81,14 @@ export const submit = (
   </PagePrimaryAction>
 );
 export const back = (
-  <PageBackAction nativeButton={false} render={<a href="/" />} />
+  <BreadcrumbActions>
+    <BreadcrumbAction
+      ref={createRef<HTMLAnchorElement>()}
+      render={<a href="/" />}
+    >
+      Home
+    </BreadcrumbAction>
+  </BreadcrumbActions>
 );
 export const secondary = (
   <PageSecondaryAction

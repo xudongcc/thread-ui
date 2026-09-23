@@ -23,7 +23,8 @@ pnpm dlx shadcn@latest add @thread-ui/page
 import {
   Page,
   PageActions,
-  PageBackAction,
+  BreadcrumbAction,
+  BreadcrumbActions,
   PageContent,
   PageDescription,
   PageHeader,
@@ -36,7 +37,14 @@ import {
 ```tsx
 <Page>
   <PageHeader>
-    <PageBackAction />
+    <BreadcrumbActions>
+      <BreadcrumbAction render={<a href="#products" />}>
+        Products
+      </BreadcrumbAction>
+      <BreadcrumbAction render={<a href="#pet-accessories" />}>
+        Pet accessories
+      </BreadcrumbAction>
+    </BreadcrumbActions>
     <PageTitle>3/4 inch Leather pet collar</PageTitle>
     <PageDescription>Perfect for any pet</PageDescription>
     <PageActions>
@@ -100,9 +108,52 @@ content layout and its container queries for responsive structure.
 
 ## Accessibility
 
-The default back and more-actions labels use the `page` resources in the
-`thread-ui` i18next namespace provided through `AppProvider`. Override them with
-`PageBackAction`'s `aria-label` and `PageActions`'s `secondaryMenuLabel`.
+The breadcrumb navigation, ancestor menu, and more-actions labels use the `page`
+resources in the `thread-ui` i18next namespace provided through `AppProvider`.
+Override them with `BreadcrumbActions`'s `aria-label` and `menuLabel`, and
+`PageActions`'s `secondaryMenuLabel`. Each `BreadcrumbAction` uses its children
+as its accessible name; an explicit `aria-label` takes precedence.
+
+## Breadcrumb navigation
+
+Place `BreadcrumbActions` inside `PageHeader`. Compose `BreadcrumbAction`
+children in order from the outermost ancestor to the nearest parent; the current
+page belongs in `PageTitle`. Arrays, conditional children and fragments are
+supported. Place the action components directly in this container, rather than
+hiding them inside a custom wrapper component.
+
+- No actions: the navigation renders nothing and occupies no header space.
+- One action: an arrow links directly to the parent, with the target's name
+  available to assistive technology and on hover.
+- Multiple actions: an ellipsis button opens a menu containing every parent,
+  with a chevron separating the control from the title.
+
+```tsx
+import Link from "next/link";
+
+<BreadcrumbActions>
+  <BreadcrumbAction render={<Link href="/products" />}>
+    Products
+  </BreadcrumbAction>
+  <BreadcrumbAction render={<Link href="/products/123" />}>
+    Acme Widget
+  </BreadcrumbAction>
+</BreadcrumbActions>;
+```
+
+Use `render` for framework links, or `onClick` for application navigation. Both
+an element and a Base UI render function are supported; custom render functions
+must forward the supplied props and ref. A custom render defaults to a non-button
+link; set `nativeButton` when rendering a native button. The component does not
+infer routes or call browser history. It replaces the removed `PageBackAction`.
+
+Navigation, title, and page actions share the first row at every screen size.
+The title takes the remaining width and truncates to one line with an ellipsis;
+its full text remains available to assistive technology. Mobile titles use a
+smaller font size. Optional descriptions wrap naturally on the second row. On
+mobile they span the full header; from the `sm` breakpoint they align with the
+title and extend to the right edge. Omitted navigation and actions leave their space
+available to the title.
 
 ## API Reference
 
@@ -133,14 +184,23 @@ The page title component.
   type="Pick<PageTitleProps, 'className'>"
 />
 
-### PageBackAction
+### BreadcrumbActions
 
-The page back button. Accepts Button props, including `disabled`, `render`, and
-`ref`, while keeping its own size and variant. `className` accepts a string.
+The ancestor navigation container. Native nav attributes and ref are forwarded.
 
 <AutoTypeTable
-  path="../../components/page/index.tsx"
-  type="Pick<PageBackActionProps, 'children' | 'className' | 'disabled' | 'loading' | 'onClick'>"
+  path="../../components/page/breadcrumb-actions.tsx"
+  type="Pick<BreadcrumbActionsProps, 'children' | 'className' | 'menuLabel'>"
+/>
+
+### BreadcrumbAction
+
+An ancestor destination. Supports `disabled`, `render`, `ref`, native events and
+accessibility attributes. Its size and visual variant are managed by the container.
+
+<AutoTypeTable
+  path="../../components/page/breadcrumb-actions.tsx"
+  type="Pick<BreadcrumbActionProps, 'children' | 'className' | 'disabled' | 'render' | 'onClick'>"
 />
 
 ### PagePrimaryAction

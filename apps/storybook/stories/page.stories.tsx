@@ -1,9 +1,11 @@
-import { fn } from "storybook/test";
+import { expect, fn, waitFor, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
+  BreadcrumbAction,
+  BreadcrumbActions,
   Page,
   PageActions,
-  PageBackAction,
   PageContent,
   PageDescription,
   PageHeader,
@@ -28,14 +30,21 @@ const meta = {
     docs: {
       description: {
         component:
-          "Responsive page shell with title, description, back navigation, primary action, and secondary actions that move into a menu in narrow containers.",
+          "Responsive page shell with title, description, single-parent or multi-level breadcrumb navigation, primary action, and secondary actions that move into a menu in narrow containers.",
       },
     },
   },
   render: (args) => (
     <Page {...args}>
       <PageHeader>
-        <PageBackAction onClick={fn()} />
+        <BreadcrumbActions>
+          <BreadcrumbAction render={<a href="#projects" />}>
+            Projects
+          </BreadcrumbAction>
+          <BreadcrumbAction render={<a href="#project" />}>
+            Thread UI
+          </BreadcrumbAction>
+        </BreadcrumbActions>
         <PageTitle>Project settings</PageTitle>
         <PageDescription>Manage your project and team.</PageDescription>
         <PageActions>
@@ -72,6 +81,88 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   name: "Composition API",
+  play: testOnly(async ({ canvas, canvasElement, userEvent, globals }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", {
+      name: globals.locale === "zh" ? "上级页面" : "Parent pages",
+    });
+    await userEvent.click(trigger);
+    await expect(
+      await body.findByRole("menuitem", { name: "Projects" }),
+    ).toHaveAttribute("href", "#projects");
+    await expect(
+      body.getByRole("menuitem", { name: "Thread UI" }),
+    ).toHaveAttribute("href", "#project");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(trigger).toHaveFocus());
+  }),
 };
 export const Compact: Story = { args: { variant: "compact" } };
 export const FullWidth: Story = { args: { variant: "full" } };
+
+export const SingleParent: Story = {
+  render: (args) => (
+    <Page {...args}>
+      <PageHeader>
+        <BreadcrumbActions>
+          <BreadcrumbAction render={<a href="#projects" />}>
+            Projects
+          </BreadcrumbAction>
+        </BreadcrumbActions>
+        <PageTitle>Thread UI</PageTitle>
+        <PageDescription>
+          A single parent is a direct back link.
+        </PageDescription>
+      </PageHeader>
+      <PageContent>
+        <Card>
+          <CardContent>Project overview</CardContent>
+        </Card>
+      </PageContent>
+    </Page>
+  ),
+};
+
+export const LongTitle: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The title truncates within the header while actions stay visible. The description spans a separate row and wraps at every viewport size.",
+      },
+    },
+  },
+  render: (args) => (
+    <Page {...args}>
+      <PageHeader>
+        <BreadcrumbActions>
+          <BreadcrumbAction render={<a href="#products" />}>
+            Products
+          </BreadcrumbAction>
+          <BreadcrumbAction render={<a href="#collection" />}>
+            Autumn collection
+          </BreadcrumbAction>
+        </BreadcrumbActions>
+        <PageTitle>
+          Edit product — Limited edition organic cotton oversized blue T-shirt
+        </PageTitle>
+        <PageDescription>
+          Manage product details, pricing, and availability across your sales
+          channels.
+        </PageDescription>
+        <PageActions>
+          <PagePrimaryAction onClick={fn()}>Save</PagePrimaryAction>
+          <PageSecondaryAction onAction={fn()}>Preview</PageSecondaryAction>
+          <PageSecondaryAction destructive onAction={fn()}>
+            Delete
+          </PageSecondaryAction>
+        </PageActions>
+      </PageHeader>
+      <PageContent>
+        <Card>
+          <CardContent>Product details</CardContent>
+        </Card>
+      </PageContent>
+    </Page>
+  ),
+};

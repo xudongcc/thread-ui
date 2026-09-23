@@ -2,25 +2,25 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import {
+  BreadcrumbAction,
+  BreadcrumbActions,
   PageActions,
-  PageBackAction,
   PagePrimaryAction,
   PageSecondaryAction,
 } from "../index";
 
 afterEach(cleanup);
 
-it("forwards primary and back button properties", async () => {
+it("forwards primary and breadcrumb action properties", async () => {
   const click = vi.fn();
   render(
     <>
       <PagePrimaryAction disabled form="profile" type="submit" onClick={click}>
         Save
       </PagePrimaryAction>
-      <PageBackAction
-        nativeButton={false}
-        render={<a href="/users" role="link" />}
-      />
+      <BreadcrumbActions>
+        <BreadcrumbAction render={<a href="/users" />}>Users</BreadcrumbAction>
+      </BreadcrumbActions>
     </>,
   );
   const save = screen.getByRole("button", { name: /Save$/ });
@@ -28,7 +28,7 @@ it("forwards primary and back button properties", async () => {
   expect(save.getAttribute("form")).toBe("profile");
   await userEvent.click(save);
   expect(click).not.toHaveBeenCalled();
-  expect(screen.getByRole("link", { name: /Back$/ }).getAttribute("href")).toBe(
+  expect(screen.getByRole("link", { name: "Users" }).getAttribute("href")).toBe(
     "/users",
   );
 });
