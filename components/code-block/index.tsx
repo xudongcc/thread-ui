@@ -177,16 +177,16 @@ const filenameIconMap = {
 const lineNumberClassNames = cn(
   "[&_code]:[counter-reset:line]",
   "[&_code]:[counter-increment:line_0]",
-  "[&_.line]:before:content-[counter(line)]",
-  "[&_.line]:before:inline-block",
-  "[&_.line]:before:[counter-increment:line]",
-  "[&_.line]:before:w-4",
-  "[&_.line]:before:mr-4",
-  "[&_.line]:before:text-[13px]",
-  "[&_.line]:before:text-right",
-  "[&_.line]:before:text-muted-foreground/50",
-  "[&_.line]:before:font-mono",
-  "[&_.line]:before:select-none",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:content-[counter(line)]",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:inline-block",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:[counter-increment:line]",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:w-4",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:mr-4",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:text-[13px]",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:text-right",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:text-muted-foreground/50",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:font-mono",
+  "[&_:is(.line,[data-slot=code-block-line])]:before:select-none",
 );
 
 const darkModeClassNames = cn(
@@ -245,9 +245,9 @@ const codeBlockClassName = cn(
   "[&_code]:grid",
   "[&_code]:overflow-x-auto",
   "[&_code]:bg-transparent",
-  "[&_.line]:px-4",
-  "[&_.line]:w-full",
-  "[&_.line]:relative",
+  "[&_:is(.line,[data-slot=code-block-line])]:px-4",
+  "[&_:is(.line,[data-slot=code-block-line])]:w-full",
+  "[&_:is(.line,[data-slot=code-block-line])]:relative",
 );
 
 const highlight = (
@@ -548,7 +548,7 @@ const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
           ?.toString()
           .split("\n")
           .map((line, i) => (
-            <span key={i} className="line">
+            <span key={i} data-slot="code-block-line">
               {line}
             </span>
           ))}
