@@ -18,6 +18,11 @@ const registryPackages = [
     repoDependencies: ["@repo/button", "@repo/locales"],
   },
   {
+    name: "form-layout",
+    dependencies: ["class-variance-authority"],
+    repoDependencies: [],
+  },
+  {
     name: "page-layout",
     dependencies: ["class-variance-authority"],
     repoDependencies: [],

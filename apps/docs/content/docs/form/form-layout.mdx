@@ -1,0 +1,95 @@
+---
+title: Form Layout
+description: Arrange form fields into responsive full-width and fractional columns.
+---
+
+<Preview path="form-layout" />
+
+`FormLayout` arranges fields horizontally when its container has enough space and
+stacks them on smaller screens or inside narrow cards. It uses a composition API
+and a default `gap-4` (1rem). No additional spacing is needed on `CardContent`.
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/form-layout
+```
+
+## Usage
+
+```tsx
+import { FormLayout, FormLayoutItem } from "@/components/thread-ui/form-layout";
+import { Input } from "@/components/thread-ui/input";
+```
+
+```tsx
+<CardContent>
+  <FormLayout>
+    <FormLayoutItem span="1/2">
+      <Input label="First name" name="firstName" />
+    </FormLayoutItem>
+    <FormLayoutItem span="1/2">
+      <Input label="Last name" name="lastName" />
+    </FormLayoutItem>
+    <FormLayoutItem>
+      <Input label="Email" name="email" type="email" />
+    </FormLayoutItem>
+  </FormLayout>
+</CardContent>
+```
+
+## Responsive Columns
+
+| `span`           | Below 32rem | 32rem to below 48rem | 48rem and above |
+| ---------------- | ----------- | -------------------- | --------------- |
+| `full` (default) | Full width  | Full width           | Full width      |
+| `1/2`            | Full width  | Half width           | Half width      |
+| `1/3`            | Full width  | Full width           | One third       |
+| `2/3`            | Full width  | Full width           | Two thirds      |
+
+Breakpoints use the layout's container width, not the browser viewport. A form
+inside a narrow sidebar remains stacked on a desktop screen. Thirds wait for a
+wider container to keep controls usable. Nested layouts respond to their own
+container.
+
+Pair two `1/2` items, three `1/3` items, or a `2/3` item with a `1/3` item.
+Spans remain explicit: a missing sibling does not make an item expand. Fields
+stay in DOM order; the layout does not fill gaps by reordering later fields.
+
+## Fields and Forms
+
+Wrap each complete field, including its label, description and error, in one
+`FormLayoutItem`. Thread UI inputs already supply those field parts. For shadcn
+controls, compose `Field`, `FieldLabel`, and `FieldDescription` inside the item.
+
+`FormLayout` and `FormLayoutItem` render plain `div` elements. They do not create
+a `form`, field labels, validation state, or submit handlers. Place them inside
+your own `form` or `fieldset` and keep your existing form library. Field IDs,
+label associations, keyboard order, native validation and submission remain
+owned by the controls and their parent form.
+
+Use `PageLayout` for page sections and `FormLayout` for fields within those
+sections. `FieldGroup` remains useful for vertical field groups.
+
+## API Reference
+
+Both components forward native `div` props, including `ref`, ARIA/data
+attributes and event handlers.
+
+### FormLayout
+
+The six-column grid with a default `gap-4`.
+
+<AutoTypeTable
+  path="../../components/form-layout/index.tsx"
+  type="Pick<FormLayoutProps, 'children' | 'className'>"
+/>
+
+### FormLayoutItem
+
+A full-width or fractional field wrapper.
+
+<AutoTypeTable
+  path="../../components/form-layout/index.tsx"
+  type="Pick<FormLayoutItemProps, 'children' | 'className' | 'span'>"
+/>

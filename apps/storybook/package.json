@@ -29,6 +29,7 @@
     "@repo/dialog": "workspace:*",
     "@repo/empty": "workspace:*",
     "@repo/file-upload": "workspace:*",
+    "@repo/form-layout": "workspace:*",
     "@repo/input": "workspace:*",
     "@repo/layout": "workspace:*",
     "@repo/locales": "workspace:*",

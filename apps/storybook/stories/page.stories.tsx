@@ -12,6 +12,7 @@ import {
   PageTitle,
 } from "@/components/thread-ui/page";
 import { Input } from "@/components/thread-ui/input";
+import { FormLayout, FormLayoutItem } from "@/components/thread-ui/form-layout";
 import { Card, CardContent } from "@/components/ui/card";
 
 const meta = {
@@ -49,12 +50,18 @@ const meta = {
       </PageHeader>
       <PageContent>
         <Card>
-          <CardContent className="space-y-4">
-            <Input defaultValue="Thread UI" label="Project name" />
-            <Input
-              defaultValue="A component library for product teams."
-              label="Description"
-            />
+          <CardContent>
+            <FormLayout>
+              <FormLayoutItem>
+                <Input defaultValue="Thread UI" label="Project name" />
+              </FormLayoutItem>
+              <FormLayoutItem>
+                <Input
+                  defaultValue="A component library for product teams."
+                  label="Description"
+                />
+              </FormLayoutItem>
+            </FormLayout>
           </CardContent>
         </Card>
       </PageContent>

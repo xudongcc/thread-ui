@@ -62,6 +62,7 @@ import {
 import { DataTable } from "@/components/thread-ui/data-table";
 import { DataFilter } from "@/components/thread-ui/data-filter";
 import { Input } from "@/components/thread-ui/input";
+import { FormLayout, FormLayoutItem } from "@/components/thread-ui/form-layout";
 import {
   Card,
   CardAction,
@@ -897,20 +898,28 @@ function CollectionPage() {
                   <h2>Collection details</h2>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  label="Title"
-                  value={draft.title}
-                  onChange={(event) => update({ title: event.target.value })}
-                />
-                <Textarea
-                  label="Description"
-                  rows={3}
-                  value={draft.description}
-                  onChange={(event) =>
-                    update({ description: event.target.value })
-                  }
-                />
+              <CardContent>
+                <FormLayout>
+                  <FormLayoutItem>
+                    <Input
+                      label="Title"
+                      value={draft.title}
+                      onChange={(event) =>
+                        update({ title: event.target.value })
+                      }
+                    />
+                  </FormLayoutItem>
+                  <FormLayoutItem>
+                    <Textarea
+                      label="Description"
+                      rows={3}
+                      value={draft.description}
+                      onChange={(event) =>
+                        update({ description: event.target.value })
+                      }
+                    />
+                  </FormLayoutItem>
+                </FormLayout>
               </CardContent>
             </Card>
             <Card aria-label="Collection products" role="region">
@@ -1036,21 +1045,23 @@ function CollectionPage() {
                   <h2>Status</h2>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Select
-                  aria-label="Collection status"
-                  value={draft.status}
-                  items={[
-                    { value: "active", label: "Active" },
-                    { value: "draft", label: "Draft" },
-                  ]}
-                  onValueChange={(value) => {
-                    if (value) update({ status: value });
-                  }}
-                />
-                <p className="text-muted-foreground text-sm">
-                  Draft collections are hidden from your storefront.
-                </p>
+              <CardContent>
+                <FormLayout>
+                  <FormLayoutItem>
+                    <Select
+                      aria-label="Collection status"
+                      description="Draft collections are hidden from your storefront."
+                      value={draft.status}
+                      items={[
+                        { value: "active", label: "Active" },
+                        { value: "draft", label: "Draft" },
+                      ]}
+                      onValueChange={(value) => {
+                        if (value) update({ status: value });
+                      }}
+                    />
+                  </FormLayoutItem>
+                </FormLayout>
               </CardContent>
             </Card>
             <Card aria-label="Publishing" role="region">
@@ -1115,9 +1126,15 @@ export function LayoutWithoutSidebarExample(args: LayoutProps) {
             <PageLayout>
               <PageLayoutSection>
                 <Card>
-                  <CardContent className="space-y-4">
-                    <Input defaultValue="Alex Morgan" label="Name" />
-                    <Input defaultValue="alex@example.com" label="Email" />
+                  <CardContent>
+                    <FormLayout>
+                      <FormLayoutItem span="1/2">
+                        <Input defaultValue="Alex Morgan" label="Name" />
+                      </FormLayoutItem>
+                      <FormLayoutItem span="1/2">
+                        <Input defaultValue="alex@example.com" label="Email" />
+                      </FormLayoutItem>
+                    </FormLayout>
                   </CardContent>
                 </Card>
               </PageLayoutSection>
