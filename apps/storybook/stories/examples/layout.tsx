@@ -410,83 +410,96 @@ function ApplicationContent({
       </Sidebar>
       <LayoutContent>
         {page === "profile" ? (
-          <Page className="max-w-3xl space-y-4" variant="full">
-            <h1 className="text-2xl font-semibold">
-              {i18n.language === "zh" ? "个人中心" : "Profile"}
-            </h1>
-            <Card>
-              <CardContent className="space-y-4">
-                <div
-                  aria-hidden="true"
-                  className="bg-muted flex size-14 items-center justify-center rounded-full font-semibold"
-                >
-                  A
-                </div>
-                <h2 className="text-lg font-semibold">Alex Morgan</h2>
-                <p className="text-muted-foreground">alex@example.com</p>
-              </CardContent>
-            </Card>
-            <Button variant="outline" onClick={() => setPage("home")}>
-              {i18n.language === "zh" ? "返回首页" : "Back to home"}
-            </Button>
+          <Page className="max-w-3xl" variant="full">
+            <PageLayout>
+              <PageLayoutSection className="flex flex-col">
+                <h1 className="text-2xl font-semibold">
+                  {i18n.language === "zh" ? "个人中心" : "Profile"}
+                </h1>
+                <Card>
+                  <CardContent className="space-y-4">
+                    <div
+                      aria-hidden="true"
+                      className="bg-muted flex size-14 items-center justify-center rounded-full font-semibold"
+                    >
+                      A
+                    </div>
+                    <h2 className="text-lg font-semibold">Alex Morgan</h2>
+                    <p className="text-muted-foreground">alex@example.com</p>
+                  </CardContent>
+                </Card>
+                <Button variant="outline" onClick={() => setPage("home")}>
+                  {i18n.language === "zh" ? "返回首页" : "Back to home"}
+                </Button>
+              </PageLayoutSection>
+            </PageLayout>
           </Page>
         ) : children && page === initialPage ? (
           <div key={workspace} className="flex min-w-0 flex-1 flex-col">
             {children}
           </div>
         ) : (
-          <Page className="max-w-6xl space-y-8" variant="full">
-            <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
-              <span>Last 30 days · All channels</span>
-              <span>Store is live</span>
-            </div>
-            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {[
-                ["Visits", "1,284"],
-                ["Total sales", "$4,860"],
-                ["Orders", "36"],
-                ["Conversion", "2.8%"],
-              ].map(([label, value]) => (
-                <div key={label} className="space-y-1">
-                  <dt className="text-muted-foreground text-sm">{label}</dt>
-                  <dd className="text-xl font-semibold tracking-tight">
-                    {value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <section className="mx-auto w-full max-w-2xl space-y-5 py-6 text-center md:py-14">
-              <p className="text-muted-foreground text-sm font-medium">
-                {current.name}
-              </p>
-              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                {page === "home"
-                  ? "Let's build something great."
-                  : (pages.find((item) => item.id === page)?.label ??
-                    (page === "store"
-                      ? "Online store"
-                      : page === "settings"
-                        ? "Settings"
-                        : "Apps"))}
-              </h1>
-              <p className="text-muted-foreground">
-                Your next chapter starts with a few small steps.
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="outline" onClick={() => setPage("orders")}>
-                  <ShoppingBagIcon />
-                  Review orders
-                  <span className="bg-muted text-foreground rounded-full px-2 text-xs">
-                    6
-                  </span>
-                </Button>
-                <Button variant="secondary" onClick={() => setPage("store")}>
-                  <StoreIcon />
-                  View store
-                </Button>
-              </div>
-            </section>
+          <Page className="max-w-6xl" variant="full">
             <PageLayout>
+              <PageLayoutSection>
+                <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span>Last 30 days · All channels</span>
+                  <span>Store is live</span>
+                </div>
+              </PageLayoutSection>
+              <PageLayoutSection>
+                <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {[
+                    ["Visits", "1,284"],
+                    ["Total sales", "$4,860"],
+                    ["Orders", "36"],
+                    ["Conversion", "2.8%"],
+                  ].map(([label, value]) => (
+                    <div key={label} className="space-y-1">
+                      <dt className="text-muted-foreground text-sm">{label}</dt>
+                      <dd className="text-xl font-semibold tracking-tight">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </PageLayoutSection>
+              <PageLayoutSection>
+                <section className="mx-auto w-full max-w-2xl space-y-5 py-6 text-center md:py-14">
+                  <p className="text-muted-foreground text-sm font-medium">
+                    {current.name}
+                  </p>
+                  <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                    {page === "home"
+                      ? "Let's build something great."
+                      : (pages.find((item) => item.id === page)?.label ??
+                        (page === "store"
+                          ? "Online store"
+                          : page === "settings"
+                            ? "Settings"
+                            : "Apps"))}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Your next chapter starts with a few small steps.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button variant="outline" onClick={() => setPage("orders")}>
+                      <ShoppingBagIcon />
+                      Review orders
+                      <span className="bg-muted text-foreground rounded-full px-2 text-xs">
+                        6
+                      </span>
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setPage("store")}
+                    >
+                      <StoreIcon />
+                      View store
+                    </Button>
+                  </div>
+                </section>
+              </PageLayoutSection>
               {[
                 {
                   title: "Make it yours",
@@ -547,10 +560,12 @@ function ApplicationContent({
                   </Card>
                 </PageLayoutSection>
               ))}
+              <PageLayoutSection>
+                <p className="text-muted-foreground pb-4 text-center text-xs">
+                  Everything you need to grow, in one place.
+                </p>
+              </PageLayoutSection>
             </PageLayout>
-            <p className="text-muted-foreground pb-4 text-center text-xs">
-              Everything you need to grow, in one place.
-            </p>
           </Page>
         )}
       </LayoutContent>
@@ -1063,18 +1078,22 @@ export function LayoutWithoutSidebarExample(args: LayoutProps) {
         </TopbarMenu>
       </Topbar>
       <LayoutContent id="account-content">
-        <Page className="space-y-4" variant="full">
+        <Page variant="full">
           <PageHeader>
             <PageTitle>Profile</PageTitle>
             <PageDescription>Manage your account details.</PageDescription>
           </PageHeader>
           <PageContent>
-            <Card>
-              <CardContent className="space-y-4">
-                <Input defaultValue="Alex Morgan" label="Name" />
-                <Input defaultValue="alex@example.com" label="Email" />
-              </CardContent>
-            </Card>
+            <PageLayout>
+              <PageLayoutSection>
+                <Card>
+                  <CardContent className="space-y-4">
+                    <Input defaultValue="Alex Morgan" label="Name" />
+                    <Input defaultValue="alex@example.com" label="Email" />
+                  </CardContent>
+                </Card>
+              </PageLayoutSection>
+            </PageLayout>
           </PageContent>
         </Page>
       </LayoutContent>
