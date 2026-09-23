@@ -755,53 +755,55 @@ function OrdersPage() {
       </PageHeader>
       <PageContent className="min-w-0">
         <Card>
-          <CardContent className="flex flex-col gap-2">
-            <DataFilter
-              key={`filters-${filterRevision}`}
-              filters={orderFilters}
-              value={filterValue}
-              search={{
-                "aria-label": "Search orders",
-                placeholder: "Order number, customer, or email",
-              }}
-              onChange={(value) => {
-                setFilterValue(value);
-                changePage(0);
-              }}
-            />
-            <DataTable
-              // DataTable owns selection; remount when filters/pages change to clear it.
-              key={`table-${revision}`}
-              columns={orderColumns}
-              data={visibleOrders}
-              getRowId={(order) => order.id}
-              bulkActions={
-                <Button
-                  size="xs"
-                  variant="outline"
-                  onClick={() => {
-                    const ids = new Set(selected.map((order) => order.id));
-                    setOrders((current) =>
-                      current.map((order) =>
-                        ids.has(order.id)
-                          ? { ...order, status: "Fulfilled" }
-                          : order,
-                      ),
-                    );
-                    resetSelection();
-                  }}
-                >
-                  Mark fulfilled
-                </Button>
-              }
-              pagination={{
-                hasPreviousPage: currentPage > 0,
-                hasNextPage: currentPage < pageCount - 1,
-                onPreviousPage: () => changePage(currentPage - 1),
-                onNextPage: () => changePage(currentPage + 1),
-              }}
-              onRowSelectionChange={setSelected}
-            />
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              <DataFilter
+                key={`filters-${filterRevision}`}
+                filters={orderFilters}
+                value={filterValue}
+                search={{
+                  "aria-label": "Search orders",
+                  placeholder: "Order number, customer, or email",
+                }}
+                onChange={(value) => {
+                  setFilterValue(value);
+                  changePage(0);
+                }}
+              />
+              <DataTable
+                // DataTable owns selection; remount when filters/pages change to clear it.
+                key={`table-${revision}`}
+                columns={orderColumns}
+                data={visibleOrders}
+                getRowId={(order) => order.id}
+                bulkActions={
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={() => {
+                      const ids = new Set(selected.map((order) => order.id));
+                      setOrders((current) =>
+                        current.map((order) =>
+                          ids.has(order.id)
+                            ? { ...order, status: "Fulfilled" }
+                            : order,
+                        ),
+                      );
+                      resetSelection();
+                    }}
+                  >
+                    Mark fulfilled
+                  </Button>
+                }
+                pagination={{
+                  hasPreviousPage: currentPage > 0,
+                  hasNextPage: currentPage < pageCount - 1,
+                  onPreviousPage: () => changePage(currentPage - 1),
+                  onNextPage: () => changePage(currentPage + 1),
+                }}
+                onRowSelectionChange={setSelected}
+              />
+            </div>
           </CardContent>
         </Card>
       </PageContent>
@@ -1025,16 +1027,18 @@ function CollectionPage() {
                   <h2>Search engine listing</h2>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground text-xs break-all">
-                  north.example.com / collections / summer-essentials
-                </p>
-                <p className="text-primary text-lg font-medium">
-                  {draft.title || "Untitled collection"}
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  {draft.description}
-                </p>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-xs break-all">
+                    north.example.com / collections / summer-essentials
+                  </p>
+                  <p className="text-primary text-lg font-medium">
+                    {draft.title || "Untitled collection"}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    {draft.description}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </PageLayoutSection>
@@ -1070,19 +1074,21 @@ function CollectionPage() {
                   <h2>Publishing</h2>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2">
-                    <StoreIcon aria-hidden="true" className="size-4" />
-                    Online store
-                  </span>
-                  <Badge color={draft.status === "active" ? "green" : "zinc"}>
-                    {draft.status === "active" ? "Active" : "Draft"}
-                  </Badge>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="flex items-center gap-2">
+                      <StoreIcon aria-hidden="true" className="size-4" />
+                      Online store
+                    </span>
+                    <Badge color={draft.status === "active" ? "green" : "zinc"}>
+                      {draft.status === "active" ? "Active" : "Draft"}
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    {draft.products.length} products in this collection.
+                  </p>
                 </div>
-                <p className="text-muted-foreground text-sm">
-                  {draft.products.length} products in this collection.
-                </p>
               </CardContent>
             </Card>
             <p className="text-muted-foreground min-h-5 text-sm" role="status">
