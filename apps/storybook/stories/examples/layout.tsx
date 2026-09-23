@@ -812,20 +812,21 @@ const collectionProducts = [
     id: "vase",
     name: "Nordic ceramic vase",
     price: "$48.00",
-    color: "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+    image:
+      "https://placehold.co/600x450/fef3c7/92400e?text=Nordic+ceramic+vase",
   },
   {
     id: "bag",
     name: "Everyday canvas tote",
     price: "$32.00",
-    color: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-200",
+    image:
+      "https://placehold.co/600x450/dbeafe/1d4ed8?text=Everyday+canvas+tote",
   },
   {
     id: "tray",
     name: "Oak serving tray",
     price: "$56.00",
-    color:
-      "bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
+    image: "https://placehold.co/600x450/d1fae5/065f46?text=Oak+serving+tray",
   },
 ];
 const initialCollection = {
@@ -945,16 +946,13 @@ function CollectionPage() {
                       )!;
                       return (
                         <Card key={id} role="article">
-                          <div
-                            aria-hidden="true"
-                            className={`flex aspect-4/3 items-center justify-center ${product.color}`}
-                          >
-                            {id === "bag" ? (
-                              <ShoppingBagIcon className="size-12" />
-                            ) : (
-                              <PackageIcon className="size-12" />
-                            )}
-                          </div>
+                          <img
+                            alt={product.name}
+                            className="aspect-4/3 w-full object-cover"
+                            height={450}
+                            src={product.image}
+                            width={600}
+                          />
                           <CardHeader>
                             <CardTitle>
                               <h3>{product.name}</h3>
