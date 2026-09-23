@@ -110,38 +110,7 @@ const eslintConfig = [
       },
     },
     rules: {
-      "shadcn/no-restyle": [
-        "warn",
-        {
-          allow: ["layout"],
-          contracts: [
-            // Content containers let consumers arrange and space their children.
-            {
-              pattern: "^(Page|PageContent|CardContent)$",
-              allow: ["layout", "spacing"],
-            },
-            // A card with a custom media header needs the same flush top as an image.
-            { pattern: "^Card$", allow: ["layout", "pt-0"] },
-            // Sidebar content spacing and the gutter for an adjacent menu badge.
-            { pattern: "^SidebarContent$", allow: ["layout", "py-2"] },
-            { pattern: "^SidebarMenuButton$", allow: ["layout", "pr-12"] },
-            // The navigation trigger follows the Topbar's locally scoped theme.
-            {
-              pattern: "^SidebarTrigger$",
-              allow: [
-                "layout",
-                "text-foreground",
-                "hover:bg-accent",
-                "hover:text-accent-foreground",
-                "focus-visible:ring-ring",
-                "aria-expanded:bg-accent",
-                "aria-expanded:text-accent-foreground",
-                "dark:hover:bg-accent",
-              ],
-            },
-          ],
-        },
-      ],
+      "shadcn/no-restyle": ["warn", { allow: ["layout"] }],
     },
   },
 ];
