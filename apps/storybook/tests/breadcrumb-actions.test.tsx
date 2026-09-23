@@ -13,6 +13,7 @@ import {
   BreadcrumbActions,
   Page,
   PageActions,
+  PageContent,
   PageDescription,
   PageHeader,
   PageNextAction,
@@ -313,7 +314,7 @@ for (const width of [320, 1024]) {
             const bounds = paragraph.element().getBoundingClientRect();
             expect(bounds.top).toBeGreaterThanOrEqual(title.bottom);
             expect(bounds.left).toBeCloseTo(
-              width >= 640 ? title.left : header.left,
+              header.width >= 672 ? title.left : header.left,
             );
             expect(bounds.right).toBeCloseTo(header.right);
             expect(bounds.height).toBeGreaterThan(20);
@@ -441,21 +442,128 @@ for (const mode of ["element", "function"] as const) {
   });
 }
 
-test("pagination follows page container width rather than the window", async () => {
-  await page.viewport(1440, 800);
+for (const variant of ["full", "compact"] as const) {
+  for (const contentWidth of [671, 672]) {
+    test(`${variant} page header breakpoints follow ${contentWidth}px content inside a wide viewport`, async () => {
+      await page.viewport(1440, 800);
+      mount(
+        <Page variant={variant}>
+          <PageHeader data-testid="header">
+            <BreadcrumbActions>
+              <BreadcrumbAction>Products</BreadcrumbAction>
+            </BreadcrumbActions>
+            <PageTitle>Product details</PageTitle>
+            <PageDescription data-testid="description">
+              Manage product details.
+            </PageDescription>
+            <PageActions>
+              <PageSecondaryAction>Preview</PageSecondaryAction>
+              <PagePrimaryAction>Save</PagePrimaryAction>
+              <PagePagination>
+                <PagePreviousAction />
+                <PageNextAction />
+              </PagePagination>
+            </PageActions>
+          </PageHeader>
+        </Page>,
+      );
+      // The outer wrapper adds 16px per side; the inner content owns the query.
+      container.style.width = `${contentWidth + 32}px`;
+      const expanded = contentWidth >= 672;
+      const heading = page
+        .getByRole("heading", { name: "Product details" })
+        .element();
+      const title = heading.getBoundingClientRect();
+      const header = page
+        .getByTestId("header")
+        .element()
+        .getBoundingClientRect();
+      const description = page
+        .getByTestId("description")
+        .element()
+        .getBoundingClientRect();
+      expect(header.width).toBe(contentWidth);
+      expect(getComputedStyle(heading).fontSize).toBe(
+        expanded ? "20px" : "18px",
+      );
+      expect(description.left).toBeCloseTo(expanded ? title.left : header.left);
+      const pagination = container.querySelector<HTMLDivElement>(
+        '[data-slot="page-pagination"]',
+      );
+      if (expanded) {
+        await expect.element(pagination).toBeVisible();
+        await expect
+          .element(page.getByRole("button", { name: "Preview" }))
+          .toBeVisible();
+        await expect
+          .element(page.getByRole("button", { name: "More actions" }))
+          .not.toBeInTheDocument();
+      } else {
+        await expect.element(pagination).not.toBeVisible();
+        await expect
+          .element(page.getByRole("button", { name: "Preview" }))
+          .not.toBeInTheDocument();
+        await expect
+          .element(page.getByRole("button", { name: "More actions" }))
+          .toBeVisible();
+      }
+    });
+  }
+}
+
+for (const width of [375, 1440]) {
+  for (const variant of ["compact", "default", "full"] as const) {
+    test(`${variant} Page measures content separately from padding at ${width}px`, async () => {
+      await page.viewport(width, 800);
+      const ref = createRef<HTMLDivElement>();
+      mount(
+        <Page
+          ref={ref}
+          aria-label="Product page"
+          className="custom-page"
+          id="product-page"
+          variant={variant}
+        >
+          <PageHeader>
+            <PageTitle>Product details</PageTitle>
+          </PageHeader>
+          <PageContent>Product content</PageContent>
+        </Page>,
+      );
+      const inner = ref.current!;
+      const outer = inner.parentElement!;
+      const content = inner.getBoundingClientRect();
+      const wrapper = outer.getBoundingClientRect();
+      const maxWidth =
+        variant === "compact" ? 672 : variant === "default" ? 1024 : Infinity;
+      expect(content.width).toBe(Math.min(width - 32, maxWidth));
+      expect(wrapper.width).toBe(width);
+      expect((content.left + content.right) / 2).toBeCloseTo(width / 2);
+      expect(getComputedStyle(outer).paddingLeft).toBe("16px");
+      expect(getComputedStyle(inner).paddingLeft).toBe("0px");
+      expect(getComputedStyle(inner).containerName).toBe("page");
+      expect(inner.id).toBe("product-page");
+      expect(inner.classList.contains("custom-page")).toBe(true);
+      expect(inner.getAttribute("aria-label")).toBe("Product page");
+      expect(document.documentElement.scrollWidth).toBe(width);
+    });
+  }
+}
+
+test("Page wrapper preserves flex height for PageContent", async () => {
+  await page.viewport(1024, 800);
   mount(
-    <Page variant="compact">
-      <PageActions>
-        <PagePagination>
-          <PagePreviousAction />
-          <PageNextAction />
-        </PagePagination>
-      </PageActions>
-    </Page>,
+    <div className="flex h-96 flex-col" data-testid="frame">
+      <Page>
+        <PageHeader>
+          <PageTitle>Product details</PageTitle>
+        </PageHeader>
+        <PageContent data-testid="content">Details</PageContent>
+      </Page>
+    </div>,
   );
-  await expect
-    .element(
-      container.querySelector<HTMLDivElement>('[data-slot="page-pagination"]'),
-    )
-    .not.toBeVisible();
+  const frame = page.getByTestId("frame").element().getBoundingClientRect();
+  const content = page.getByTestId("content").element().getBoundingClientRect();
+  expect(content.bottom).toBeCloseTo(frame.bottom - 16);
+  expect(content.height).toBeGreaterThan(200);
 });

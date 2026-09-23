@@ -76,6 +76,17 @@ Choose a variant based on the page's content and primary task rather than the
 viewport size. `Page` already fills the available width until it reaches the
 selected maximum width.
 
+`Page` renders an outer wrapper with `p-4` and an inner, centered content
+container. Width variants apply to the inner container: `compact` allows 42rem
+(672px) of content, `default` allows 64rem (1024px), and `full` has no maximum.
+The wrapper's 16px padding on each side is outside those limits. A compact Page
+therefore reaches the `@2xl/page` breakpoint when its parent provides at least
+704px of width (with the default 16px root font size).
+
+`className`, `ref`, and other div attributes target the inner content container,
+which also owns `@container/page`. `PageHeader` and `PageContent` remain direct
+children in the composition API.
+
 | Variant   | Best suited for                                      | Avoid when                                      |
 | --------- | ---------------------------------------------------- | ----------------------------------------------- |
 | `default` | Detail pages, settings, editors, and most CRUD pages | The content is a single short, focused form     |
@@ -101,7 +112,7 @@ on horizontal space.
 
 Use `full` when additional horizontal space directly improves the task, such as
 comparing table columns, scanning dashboard panels, working on a canvas, or
-using a split view. Full width removes the outer max-width constraint, but inner
+using a split view. Full width removes the content max-width constraint, but inner
 content should still define its own readable width where necessary.
 
 Combine `PageContent` with [Page Layout](/docs/layout/page-layout) when a full or
@@ -152,10 +163,11 @@ infer routes or call browser history. It replaces the removed `PageBackAction`.
 
 Navigation, title, and page actions share the first row at every screen size.
 The title takes the remaining width and truncates to one line with an ellipsis;
-its full text remains available to assistive technology. Mobile titles use a
-smaller font size. Optional descriptions wrap naturally on the second row. On
-mobile they span the full header; from the `sm` breakpoint they align with the
-title and extend to the right edge. Omitted navigation and actions leave their space
+its full text remains available to assistive technology. All responsive behavior uses the
+`@2xl/page` container breakpoint (42rem / 672px of Page content width). Below it,
+titles use a smaller font size and descriptions span the full header. At and
+above it, descriptions align with the title and extend to the right edge.
+Descriptions wrap naturally on the second row. Omitted navigation and actions leave their space
 available to the title.
 
 ## Previous and next items
@@ -175,9 +187,10 @@ unavailable directions; this does not paginate a table.
 </PageActions>
 ```
 
-The group is hidden below 768px of **Page content width**, matching the breakpoint
-for inline secondary actions. It remains hidden in compact containers even on a
-large screen and is excluded from keyboard focus while hidden. Visible controls
+The group is hidden below 672px of **Page content width**, matching the breakpoint
+for inline secondary actions, title size, and description alignment. Narrow
+containers use the compact presentation even on a large screen. Hidden controls
+are excluded from keyboard focus. Visible controls
 use normal Tab navigation. Their default labels are localized; override
 `aria-label` for resource-specific names.
 

@@ -176,7 +176,7 @@ export const Pagination: Story = {
     docs: {
       description: {
         story:
-          "Navigate between product details with a shadcn ButtonGroup after the primary action. The group is hidden below 768px of Page content width, alongside the existing responsive action layout. Use the viewport toolbar to check mobile behavior.",
+          "Navigate between product details with a shadcn ButtonGroup after the primary action. The group is hidden below 672px of Page content width, alongside the existing responsive action layout. Use the viewport toolbar to check mobile behavior.",
       },
     },
   },

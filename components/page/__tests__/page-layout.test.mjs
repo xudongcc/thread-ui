@@ -23,9 +23,9 @@ assert.match(
   pageActionsSource,
   /\[&>\[data-slot=page-secondary-actions\]\]:order-10/,
 );
-assert.match(source, /hidden @3xl\/page:flex/);
-assert.match(source, /@3xl\/page:hidden/);
-assert.match(source, /<div className="@3xl\/page:hidden">\s*<DropdownMenu>/);
+assert.match(source, /hidden @2xl\/page:flex/);
+assert.match(source, /@2xl\/page:hidden/);
+assert.match(source, /<div className="@2xl\/page:hidden">\s*<DropdownMenu>/);
 assert.match(
   pageActionsSource,
   /const inlineSecondaryActions =\s*secondaryActions\.length > 3\s*\?\s*secondaryActions\.slice\(0, 2\)\s*:\s*secondaryActions;/,
