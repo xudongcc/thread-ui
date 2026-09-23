@@ -91,6 +91,18 @@ appearance independently of the global theme.
 Actions and the TopbarMenu trigger adapt their hover, focus, and expanded styles.
 The menu trigger becomes a circular avatar button below 640px.
 
+The registry installs semantic colors following Sidebar's naming convention:
+`--topbar`, `--topbar-foreground`, `--topbar-accent`,
+`--topbar-accent-foreground`, `--topbar-border`, and `--topbar-ring`.
+The menu trigger also uses `--topbar-menu-accent` and `--topbar-menu-border`
+to retain its distinct hover and border treatments. Tailwind classes map directly
+to these variables, for example `bg-topbar` and `text-topbar-foreground`.
+
+Defaults are defined in `:root` and `.dark`. An explicit `variant` scopes the
+same variables to the header with `[data-slot="topbar"][data-variant="light"]`
+or `[data-slot="topbar"][data-variant="dark"]`, independently of the page theme.
+Override these variables in your theme or on the header to customize its colors.
+
 ## Site logo
 
 Place the logo and site name inside `TopbarBrand`. Mark decorative SVGs with

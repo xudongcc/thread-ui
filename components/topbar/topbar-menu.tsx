@@ -161,15 +161,10 @@ export function TopbarMenuTrigger({
       disabled={config.disabled || config.loading || props.disabled}
       className={cn(
         buttonVariants({ variant: "outline" }),
-        "relative h-10 max-w-full gap-2 bg-white dark:bg-neutral-950",
+        "relative h-10 max-w-full gap-2",
         children === undefined &&
           "p-1 max-sm:w-10 max-sm:rounded-full max-sm:p-0 sm:pr-2",
-        "group-data-[variant=dark]/topbar:bg-neutral-950 group-data-[variant=light]/topbar:bg-white dark:group-data-[variant=light]/topbar:bg-white",
-        "group-data-[variant=dark]/topbar:border-white/15 group-data-[variant=dark]/topbar:text-white group-data-[variant=dark]/topbar:hover:bg-white/10 group-data-[variant=dark]/topbar:hover:text-white group-data-[variant=dark]/topbar:aria-expanded:bg-white/10 group-data-[variant=dark]/topbar:aria-expanded:text-white",
-        "group-data-[variant=light]/topbar:border-black/15 group-data-[variant=light]/topbar:text-neutral-950 group-data-[variant=light]/topbar:hover:bg-black/10 group-data-[variant=light]/topbar:hover:text-neutral-950 group-data-[variant=light]/topbar:focus-visible:ring-black/40 group-data-[variant=light]/topbar:aria-expanded:bg-black/10 group-data-[variant=light]/topbar:aria-expanded:text-neutral-950",
-        "dark:group-data-[variant=dark]/topbar:hover:bg-white/10 dark:group-data-[variant=light]/topbar:hover:bg-black/10 dark:group-data-[variant=dark]/topbar:aria-expanded:bg-white/10 dark:group-data-[variant=light]/topbar:aria-expanded:bg-black/10",
-        "group-data-[variant=auto]/topbar:border-black/15 group-data-[variant=auto]/topbar:text-neutral-950 group-data-[variant=auto]/topbar:hover:bg-black/10 group-data-[variant=auto]/topbar:hover:text-neutral-950 group-data-[variant=auto]/topbar:focus-visible:ring-black/40 group-data-[variant=auto]/topbar:aria-expanded:bg-black/10 group-data-[variant=auto]/topbar:aria-expanded:text-neutral-950",
-        "dark:group-data-[variant=auto]/topbar:border-white/15 dark:group-data-[variant=auto]/topbar:text-white dark:group-data-[variant=auto]/topbar:hover:bg-white/10 dark:group-data-[variant=auto]/topbar:hover:text-white dark:group-data-[variant=auto]/topbar:focus-visible:ring-white/60 dark:group-data-[variant=auto]/topbar:aria-expanded:bg-white/10 dark:group-data-[variant=auto]/topbar:aria-expanded:text-white",
+        "border-topbar-menu-border bg-topbar text-topbar-foreground hover:bg-topbar-menu-accent hover:text-topbar-accent-foreground focus-visible:ring-topbar-ring aria-expanded:bg-topbar-menu-accent aria-expanded:text-topbar-accent-foreground dark:bg-topbar dark:hover:bg-topbar-menu-accent",
         className,
       )}
     >

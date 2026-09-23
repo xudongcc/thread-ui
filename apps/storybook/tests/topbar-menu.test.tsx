@@ -10,6 +10,7 @@ import type { Root } from "react-dom/client";
 import type { TopbarMenuTriggerProps } from "@/components/thread-ui/topbar";
 import {
   Topbar,
+  TopbarAction,
   TopbarMenu,
   TopbarMenuContent,
   TopbarMenuTrigger,
@@ -30,6 +31,7 @@ afterEach(() => {
   if (root) flushSync(() => root!.unmount());
   root = undefined;
   container?.remove();
+  document.documentElement.classList.remove("dark");
 });
 function mount(children: ReactNode) {
   container = document.createElement("div");
@@ -196,6 +198,66 @@ for (const kind of ["user", "workspace"] as const) {
           return true;
         })
         .toBe(true);
+    });
+  }
+}
+
+// Fixed header palettes must remain legible even when the page theme is opposite.
+function pixel(color: string) {
+  const context = document.createElement("canvas").getContext("2d")!;
+  context.fillStyle = color;
+  context.fillRect(0, 0, 1, 1);
+  return Array.from(context.getImageData(0, 0, 1, 1).data);
+}
+for (const globalDark of [false, true]) {
+  for (const variant of [undefined, "light", "dark"] as const) {
+    test(`Topbar ${variant ?? "auto"} palette under ${globalDark ? "dark" : "light"} theme`, async () => {
+      await page.viewport(1280, 800);
+      document.documentElement.classList.toggle("dark", globalDark);
+      mount(
+        <Topbar variant={variant}>
+          <TopbarAction aria-label="Notifications">!</TopbarAction>
+          <TopbarMenu user={{ name: "Alex Morgan" }}>
+            <TopbarMenuTrigger />
+            <TopbarMenuContent>
+              <TopbarMenuUser onClick={() => {}} />
+            </TopbarMenuContent>
+          </TopbarMenu>
+        </Topbar>,
+      );
+      const dark = variant === "dark" || (variant === undefined && globalDark);
+      const foreground = dark ? [255, 255, 255, 255] : [10, 10, 10, 255];
+      const background = dark ? [10, 10, 10, 255] : [255, 255, 255, 255];
+      const header = container.querySelector("header")!;
+      expect(pixel(getComputedStyle(header).backgroundColor)).toEqual(
+        background,
+      );
+      expect(pixel(getComputedStyle(header).color)).toEqual(foreground);
+      const action = page.getByRole("button", { name: "Notifications" });
+      const trigger = page.getByRole("button", {
+        name: "Account: Alex Morgan",
+      });
+      expect(pixel(getComputedStyle(action.element()).color)).toEqual(
+        foreground,
+      );
+      expect(pixel(getComputedStyle(trigger.element()).color)).toEqual(
+        foreground,
+      );
+      expect(
+        pixel(getComputedStyle(trigger.element()).backgroundColor),
+      ).toEqual(background);
+      await action.hover();
+      await expect
+        .poll(() => pixel(getComputedStyle(action.element()).backgroundColor))
+        .toEqual(dark ? [255, 255, 255, 26] : [0, 0, 0, 13]);
+      await trigger.click();
+      await expect.element(page.getByRole("menu")).toBeVisible();
+      await expect
+        .poll(() => pixel(getComputedStyle(trigger.element()).backgroundColor))
+        .toEqual(dark ? [255, 255, 255, 26] : [0, 0, 0, 26]);
+      expect(pixel(getComputedStyle(trigger.element()).color)).toEqual(
+        foreground,
+      );
     });
   }
 }

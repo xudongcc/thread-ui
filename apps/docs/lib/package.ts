@@ -154,6 +154,16 @@ export const getPackage = async (packageName: string) => {
     // Parse the processed CSS and convert to JSON structure
     const ast = postcss.parse(processed.css);
 
+    // Preserve component-owned Tailwind v4 tokens in installed registry items.
+    ast.walkAtRules("theme", (atRule) => {
+      const key = `@theme${atRule.params ? ` ${atRule.params}` : ""}`;
+      const declarations: Record<string, string> = {};
+      atRule.walkDecls((decl) => {
+        declarations[decl.prop] = decl.value;
+      });
+      css[key] = { ...css[key], ...declarations };
+    });
+
     ast.walkAtRules("layer", (atRule) => {
       const layerName = `@layer ${atRule.params}`;
       css[layerName] = {};

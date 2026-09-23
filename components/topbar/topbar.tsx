@@ -66,10 +66,7 @@ export function TopbarAction({ className, ...props }: TopbarActionProps) {
       {...props}
       data-slot="topbar-action"
       className={cn(
-        "size-10 shrink-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-transparent focus-visible:ring-white/60 aria-expanded:bg-white/10 aria-expanded:text-white dark:hover:bg-white/10",
-        "group-data-[variant=light]/topbar:text-neutral-950 group-data-[variant=light]/topbar:hover:bg-black/5 group-data-[variant=light]/topbar:hover:text-neutral-950 group-data-[variant=light]/topbar:focus-visible:ring-black/40 group-data-[variant=light]/topbar:aria-expanded:bg-black/5 group-data-[variant=light]/topbar:aria-expanded:text-neutral-950 dark:group-data-[variant=light]/topbar:hover:bg-black/5",
-        "group-data-[variant=auto]/topbar:text-neutral-950 group-data-[variant=auto]/topbar:hover:bg-black/5 group-data-[variant=auto]/topbar:hover:text-neutral-950 group-data-[variant=auto]/topbar:focus-visible:ring-black/40 group-data-[variant=auto]/topbar:aria-expanded:bg-black/5 group-data-[variant=auto]/topbar:aria-expanded:text-neutral-950",
-        "dark:group-data-[variant=auto]/topbar:text-white dark:group-data-[variant=auto]/topbar:hover:bg-white/10 dark:group-data-[variant=auto]/topbar:hover:text-white dark:group-data-[variant=auto]/topbar:focus-visible:ring-white/60 dark:group-data-[variant=auto]/topbar:aria-expanded:bg-white/10 dark:group-data-[variant=auto]/topbar:aria-expanded:text-white",
+        "text-topbar-foreground hover:bg-topbar-accent hover:text-topbar-accent-foreground focus-visible:ring-topbar-ring aria-expanded:bg-topbar-accent aria-expanded:text-topbar-accent-foreground dark:hover:bg-topbar-accent size-10 shrink-0 focus-visible:border-transparent",
         className,
       )}
     />
@@ -89,12 +86,7 @@ export function Topbar({
       data-slot="topbar"
       data-variant={variant ?? "auto"}
       className={cn(
-        "group/topbar border-border z-20 grid h-14 min-w-0 shrink-0 auto-cols-[minmax(0,auto)] grid-flow-col grid-cols-[minmax(0,1fr)] items-center justify-items-end gap-2 border-b px-3 md:gap-4 md:px-4",
-        variant === "dark"
-          ? "bg-neutral-950 text-white"
-          : variant === "light"
-            ? "bg-white text-neutral-950"
-            : "bg-white text-neutral-950 dark:bg-neutral-950 dark:text-white",
+        "group/topbar border-topbar-border bg-topbar text-topbar-foreground z-20 grid h-14 min-w-0 shrink-0 auto-cols-[minmax(0,auto)] grid-flow-col grid-cols-[minmax(0,1fr)] items-center justify-items-end gap-2 border-b px-3 md:gap-4 md:px-4",
         className,
       )}
     >
