@@ -360,7 +360,7 @@ function ApplicationContent({
         </TopbarMenu>
       </Topbar>
       <Sidebar>
-        <SidebarContent className="py-2">
+        <SidebarContent>
           <nav aria-label={t("layout.navigation", "Navigation")}>
             {navigation.map((group) => (
               <SidebarGroup key={group.id}>
@@ -944,7 +944,7 @@ function CollectionPage() {
                         (item) => item.id === id,
                       )!;
                       return (
-                        <Card key={id} className="pt-0" role="article">
+                        <Card key={id} role="article">
                           <div
                             aria-hidden="true"
                             className={`flex aspect-4/3 items-center justify-center ${product.color}`}
