@@ -13,10 +13,11 @@ pnpm dlx shadcn@latest add @thread-ui/topbar
 
 Compose the header with `TopbarBrand`, `TopbarNavigationTrigger`,
 `TopbarActionGroup`, `TopbarAction`, and `TopbarMenu`. Arrange or omit parts to
-suit the application. The host owns navigation and account actions.
+suit the application. The navigation trigger connects to shadcn Sidebar; the host
+owns navigation items and account actions.
 
 ```tsx
-import { BellIcon, MenuIcon } from "lucide-react";
+import { BellIcon } from "lucide-react";
 import {
   Topbar,
   TopbarBrand,
@@ -31,12 +32,9 @@ import {
   TopbarMenuItem,
 } from "@/components/thread-ui/topbar";
 
+// Inside Layout or SidebarProvider:
 <Topbar>
-  <TopbarNavigationTrigger>
-    <TopbarAction aria-label="Open navigation" onClick={openNavigation}>
-      <MenuIcon />
-    </TopbarAction>
-  </TopbarNavigationTrigger>
+  <TopbarNavigationTrigger />
   <TopbarBrand>Thread UI</TopbarBrand>
   <TopbarActionGroup>
     <TopbarAction aria-label="Notifications" onClick={openNotifications}>
@@ -60,19 +58,23 @@ column absorb remaining space; branding and navigation align left, while actions
 and account controls align right. Parts can be omitted without placeholder
 elements. Its default height is 56px, with a
 bottom border. Custom content such as a search field can be placed directly
-among its children. It does not require `Layout` or `SidebarProvider`.
+among its children. Topbar itself does not require a provider;
+`TopbarNavigationTrigger` requires `SidebarProvider`, which Layout supplies.
 
 ## Parts
 
 - `TopbarBrand`: site name and optional logo. Hidden below 768px.
-- `TopbarNavigationTrigger`: mobile container for the application's navigation
-  button. Hidden on desktop; the application supplies its handler.
+- `TopbarNavigationTrigger`: a 40px mobile navigation button with a built-in
+  icon, translated accessible label, and sidebar toggle. Hidden on desktop.
+  Use `<TopbarNavigationTrigger />` inside Layout or SidebarProvider. It accepts
+  Button props, including `render`, `ref`, and `disabled`. An optional `onClick`
+  runs before toggling; call `event.preventDefault()` to cancel the toggle.
 - `TopbarActionGroup`: aligns action buttons to the right.
 - `TopbarAction`: Button with a 40px icon-button default and styles that follow
   the header appearance. Supports Button props including `render`, `ref`,
   `disabled`, and `loading`. Supply an accessible label for icon-only actions.
 
-The brand, navigation trigger, and action group forward native div attributes,
+The brand and action group forward native div attributes,
 refs, and classes. Parts can be wrapped in fragments or custom components.
 
 ## Appearance
@@ -112,8 +114,8 @@ and name, matching Layout. The whole brand is hidden on mobile.
 ## Layout integration
 
 Place Topbar directly inside Layout, alongside shadcn Sidebar and LayoutContent.
-Compose a shadcn SidebarTrigger inside TopbarNavigationTrigger to control the
-mobile drawer through Layout's SidebarProvider.
+Use `<TopbarNavigationTrigger />` to control the mobile drawer through Layout's
+SidebarProvider. No additional button, icon, or hook is needed.
 
 See [TopbarMenu](/docs/layout/topbar-menu) for workspace selection, user identity,
 language/theme preferences, and framework links. Storybook lists **Topbar** and

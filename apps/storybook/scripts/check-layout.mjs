@@ -84,7 +84,7 @@ try {
       await page.waitForFunction(() => {
         const header = document.querySelector('[data-slot="topbar"]');
         const trigger = header?.querySelector(
-          '[data-slot="topbar-navigation-trigger"] button',
+          '[data-slot="topbar-navigation-trigger"]',
         );
         return (
           trigger &&
@@ -214,7 +214,7 @@ try {
       await page.waitForFunction(
         () =>
           document
-            .querySelector('[data-slot="topbar-navigation-trigger"] button')
+            .querySelector('[data-slot="topbar-navigation-trigger"]')
             ?.getAttribute("aria-expanded") === "false",
       );
     } else {

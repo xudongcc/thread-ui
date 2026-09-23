@@ -148,7 +148,10 @@ support **Composition API only**. Arrange `TopbarBrand`, `TopbarNavigationTrigge
 `TopbarActionGroup` as children. Place `TopbarAction` buttons inside the group,
 with `TopbarMenu` alongside it. Custom content can be composed directly into the
 header. It follows the application theme unless `variant` is set to light or
-dark. The parts and `TopbarMenu` are exported from the same topbar package.
+dark. Use `<TopbarNavigationTrigger />` inside Layout or SidebarProvider; it
+includes the navigation icon, accessible label, and sidebar toggle. It is hidden
+on desktop. Topbar itself does not require a provider. The parts and
+`TopbarMenu` are exported from the same topbar package.
 
 `TopbarMenu` supports **Composition API only** and works outside Layout.
 Use `TopbarMenuTrigger`, `TopbarMenuContent`, `TopbarMenuWorkspaceGroup`,

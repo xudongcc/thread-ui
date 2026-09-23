@@ -30,7 +30,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -60,9 +59,7 @@ function Navigation() {
 
 <Layout>
   <Topbar>
-    <TopbarNavigationTrigger>
-      <SidebarTrigger aria-label="Toggle navigation" />
-    </TopbarNavigationTrigger>
+    <TopbarNavigationTrigger />
     <TopbarBrand>Thread UI</TopbarBrand>
   </Topbar>
   <Navigation />
@@ -99,8 +96,9 @@ height is `100svh`; use a class such as `h-full` to fit a sized container.
 ## Mobile
 
 The desktop sidebar stays expanded. Below 768px, shadcn Sidebar opens as a Sheet,
-with Escape/outside-click dismissal and focus management. Use SidebarTrigger
-inside TopbarNavigationTrigger to open it on mobile. Layout closes an open
+with Escape/outside-click dismissal and focus management. Use
+`<TopbarNavigationTrigger />` to open it on mobile; its icon, accessible label,
+and sidebar toggle are built in. Layout closes an open
 drawer when returning to desktop. Omit the navigation trigger when no Sidebar
 is present.
 

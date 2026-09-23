@@ -1,6 +1,9 @@
 "use client";
 
+import { PanelLeftIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { ComponentProps } from "react";
+import { useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/thread-ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +13,7 @@ export type TopbarProps = ComponentProps<"header"> & {
 };
 
 export type TopbarBrandProps = ComponentProps<"div">;
-export type TopbarNavigationTriggerProps = ComponentProps<"div">;
+export type TopbarNavigationTriggerProps = ComponentProps<typeof Button>;
 export type TopbarActionGroupProps = ComponentProps<"div">;
 export type TopbarActionProps = ComponentProps<typeof Button>;
 
@@ -27,17 +30,34 @@ export function TopbarBrand({ className, ...props }: TopbarBrandProps) {
   );
 }
 
-/** Responsive wrapper for the host application's navigation button. */
+/** Mobile navigation button connected to the nearest SidebarProvider. */
 export function TopbarNavigationTrigger({
   className,
+  children,
+  onClick,
   ...props
 }: TopbarNavigationTriggerProps) {
+  const { openMobile, toggleSidebar } = useSidebar();
+  const { t } = useTranslation("thread-ui");
   return (
-    <div
+    <Button
+      aria-label={t("layout.toggleNavigation", "Toggle navigation")}
+      size="icon"
+      variant="ghost"
       {...props}
-      className={cn("justify-self-start md:hidden", className)}
+      aria-expanded={openMobile}
       data-slot="topbar-navigation-trigger"
-    />
+      className={cn(
+        "text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:hover:bg-accent size-10 shrink-0 justify-self-start focus-visible:border-transparent md:hidden",
+        className,
+      )}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented) toggleSidebar();
+      }}
+    >
+      {children ?? <PanelLeftIcon aria-hidden="true" />}
+    </Button>
   );
 }
 

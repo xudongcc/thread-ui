@@ -9,7 +9,6 @@ import {
   LayoutGridIcon,
   LogOutIcon,
   PackageIcon,
-  PanelLeftIcon,
   PlusIcon,
   SettingsIcon,
   ShoppingBagIcon,
@@ -19,7 +18,7 @@ import {
   TagIcon,
   UsersIcon,
 } from "lucide-react";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import type { LayoutProps } from "@/components/thread-ui/layout";
 import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
@@ -142,8 +141,7 @@ function ApplicationContent({
   initialPage = "home",
   children,
 }: LayoutExampleProps) {
-  const { isMobile, openMobile, setOpenMobile, toggleSidebar } = useSidebar();
-  const navigationId = useId();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { t, i18n } = useTranslation("thread-ui");
   const [theme, setTheme] = useState("light");
   useEffect(() => {
@@ -201,16 +199,7 @@ function ApplicationContent({
   return (
     <>
       <Topbar>
-        <TopbarNavigationTrigger>
-          <TopbarAction
-            aria-controls={isMobile && !openMobile ? undefined : navigationId}
-            aria-expanded={openMobile}
-            aria-label={t("layout.toggleNavigation", "Toggle navigation")}
-            onClick={toggleSidebar}
-          >
-            <PanelLeftIcon aria-hidden="true" />
-          </TopbarAction>
-        </TopbarNavigationTrigger>
+        <TopbarNavigationTrigger />
         <TopbarBrand>
           <span className="inline-flex items-center gap-2.5 align-middle">
             <svg
@@ -372,7 +361,7 @@ function ApplicationContent({
         </TopbarMenu>
       </Topbar>
       <Sidebar>
-        <SidebarContent className="py-2" id={navigationId}>
+        <SidebarContent className="py-2">
           <nav aria-label={t("layout.navigation", "Navigation")}>
             {navigation.map((group) => (
               <SidebarGroup key={group.id}>

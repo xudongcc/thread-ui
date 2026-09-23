@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { createRef } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
@@ -17,7 +17,9 @@ import {
   TopbarMenuUser,
   TopbarMenuWorkspaceGroup,
   TopbarMenuWorkspaceItem,
+  TopbarNavigationTrigger,
 } from "@/components/thread-ui/topbar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AvatarImage } from "@/components/ui/avatar";
 import "../styles.css";
 
@@ -392,3 +394,72 @@ for (const mode of ["action", "link"] as const) {
     await expect.element(page.getByRole("menu")).toBeVisible();
   });
 }
+
+test("navigation trigger works without props and hides on desktop", async () => {
+  await page.viewport(375, 800);
+  mount(
+    <SidebarProvider>
+      <Topbar>
+        <TopbarNavigationTrigger />
+      </Topbar>
+    </SidebarProvider>,
+  );
+  const trigger = page.getByRole("button", { name: "Toggle navigation" });
+  await expect.element(trigger).toBeVisible();
+  const button = trigger.element();
+  expect(button.tagName).toBe("BUTTON");
+  expect(button.querySelector("button")).toBeNull();
+  expect(button.querySelector("svg[aria-hidden=true]")).not.toBeNull();
+  expect(button.getBoundingClientRect().width).toBe(40);
+  expect(button.getBoundingClientRect().height).toBe(40);
+  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
+  await trigger.click();
+  await expect.element(trigger).toHaveAttribute("aria-expanded", "true");
+  await userEvent.keyboard("{Enter}");
+  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
+  await page.viewport(1280, 800);
+  await expect.element(button).not.toBeVisible();
+});
+
+test("navigation trigger forwards ref and render, and allows cancelling the toggle", async () => {
+  await page.viewport(375, 800);
+  const ref = createRef<HTMLButtonElement>();
+  const onClick = vi.fn((event) => event.preventDefault());
+  mount(
+    <SidebarProvider>
+      <Topbar>
+        <TopbarNavigationTrigger
+          ref={ref}
+          aria-label="Open menu"
+          render={<button data-testid="custom-navigation" />}
+          onClick={onClick}
+        />
+      </Topbar>
+    </SidebarProvider>,
+  );
+  const trigger = page.getByRole("button", { name: "Open menu" });
+  expect(ref.current).toBe(trigger.element());
+  await trigger.click();
+  expect(onClick).toHaveBeenCalledOnce();
+  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
+  await expect
+    .element(trigger)
+    .toHaveAttribute("data-testid", "custom-navigation");
+});
+
+test("disabled navigation trigger does not open the sidebar", async () => {
+  await page.viewport(375, 800);
+  const onClick = vi.fn();
+  mount(
+    <SidebarProvider>
+      <Topbar>
+        <TopbarNavigationTrigger disabled onClick={onClick} />
+      </Topbar>
+    </SidebarProvider>,
+  );
+  const trigger = page.getByRole("button", { name: "Toggle navigation" });
+  await expect.element(trigger).toBeDisabled();
+  (trigger.element() as HTMLButtonElement).click();
+  expect(onClick).not.toHaveBeenCalled();
+  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
+});

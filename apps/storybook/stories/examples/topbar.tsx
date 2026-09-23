@@ -1,4 +1,4 @@
-import { BellIcon, LogOutIcon, MenuIcon } from "lucide-react";
+import { BellIcon, LogOutIcon } from "lucide-react";
 import { useState } from "react";
 import type { TopbarProps } from "@/components/thread-ui/topbar";
 import {
@@ -14,7 +14,6 @@ import {
   TopbarMenuUser,
   TopbarMenuWorkspaceGroup,
   TopbarMenuWorkspaceItem,
-  TopbarNavigationTrigger,
 } from "@/components/thread-ui/topbar";
 
 const workspaces = [
@@ -37,39 +36,29 @@ export function TopbarExample({
   return (
     <div className="min-h-64">
       <Topbar {...props}>
-        <>
-          <TopbarNavigationTrigger>
-            <TopbarAction
-              aria-label="Open navigation"
-              onClick={() => setMessage("Navigation requested")}
-            >
-              <MenuIcon />
-            </TopbarAction>
-          </TopbarNavigationTrigger>
-          <TopbarBrand>
-            <span className="inline-flex items-center gap-2.5 align-middle">
-              {withLogo && (
-                <svg
-                  aria-hidden="true"
-                  className="text-primary size-8 shrink-0"
-                  fill="none"
-                  viewBox="0 0 32 32"
-                >
-                  <rect fill="currentColor" height="32" rx="9" width="32" />
-                  <path
-                    className="text-primary-foreground"
-                    d="M8 10h16M11 15h10M16 10v14"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                  />
-                </svg>
-              )}
-              <span>Thread UI</span>
-            </span>
-          </TopbarBrand>
-        </>
+        <TopbarBrand>
+          <span className="inline-flex items-center gap-2.5 align-middle">
+            {withLogo && (
+              <svg
+                aria-hidden="true"
+                className="text-primary size-8 shrink-0"
+                fill="none"
+                viewBox="0 0 32 32"
+              >
+                <rect fill="currentColor" height="32" rx="9" width="32" />
+                <path
+                  className="text-primary-foreground"
+                  d="M8 10h16M11 15h10M16 10v14"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                />
+              </svg>
+            )}
+            <span>Thread UI</span>
+          </span>
+        </TopbarBrand>
         <TopbarActionGroup>
           <TopbarAction
             aria-label="Notifications"
