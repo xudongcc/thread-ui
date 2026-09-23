@@ -19,8 +19,9 @@
   min-width: 0;
 }
 
-/* Keep the docs canvas consistent with the active component theme. */
+/* Shared story surface; --sidebar follows the active light/dark theme. */
+body.sb-show-main,
 .docs-story {
-  background: var(--background);
+  background: var(--sidebar);
   color: var(--foreground);
 }

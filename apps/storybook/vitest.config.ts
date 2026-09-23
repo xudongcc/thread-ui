@@ -7,8 +7,23 @@ import viteConfig from "./vite.config.ts";
 export default mergeConfig(
   viteConfig,
   defineConfig({
+    // Only the test runner executes play functions; browsing keeps initial state.
+    define: { __STORYBOOK_TEST__: true },
     test: {
       projects: [
+        {
+          extends: true,
+          test: {
+            name: "components",
+            include: ["tests/**/*.test.tsx"],
+            browser: {
+              enabled: true,
+              headless: true,
+              provider: playwright(),
+              instances: [{ browser: "chromium" }],
+            },
+          },
+        },
         {
           extends: true,
           plugins: [

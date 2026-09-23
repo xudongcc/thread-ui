@@ -8,6 +8,21 @@ const root = process.cwd();
 
 const registryPackages = [
   {
+    name: "layout",
+    dependencies: ["@base-ui/react", "react-i18next"],
+    repoDependencies: ["@repo/locales"],
+  },
+  {
+    name: "topbar",
+    dependencies: ["react-i18next"],
+    repoDependencies: ["@repo/button", "@repo/locales"],
+  },
+  {
+    name: "form-layout",
+    dependencies: ["class-variance-authority"],
+    repoDependencies: [],
+  },
+  {
     name: "page-layout",
     dependencies: ["class-variance-authority"],
     repoDependencies: [],

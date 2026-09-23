@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import tsconfig from "./tsconfig.json" with { type: "json" };
 
 export default defineConfig({
+  define: { __STORYBOOK_TEST__: false },
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
     // These dependencies live in linked workspace packages. Prebundle them at

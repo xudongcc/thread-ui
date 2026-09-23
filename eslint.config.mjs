@@ -2,6 +2,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
+import { plugin as shadcn } from "@shadcn/lint";
 import importPlugin from "eslint-plugin-import";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -70,6 +71,7 @@ const eslintConfig = [
   {
     plugins: {
       import: importPlugin,
+      shadcn,
     },
     rules: {
       ...importRules,
@@ -97,6 +99,18 @@ const eslintConfig = [
       react: {
         version: "detect",
       },
+    },
+  },
+  {
+    files: ["apps/storybook/stories/**/*.{ts,tsx}"],
+    settings: {
+      shadcn: {
+        ui: ["@/components/ui", "@/components/thread-ui"],
+        componentImports: ["^@repo/"],
+      },
+    },
+    rules: {
+      "shadcn/no-restyle": ["warn", { allow: ["layout"] }],
     },
   },
 ];

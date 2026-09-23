@@ -1,4 +1,5 @@
 import { expect } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { ControlledTextareaExample } from "./examples/textarea";
 import implementation from "./examples/textarea.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
@@ -36,18 +37,18 @@ export const Error: Story = {
   // TODO(a11y): color-contrast: destructive textarea text on the field background.
   parameters: { a11y: { test: "todo" } },
   args: { error: "Description is required.", defaultValue: "invalid" },
-  play: async ({ canvas }) => {
+  play: testOnly(async ({ canvas }) => {
     const input = canvas.getByRole("textbox", { name: "Description" });
     await expect(input).toHaveAttribute("aria-invalid", "true");
     await expect(input).toHaveAccessibleDescription("Description is required.");
-  },
+  }),
 };
 export const Typing: Story = {
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     const input = canvas.getByRole("textbox", { name: "Description" });
     await userEvent.type(input, "First line\nSecond line");
     await expect(input).toHaveValue("First line\nSecond line");
-  },
+  }),
 };
 
 export const ReadOnly: Story = {

@@ -1,4 +1,5 @@
 import { expect } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { ControlledNumberInputExample } from "./examples/number-input";
 import implementation from "./examples/number-input.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
@@ -47,12 +48,12 @@ export const Disabled: Story = { args: { disabled: true, defaultValue: 42 } };
 export const Controlled: Story = {
   render: (args) => <ControlledNumberInputExample {...args} />,
   parameters: { docs: { source: withExampleSource(implementation) } },
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.type(
       canvas.getByRole("textbox", { name: "Amount" }),
       "1234",
     );
     await expect(canvas.getByRole("textbox")).toHaveValue("1,234");
     await expect(canvas.getByLabelText("Raw value")).toHaveTextContent("1234");
-  },
+  }),
 };

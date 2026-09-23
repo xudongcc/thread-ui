@@ -408,10 +408,7 @@ export const ComplexFilterGroup: FC<ComplexFilterGroupProps> = ({
                   )}
                 </Button>
 
-                <div
-                  className="border-border w-full flex-1 rounded-bl-md border-b-2 border-l-2"
-                  style={{ height: "calc(50% - 18px)" }}
-                />
+                <div className="border-border h-[calc(50%-18px)] w-full flex-1 rounded-bl-md border-b-2 border-l-2" />
               </div>
             )}
 

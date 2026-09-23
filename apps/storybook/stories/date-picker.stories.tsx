@@ -1,4 +1,5 @@
 import { expect, waitFor, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { PickerExample } from "./examples/date-picker";
 import implementation from "./examples/date-picker.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
@@ -34,7 +35,7 @@ export const DisabledDates: Story = {
 export const AlignEnd: Story = { args: { align: "end" } };
 export const SelectDate: Story = {
   globals: { locale: "en" },
-  play: async ({ canvas, canvasElement, userEvent }) => {
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Choose date" }));
     const body = within(canvasElement.ownerDocument.body);
     await userEvent.click(
@@ -46,5 +47,5 @@ export const SelectDate: Story = {
     await waitFor(() =>
       expect(body.queryByRole("dialog")).not.toBeInTheDocument(),
     );
-  },
+  }),
 };

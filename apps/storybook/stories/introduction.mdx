@@ -12,7 +12,7 @@ for separate Props API, Composition API, and Function API examples and the suppo
 - Browse components by functional area: **Actions**, **Forms**, **Data**, **Display**, **Feedback**, and **Layout**. Each component includes interactive examples, component states, and generated API documentation.
 - **Foundations / AppProvider** demonstrates translated confirmation dialogs and toast notifications.
 - Use **Controls** to edit props, the **theme** toolbar to switch light/dark mode, and the **language** toolbar to test English/Chinese component translations within the same story. There are no separate Chinese stories. Example labels remain as authored unless the story explicitly translates them.
-- Use the viewport toolbar to check narrow layouts, including Page, PageLayout, Dialog, and Select; screen-size variations do not need separate stories.
+- Use the viewport toolbar to check narrow layouts, including Layout, Topbar, TopbarMenu, Page, PageLayout, Dialog, and Select; screen-size variations do not need separate stories.
 - Stories with a `play` function also verify behavior. Run them from the testing panel or with `pnpm storybook:test`.
 
 ## Component coverage
@@ -75,10 +75,10 @@ Every visual package under `components/` has its own Storybook entry:
     </tr>
     <tr>
       <td>Layout</td>
-      <td>Page, PageLayout</td>
+      <td>Layout, Topbar, TopbarMenu, Page, PageLayout</td>
       <td>
-        Width variants, responsive actions, equal/unequal columns, viewport
-        resizing
+        Application shell, tenant switching, drawer navigation, content columns,
+        viewport resizing
       </td>
     </tr>
   </tbody>

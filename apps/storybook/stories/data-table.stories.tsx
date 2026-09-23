@@ -1,4 +1,5 @@
 import { expect, fn, within } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import {
   DataTableExample,
   PaginationDataTableExample,
@@ -49,7 +50,7 @@ export const RowSelection: Story = {
   globals: { locale: "en" },
   render: (args) => <RowSelectionDataTableExample {...args} />,
   parameters: { docs: { source: withExampleSource(implementation) } },
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.click(
       within(canvas.getByRole("row", { name: /Alice Johnson/ })).getByRole(
         "checkbox",
@@ -58,7 +59,7 @@ export const RowSelection: Story = {
     await expect(canvas.getByLabelText("Selected people")).toHaveTextContent(
       "Alice Johnson",
     );
-  },
+  }),
 };
 export const RowActions: Story = {
   // TODO(a11y): empty-table-header: the actions column needs an accessible heading.
@@ -90,9 +91,9 @@ export const Pagination: Story = {
   globals: { locale: "en" },
   render: (args) => <PaginationDataTableExample {...args} />,
   parameters: { docs: { source: withExampleSource(implementation) } },
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: /next/i }));
     await expect(canvas.getByText("Charlie Brown")).toBeVisible();
     await expect(canvas.queryByText("Alice Johnson")).not.toBeInTheDocument();
-  },
+  }),
 };

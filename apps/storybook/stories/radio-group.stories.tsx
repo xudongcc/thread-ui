@@ -1,4 +1,5 @@
 import { expect, fn } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { ControlledRadioGroupExample } from "./examples/radio-group";
 import implementation from "./examples/radio-group.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
@@ -34,13 +35,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   name: "Props API",
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("radio", { name: "Team" }));
     await expect(canvas.getByRole("radio", { name: "Team" })).toBeChecked();
     await expect(
       canvas.getByRole("radio", { name: "Starter" }),
     ).not.toBeChecked();
-  },
+  }),
 };
 export const Disabled: Story = { args: { disabled: true } };
 export const DisabledItem: Story = {

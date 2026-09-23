@@ -17,7 +17,7 @@ let browser;
 // upload workflows. Basic stateless JSX snippets do not contain full modules.
 function hasCompleteExample(id) {
   return (
-    /^components-(calendar|dateinput|datepicker|datafilter|complexfilter|datatable|codeblock|alertdialog|toast)--/.test(
+    /^components-(calendar|dateinput|datepicker|datafilter|complexfilter|datatable|codeblock|alertdialog|toast|layout|topbar|topbarmenu)--/.test(
       id,
     ) ||
     /^components-fileupload--(automatic-upload|manual-upload|retry-failure)$/.test(
@@ -54,13 +54,27 @@ try {
       .locator("#storybook-root > *")
       .first()
       .waitFor();
+    // Let interaction tests finish before a manager click takes keyboard focus.
+    await page.waitForFunction(() => {
+      const preview = document.querySelector(
+        "#storybook-preview-iframe",
+      )?.contentWindow;
+      return (
+        preview?.__STORYBOOK_PREVIEW__?.currentRender?.phase === "finished"
+      );
+    });
     await page.getByRole("tab", { name: "Code", exact: true }).click();
     await page.waitForFunction(() =>
       [...document.querySelectorAll("pre")].some((element) =>
         element.textContent.includes("export default function Example"),
       ),
     );
-    const source = (await page.locator("pre").allTextContents()).join("\n");
+    const source = await page
+      .locator("pre")
+      .filter({
+        hasText: "export default function Example",
+      })
+      .innerText();
     const file = `${scratch}/${id}.tsx`;
     await writeFile(file, source);
     files.push(file);

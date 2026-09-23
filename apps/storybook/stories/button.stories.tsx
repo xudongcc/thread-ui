@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { expect, fn } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button } from "@/components/thread-ui/button";
@@ -32,17 +33,17 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   name: "Props API",
-  play: async ({ args, canvas, userEvent }) => {
+  play: testOnly(async ({ args, canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
     await expect(args.onClick).toHaveBeenCalledOnce();
-  },
+  }),
 };
 
 export const Loading: Story = {
   args: { loading: true },
-  play: async ({ canvas }) => {
+  play: testOnly(async ({ canvas }) => {
     await expect(canvas.getByRole("button")).toBeDisabled();
-  },
+  }),
 };
 
 export const Disabled: Story = { args: { disabled: true } };

@@ -1,0 +1,17 @@
+{
+  "name": "@repo/form-layout",
+  "description": "A responsive form grid with full-width and fractional field items.",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

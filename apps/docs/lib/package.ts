@@ -209,6 +209,23 @@ export const getPackage = async (packageName: string) => {
     });
   }
 
+  // Export local appearance scopes from the same theme used by the preview.
+  // Keep the existing variable names and leave the consumer's global theme intact.
+  const theme = postcss.parse(
+    await fs.readFile(join(rootDir, "packages/styles/theme.css"), "utf-8"),
+  );
+  theme.walkRules((rule) => {
+    const selectors = rule.selectors.filter((selector) =>
+      selector.startsWith(`[data-slot="${packageName}"]`),
+    );
+    if (!selectors.length) return;
+    const declarations: Record<string, string> = {};
+    rule.walkDecls((decl) => {
+      declarations[decl.prop] = decl.value;
+    });
+    css[selectors.join(", ")] = declarations;
+  });
+
   let type: RegistryItem["type"] = isLocalesPackage
     ? "registry:item"
     : "registry:ui";

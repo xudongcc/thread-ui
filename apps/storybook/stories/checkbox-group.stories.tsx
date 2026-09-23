@@ -1,4 +1,5 @@
 import { expect, fn } from "storybook/test";
+import { testOnly } from "./utils/test-only";
 import { ControlledCheckboxGroupExample } from "./examples/checkbox-group";
 import implementation from "./examples/checkbox-group.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
@@ -46,7 +47,7 @@ export const DisabledItem: Story = {
 };
 export const Parent: Story = {
   args: { parent: { label: "All permissions" }, defaultValue: ["read"] },
-  play: async ({ canvas, userEvent }) => {
+  play: testOnly(async ({ canvas, userEvent }) => {
     const parent = canvas.getByRole("checkbox", { name: "All permissions" });
     await expect(parent).toBePartiallyChecked();
     await userEvent.click(parent);
@@ -54,7 +55,7 @@ export const Parent: Story = {
       await expect(
         canvas.getByRole("checkbox", { name: item.label }),
       ).toBeChecked();
-  },
+  }),
 };
 export const Controlled: Story = {
   render: (args) => <ControlledCheckboxGroupExample {...args} />,
