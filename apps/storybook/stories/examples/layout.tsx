@@ -410,10 +410,7 @@ function ApplicationContent({
       </Sidebar>
       <LayoutContent>
         {page === "profile" ? (
-          <Page
-            className="max-w-3xl space-y-4 py-6 md:px-8 md:py-8"
-            variant="full"
-          >
+          <Page className="max-w-3xl space-y-4" variant="full">
             <h1 className="text-2xl font-semibold">
               {i18n.language === "zh" ? "个人中心" : "Profile"}
             </h1>
@@ -438,10 +435,7 @@ function ApplicationContent({
             {children}
           </div>
         ) : (
-          <Page
-            className="max-w-6xl space-y-8 py-6 md:px-8 md:py-8"
-            variant="full"
-          >
+          <Page className="max-w-6xl space-y-8" variant="full">
             <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
               <span>Last 30 days · All channels</span>
               <span>Store is live</span>
@@ -700,7 +694,7 @@ function OrdersPage() {
   };
 
   return (
-    <Page className="max-w-6xl min-w-0 py-6 md:px-8 md:py-8" variant="full">
+    <Page className="max-w-6xl min-w-0" variant="full">
       <PageHeader>
         <PageTitle aria-level={1}>Orders</PageTitle>
         <PageDescription>
@@ -847,7 +841,7 @@ function CollectionPage() {
     (product) => !draft.products.includes(product.id),
   );
   return (
-    <Page className="max-w-6xl min-w-0 py-6 md:px-8 md:py-8" variant="full">
+    <Page className="max-w-6xl min-w-0" variant="full">
       <PageHeader>
         <PageTitle aria-level={1}>
           {draft.title || "Untitled collection"}
@@ -1069,7 +1063,7 @@ export function LayoutWithoutSidebarExample(args: LayoutProps) {
         </TopbarMenu>
       </Topbar>
       <LayoutContent id="account-content">
-        <Page className="space-y-4 py-6" variant="full">
+        <Page className="space-y-4" variant="full">
           <PageHeader>
             <PageTitle>Profile</PageTitle>
             <PageDescription>Manage your account details.</PageDescription>
