@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { expect, fn, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -9,6 +10,9 @@ import {
   PageContent,
   PageDescription,
   PageHeader,
+  PageNextAction,
+  PagePagination,
+  PagePreviousAction,
   PagePrimaryAction,
   PageSecondaryAction,
   PageTitle,
@@ -165,4 +169,85 @@ export const LongTitle: Story = {
       </PageContent>
     </Page>
   ),
+};
+
+export const Pagination: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Navigate between product details with a shadcn ButtonGroup after the primary action. The group is hidden below 768px of Page content width, alongside the existing responsive action layout. Use the viewport toolbar to check mobile behavior.",
+      },
+    },
+  },
+  render: function Render(args) {
+    const products = [
+      "Leather pet collar",
+      "Cotton pet harness",
+      "Travel pet carrier",
+    ];
+    const [index, setIndex] = useState(0);
+    return (
+      <Page {...args}>
+        <PageHeader>
+          <BreadcrumbActions>
+            <BreadcrumbAction render={<a href="#products" />}>
+              Products
+            </BreadcrumbAction>
+          </BreadcrumbActions>
+          <PageTitle>{products[index]}</PageTitle>
+          <PageDescription>
+            Review product details and move between products.
+          </PageDescription>
+          <PageActions>
+            <PageSecondaryAction onAction={fn()}>Preview</PageSecondaryAction>
+            <PagePrimaryAction onClick={fn()}>Save</PagePrimaryAction>
+            <PagePagination>
+              <PagePreviousAction
+                disabled={index === 0}
+                onClick={() => setIndex((current) => Math.max(0, current - 1))}
+              />
+              <PageNextAction
+                disabled={index === products.length - 1}
+                onClick={() =>
+                  setIndex((current) =>
+                    Math.min(products.length - 1, current + 1),
+                  )
+                }
+              />
+            </PagePagination>
+          </PageActions>
+        </PageHeader>
+        <PageContent>
+          <Card>
+            <CardContent>{products[index]} — product details</CardContent>
+          </Card>
+        </PageContent>
+      </Page>
+    );
+  },
+  play: testOnly(async ({ canvas, userEvent, globals }) => {
+    const previous = canvas.queryByRole("button", {
+      name: globals.locale === "zh" ? "上一项" : "Previous item",
+    });
+    // Pagination intentionally has no focusable controls in narrow pages.
+    if (!previous) {
+      await expect(canvas.getByRole("button", { name: "Save" })).toBeVisible();
+      return;
+    }
+    const next = canvas.getByRole("button", {
+      name: globals.locale === "zh" ? "下一项" : "Next item",
+    });
+    await expect(previous).toBeDisabled();
+    await userEvent.click(next);
+    await expect(
+      canvas.getByRole("heading", { name: "Cotton pet harness" }),
+    ).toBeVisible();
+    await userEvent.click(next);
+    await expect(next).toBeDisabled();
+    await userEvent.click(previous);
+    await expect(
+      canvas.getByRole("heading", { name: "Cotton pet harness" }),
+    ).toBeVisible();
+  }),
 };

@@ -231,6 +231,9 @@
     "copy": "Copy"
   },
   "page": {
+    "pagination": "Item navigation",
+    "previousItem": "Previous item",
+    "nextItem": "Next item",
     "breadcrumbs": "Breadcrumbs",
     "parentPages": "Parent pages",
     "moreActions": "More actions"

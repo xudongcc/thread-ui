@@ -17,7 +17,7 @@ assert.match(pageActionsSource, /onClick=\{\(\) => onAction\?\.\(\)\}/);
 assert.doesNotMatch(pageActionsSource, /onSelect=/);
 assert.match(
   pageActionsSource,
-  /\[&>\[data-slot=page-primary-action\]\]:order-last/,
+  /\[&>\[data-slot=page-primary-action\]\]:order-20/,
 );
 assert.match(
   pageActionsSource,

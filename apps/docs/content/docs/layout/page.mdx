@@ -29,6 +29,9 @@ import {
   PageDescription,
   PageHeader,
   PagePrimaryAction,
+  PagePagination,
+  PagePreviousAction,
+  PageNextAction,
   PageSecondaryAction,
   PageTitle,
 } from "@/components/thread-ui/page";
@@ -155,6 +158,46 @@ mobile they span the full header; from the `sm` breakpoint they align with the
 title and extend to the right edge. Omitted navigation and actions leave their space
 available to the title.
 
+## Previous and next items
+
+Place `PagePagination` after the primary action inside `PageActions`. It uses
+shadcn `ButtonGroup` with two secondary icon buttons to navigate between resource
+details, such as products or orders. The caller supplies navigation and disables
+unavailable directions; this does not paginate a table.
+
+```tsx
+<PageActions>
+  <PagePrimaryAction onClick={save}>Save</PagePrimaryAction>
+  <PagePagination>
+    <PagePreviousAction disabled={!hasPrevious} onClick={goToPrevious} />
+    <PageNextAction disabled={!hasNext} onClick={goToNext} />
+  </PagePagination>
+</PageActions>
+```
+
+The group is hidden below 768px of **Page content width**, matching the breakpoint
+for inline secondary actions. It remains hidden in compact containers even on a
+large screen and is excluded from keyboard focus while hidden. Visible controls
+use normal Tab navigation. Their default labels are localized; override
+`aria-label` for resource-specific names.
+
+Buttons default to `type="button"` to avoid submitting an enclosing form. Use
+Base UI `render` for framework links, forwarding props and ref in custom render
+functions. Set `nativeButton` when a custom render returns a native button.
+
+```tsx
+<PagePagination>
+  <PagePreviousAction
+    aria-label="Previous product"
+    render={<Link href="/products/123" />}
+  />
+  <PageNextAction
+    aria-label="Next product"
+    render={<Link href="/products/125" />}
+  />
+</PagePagination>
+```
+
 ## API Reference
 
 ### Page
@@ -254,4 +297,24 @@ the content needs responsive full-width or fractional sections.
 <AutoTypeTable
   path="../../components/page/index.tsx"
   type="Pick<PageContentProps, 'className'>"
+/>
+
+### PagePagination
+
+Horizontal button group for item navigation. Place it inside `PageActions`, after
+`PagePrimaryAction`. Native div attributes and ref are forwarded.
+
+<AutoTypeTable
+  path="../../components/page/pagination.tsx"
+  type="Pick<PagePaginationProps, 'children' | 'className' | 'aria-label'>"
+/>
+
+### PagePreviousAction / PageNextAction
+
+Previous and next icon buttons. Support disabled and loading states, click
+handlers, refs, and Base UI `render`. Icons mirror in RTL layouts.
+
+<AutoTypeTable
+  path="../../components/page/pagination.tsx"
+  type="Pick<PagePaginationActionProps, 'disabled' | 'loading' | 'onClick' | 'render' | 'aria-label'>"
 />

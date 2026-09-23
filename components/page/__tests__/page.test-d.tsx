@@ -4,6 +4,9 @@ import {
   BreadcrumbActions,
   PageActions,
   PageHeader,
+  PageNextAction,
+  PagePagination,
+  PagePreviousAction,
   PagePrimaryAction,
   PageSecondaryAction,
 } from "../index";
@@ -104,4 +107,17 @@ export const secondary = (
 export const invalid = (
   // @ts-expect-error Button types must remain restricted to valid HTML button types.
   <PagePrimaryAction type="invalid">Save</PagePrimaryAction>
+);
+
+export const pagination = (
+  <PagePagination
+    ref={createRef<HTMLDivElement>()}
+    aria-label="Product navigation"
+  >
+    <PagePreviousAction ref={createRef<HTMLButtonElement>()} disabled />
+    <PageNextAction
+      aria-label="Next product"
+      render={<a href="/products/next" />}
+    />
+  </PagePagination>
 );
