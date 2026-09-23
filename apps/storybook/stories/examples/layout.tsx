@@ -444,13 +444,7 @@ function ApplicationContent({
           >
             <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
               <span>Last 30 days · All channels</span>
-              <span className="flex items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className="size-2 rounded-full bg-emerald-500"
-                />
-                Store is live
-              </span>
+              <span>Store is live</span>
             </div>
             <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               {[
