@@ -23,6 +23,9 @@ import {
   BreadcrumbAction,
   BreadcrumbActions,
   PageActions,
+  PageNextAction,
+  PagePagination,
+  PagePreviousAction,
   PageSecondaryAction,
 } from "@/components/thread-ui/page";
 import { Select } from "@/components/thread-ui/select";
@@ -70,6 +73,10 @@ describe("accessible labels", () => {
             <PageSecondaryAction key={key}>Action {key}</PageSecondaryAction>
           ))}
         </PageActions>
+        <PagePagination>
+          <PagePreviousAction />
+          <PageNextAction />
+        </PagePagination>
         <CodeBlockCopyButton />
         <CodeBlockSelect>
           <CodeBlockSelectTrigger />
@@ -83,6 +90,9 @@ describe("accessible labels", () => {
     expect(await screen.findByRole("img", { name: file.name })).toBeTruthy();
     expect(i18n.options.interpolation?.escapeValue).toBe(true);
     expect(screen.getByRole("button", { name: "Parent pages" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Item navigation" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Previous item" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Next item" })).toBeTruthy();
     expect(
       screen.getByRole("navigation", { name: "Breadcrumbs" }),
     ).toBeTruthy();
@@ -102,6 +112,9 @@ describe("accessible labels", () => {
     await act(() => i18n.changeLanguage("zh"));
 
     expect(screen.getByRole("button", { name: "上级页面" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "项目导航" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "上一项" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "下一项" })).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "面包屑导航" })).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "更多操作" })).toHaveLength(2);
     expect(screen.getByRole("button", { name: "复制代码" })).toBeTruthy();

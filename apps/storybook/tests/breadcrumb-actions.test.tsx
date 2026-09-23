@@ -15,6 +15,9 @@ import {
   PageActions,
   PageDescription,
   PageHeader,
+  PageNextAction,
+  PagePagination,
+  PagePreviousAction,
   PagePrimaryAction,
   PageSecondaryAction,
   PageTitle,
@@ -327,3 +330,132 @@ for (const width of [320, 1024]) {
     }
   }
 }
+
+for (const width of [375, 1024]) {
+  test(`page pagination is ordered and keyboard accessible only in wide pages (${width}px)`, async () => {
+    await page.viewport(width, 800);
+    const previousClick = vi.fn();
+    const nextClick = vi.fn();
+    const submit = vi.fn((event) => event.preventDefault());
+    mount(
+      <form onSubmit={submit}>
+        <Page variant="full">
+          <PageHeader>
+            <PageTitle>Product details</PageTitle>
+            <PageActions>
+              <PageSecondaryAction>Preview</PageSecondaryAction>
+              <PagePrimaryAction type="button">Save</PagePrimaryAction>
+              <PagePagination>
+                <PagePreviousAction disabled onClick={previousClick} />
+                <PageNextAction onClick={nextClick} />
+              </PagePagination>
+            </PageActions>
+          </PageHeader>
+          <button type="button">After header</button>
+        </Page>
+      </form>,
+    );
+    const save = page.getByRole("button", { name: "Save" });
+    const next = page.getByRole("button", { name: "Next item" });
+    (save.element() as HTMLElement).focus();
+    await userEvent.keyboard("{Tab}");
+    if (width === 375) {
+      await expect
+        .element(
+          container.querySelector<HTMLDivElement>(
+            '[data-slot="page-pagination"]',
+          ),
+        )
+        .not.toBeVisible();
+      await expect
+        .element(page.getByRole("button", { name: "After header" }))
+        .toHaveFocus();
+      const header = container
+        .querySelector('[data-slot="page-actions"]')!
+        .getBoundingClientRect();
+      expect(save.element().getBoundingClientRect().right).toBeCloseTo(
+        header.right,
+      );
+    } else {
+      const group = page.getByRole("group", { name: "Item navigation" });
+      await expect.element(group).toBeVisible();
+      const before = save.element().getBoundingClientRect();
+      const after = group.element().getBoundingClientRect();
+      expect(after.left).toBeGreaterThan(before.right);
+      await expect.element(next).toHaveFocus();
+      const previous = page.getByRole("button", { name: "Previous item" });
+      await expect.element(previous).toBeDisabled();
+      (previous.element() as HTMLButtonElement).click();
+      await userEvent.keyboard("{Enter}");
+      expect(previousClick).not.toHaveBeenCalled();
+      expect(nextClick).toHaveBeenCalledOnce();
+      expect(submit).not.toHaveBeenCalled();
+      const prevRadius = getComputedStyle(previous.element());
+      const nextRadius = getComputedStyle(next.element());
+      expect(prevRadius.borderTopRightRadius).toBe("0px");
+      expect(nextRadius.borderTopLeftRadius).toBe("0px");
+      await page.viewport(375, 800);
+      await expect
+        .element(
+          container.querySelector<HTMLDivElement>(
+            '[data-slot="page-pagination"]',
+          ),
+        )
+        .not.toBeVisible();
+    }
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
+  });
+}
+
+for (const mode of ["element", "function"] as const) {
+  test(`pagination preserves ${mode} framework Link rendering`, async () => {
+    await page.viewport(1024, 800);
+    const click = vi.fn((event) => event.preventDefault());
+    mount(
+      <Page>
+        <PageActions>
+          <PagePagination aria-label="Products">
+            <PagePreviousAction
+              aria-label="Previous product"
+              render={
+                mode === "element" ? (
+                  <Link to="/products/1" />
+                ) : (
+                  (props) => <Link {...props} to="/products/1" />
+                )
+              }
+              onClick={click}
+            />
+            <PageNextAction disabled render={<Link to="/products/3" />} />
+          </PagePagination>
+        </PageActions>
+      </Page>,
+    );
+    const previous = page.getByRole("link", { name: "Previous product" });
+    await expect.element(previous).toHaveAttribute("href", "/products/1");
+    await previous.click();
+    expect(click).toHaveBeenCalledOnce();
+    await expect
+      .element(page.getByRole("link", { name: "Next item" }))
+      .toHaveAttribute("aria-disabled", "true");
+  });
+}
+
+test("pagination follows page container width rather than the window", async () => {
+  await page.viewport(1440, 800);
+  mount(
+    <Page variant="compact">
+      <PageActions>
+        <PagePagination>
+          <PagePreviousAction />
+          <PageNextAction />
+        </PagePagination>
+      </PageActions>
+    </Page>,
+  );
+  await expect
+    .element(
+      container.querySelector<HTMLDivElement>('[data-slot="page-pagination"]'),
+    )
+    .not.toBeVisible();
+});
