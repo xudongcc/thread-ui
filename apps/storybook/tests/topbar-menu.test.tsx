@@ -301,3 +301,94 @@ test("automatic Topbar inherits custom application colors", async () => {
     .poll(() => pixel(getComputedStyle(trigger.element()).backgroundColor))
     .toEqual([60, 80, 100, 255]);
 });
+
+for (const styleMode of ["object", "callback"] as const) {
+  test(`informational user forwards DOM props, events and ref with ${styleMode} styles`, async () => {
+    const ref = createRef<HTMLDivElement>();
+    const onMouseEnter = vi.fn();
+    const style = { letterSpacing: "1px" };
+    const getStyle = vi.fn(() => style);
+    mount(
+      <TopbarMenu user={{ name: "Alex Morgan", email: "alex@example.com" }}>
+        <TopbarMenuTrigger />
+        <TopbarMenuContent>
+          <TopbarMenuUser
+            ref={ref}
+            disabled
+            aria-label="Current account"
+            closeOnClick={false}
+            data-testid="informational-user"
+            id="current-account"
+            label="Account"
+            nativeButton={false}
+            style={styleMode === "callback" ? getStyle : style}
+            title="Signed in as Alex"
+            variant="destructive"
+            onMouseEnter={onMouseEnter}
+          />
+        </TopbarMenuContent>
+      </TopbarMenu>,
+    );
+    await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
+    const row = page.getByTestId("informational-user");
+    await expect.element(row).toBeVisible();
+    expect(ref.current).toBe(row.element());
+    await expect.element(row).toHaveAttribute("id", "current-account");
+    await expect.element(row).toHaveAttribute("aria-label", "Current account");
+    await expect.element(row).toHaveAttribute("title", "Signed in as Alex");
+    expect(getComputedStyle(row.element()).letterSpacing).toBe("1px");
+    for (const attribute of [
+      "disabled",
+      "closeonclick",
+      "label",
+      "nativebutton",
+      "variant",
+    ]) {
+      expect(row.element().hasAttribute(attribute)).toBe(false);
+    }
+    expect(row.element().getAttribute("data-slot")).toBe("dropdown-menu-label");
+    expect(page.getByRole("menuitem").elements()).toHaveLength(0);
+    await row.hover();
+    expect(onMouseEnter).toHaveBeenCalled();
+    if (styleMode === "callback") {
+      expect(getStyle).toHaveBeenCalledWith({
+        disabled: true,
+        highlighted: false,
+      });
+    }
+  });
+}
+
+for (const mode of ["action", "link"] as const) {
+  test(`interactive user preserves custom accessible name and ref for ${mode}`, async () => {
+    const ref = createRef<HTMLDivElement>();
+    const onClick = vi.fn((event) => event.preventDefault());
+    mount(
+      <TopbarMenu user={{ name: "Alex Morgan" }}>
+        <TopbarMenuTrigger />
+        <TopbarMenuContent>
+          <TopbarMenuUser
+            ref={ref}
+            aria-label="Manage my account"
+            closeOnClick={false}
+            data-testid="profile-user"
+            render={mode === "link" ? <a href="/profile" /> : undefined}
+            title="Profile"
+            onClick={onClick}
+          />
+        </TopbarMenuContent>
+      </TopbarMenu>,
+    );
+    await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
+    const row = page.getByRole("menuitem", { name: "Manage my account" });
+    await expect.element(row).toBeVisible();
+    expect(ref.current).toBe(row.element());
+    await expect.element(row).toHaveAttribute("data-testid", "profile-user");
+    await expect.element(row).toHaveAttribute("title", "Profile");
+    if (mode === "link")
+      await expect.element(row).toHaveAttribute("href", "/profile");
+    await row.click();
+    expect(onClick).toHaveBeenCalledOnce();
+    await expect.element(page.getByRole("menu")).toBeVisible();
+  });
+}

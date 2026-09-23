@@ -308,6 +308,7 @@ export function TopbarMenuUser({
   className,
   render,
   onClick,
+  "aria-label": ariaLabel,
   ...props
 }: TopbarMenuUserProps) {
   const { t } = useTranslation("thread-ui");
@@ -334,6 +335,25 @@ export function TopbarMenuUser({
       </span>
     </>
   );
+  // The informational row forwards DOM props without leaking menu-item options.
+  const {
+    disabled,
+    closeOnClick: _closeOnClick,
+    label: _label,
+    nativeButton: _nativeButton,
+    variant: _variant,
+    style,
+    ...labelProps
+  } = props;
+  const informationalProps = interactive
+    ? undefined
+    : {
+        ...labelProps,
+        style:
+          typeof style === "function"
+            ? style({ disabled: disabled ?? false, highlighted: false })
+            : style,
+      };
   return (
     <DropdownMenuGroup>
       {interactive ? (
@@ -341,16 +361,23 @@ export function TopbarMenuUser({
           {...props}
           className={rowClassName}
           render={render}
-          aria-label={t("topbarMenu.profile", {
-            defaultValue: "Open profile: {{name}}",
-            name: user.name,
-          })}
+          aria-label={
+            ariaLabel ??
+            t("topbarMenu.profile", {
+              defaultValue: "Open profile: {{name}}",
+              name: user.name,
+            })
+          }
           onClick={onClick}
         >
           {content}
         </DropdownMenuItem>
       ) : (
-        <DropdownMenuLabel className={rowClassName}>
+        <DropdownMenuLabel
+          {...informationalProps}
+          aria-label={ariaLabel}
+          className={rowClassName}
+        >
           {content}
         </DropdownMenuLabel>
       )}

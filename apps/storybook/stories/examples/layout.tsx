@@ -934,7 +934,7 @@ function CollectionPage() {
                       <Card key={id} className="pt-0" role="article">
                         <div
                           aria-hidden="true"
-                          className={`flex aspect-[4/3] items-center justify-center ${product.color}`}
+                          className={`flex aspect-4/3 items-center justify-center ${product.color}`}
                         >
                           {id === "bag" ? (
                             <ShoppingBagIcon className="size-12" />

@@ -1,3 +1,4 @@
+/* eslint shadcn/no-raw-colors: "off" -- Code annotations intentionally use blue highlights and green/red diff colors independently of the application palette. */
 "use client";
 
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
