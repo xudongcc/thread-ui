@@ -21,7 +21,7 @@ export const GET = async (_: NextRequest) => {
   const response: Registry = {
     name: "Thread UI",
     homepage: "https://thread-ui.vercel.app/",
-    items: [],
+    items: [await getPackage("theme")],
   };
 
   const componentsDir = join(process.cwd(), "..", "..", "components");

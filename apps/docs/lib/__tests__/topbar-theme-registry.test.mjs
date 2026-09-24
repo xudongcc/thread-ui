@@ -40,7 +40,11 @@ test("Topbar installs scoped existing theme variables without overriding the glo
       '[data-slot="topbar"][data-variant="dark"]',
       '[data-slot="topbar"][data-variant="light"]',
     ]);
-    assert.doesNotMatch(JSON.stringify(item), /--topbar/);
+    assert.deepEqual(item.cssVars, {
+      theme: { "color-topbar": "var(--topbar)" },
+      light: { topbar: "oklch(1 0 0)" },
+      dark: { topbar: "oklch(0.205 0 0)" },
+    });
     assert.deepEqual((await getPackage("layout")).css, {});
   } finally {
     process.chdir(previousCwd);

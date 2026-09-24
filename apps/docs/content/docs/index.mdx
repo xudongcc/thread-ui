@@ -42,6 +42,29 @@ variables. Commit or stash local component customizations before running it.
 
 ## Adding Components
 
+### Install the Thread UI theme
+
+After initializing shadcn/ui with Tailwind CSS v4, install the shared theme:
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/theme
+```
+
+This merges the light/dark colors, radius scale, `bg-canvas` utility mapping,
+base styles, and Topbar appearance scopes into the CSS file configured in
+`components.json`. It also sets the body background to `bg-canvas`.
+The theme is generated from the same `packages/styles/theme.css` used by our
+applications, so it includes the Neutral secondary colors shown in Storybook.
+
+No `@repo/styles` package or additional CSS import is needed. The theme keeps
+your existing fonts and component style; use the preset above for Rhea and Inter.
+Installing the theme updates matching theme tokens across the application.
+Changes remain local to your project; rerun the command to install theme updates.
+
+Install the theme once before adding Layout, which uses `bg-canvas`.
+
+### Install a component
+
 Thread UI is a trusted registry for shadcn/ui. Add components using the CLI:
 
 ```bash

@@ -59,8 +59,8 @@ test("public registry dependencies keep package versions", async () => {
 
     const dataFilterPackage = await getPackage("data-filter");
     assert.ok(
-      dataFilterPackage.devDependencies?.includes("@types/lodash@^4.17.15"),
-      "data-filter source needs lodash types in consuming TypeScript apps",
+      dataFilterPackage.devDependencies?.includes("@types/lodash-es@^4.17.12"),
+      "data-filter source needs lodash-es types in consuming TypeScript apps",
     );
     assert.ok(
       calendarPackage.devDependencies?.includes("i18next@^26.3.1"),
