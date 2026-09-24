@@ -2,6 +2,7 @@ import { createRef } from "react";
 import {
   BreadcrumbAction,
   BreadcrumbActions,
+  Page,
   PageActions,
   PageHeader,
   PageNextAction,
@@ -120,4 +121,47 @@ export const pagination = (
       render={<a href="/products/next" />}
     />
   </PagePagination>
+);
+
+export const propsApi = (
+  <Page
+    breadcrumbActions={[{ label: "Projects", render: <a href="/projects" /> }]}
+    title={<strong>Project</strong>}
+    description={
+      <>
+        Manage <a href="/team">team</a>.
+      </>
+    }
+    paginationActions={{
+      previous: { disabled: true, render: <a href="/previous" /> },
+      next: {
+        render: (props, state) => (
+          <a {...props} aria-disabled={state.disabled} href="/next" />
+        ),
+      },
+    }}
+    primaryAction={{
+      label: "Save",
+      loading: true,
+      form: "project",
+      type: "submit",
+      onAction: () => undefined,
+    }}
+    secondaryActions={[
+      { key: "preview", label: "Preview", render: <a href="/preview" /> },
+      {
+        label: "Archive",
+        render: (props, state) => (
+          <a {...props} aria-disabled={state.disabled} href="/archive" />
+        ),
+      },
+    ]}
+  >
+    Content
+  </Page>
+);
+
+export const invalidPropsApi = (
+  // @ts-expect-error The configured primary action also owns its visual size.
+  <Page primaryAction={{ label: "Save", size: "sm" }} />
 );

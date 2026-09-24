@@ -7,9 +7,9 @@ description: A layout component for building consistent page structures with tit
 
 ## API Style
 
-`Page` uses a [compound-first API](/docs/api-design/compound-first). Compose the
-header, title, description, actions, and content to match the page structure you
-need.
+`Page` supports both Props and composition APIs. Use header props for standard
+pages; compose the existing subcomponents when you need a custom header.
+Both APIs share the same responsive layout and action behavior.
 
 ## Installation
 
@@ -17,7 +17,60 @@ need.
 pnpm dlx shadcn@latest add @thread-ui/page
 ```
 
-## Usage
+## Props API
+
+```tsx
+import Link from "next/link";
+import { Page } from "@/components/thread-ui/page";
+import { Card } from "@/components/ui/card";
+
+<Page
+  title="Project settings"
+  description="Manage your project and team."
+  breadcrumbActions={[
+    { label: "Projects", render: <Link href="/projects" /> },
+    { label: "Thread UI", render: <Link href="/projects/thread" /> },
+  ]}
+  primaryAction={{ label: "Save", loading: saving, onAction: handleSave }}
+  secondaryActions={[
+    { label: "Duplicate", onAction: handleDuplicate },
+    { label: "Delete", destructive: true, onAction: handleDelete },
+  ]}
+  paginationActions={{
+    previous: { disabled: !hasPrevious, onAction: goPrevious },
+    next: { render: <Link href="/projects/next" /> },
+  }}
+>
+  <Card>{/* Page content */}</Card>
+</Page>;
+```
+
+`title` and `description` accept `ReactNode`, including inline JSX. The root
+`title` prop is the visible page heading, not a native div tooltip attribute.
+Providing any header prop enables the Props API: Page generates `PageHeader`
+and wraps `children` in `PageContent`. Empty action arrays do not render empty
+menus. With no header props, children are rendered directly for composition.
+Do not put `PageHeader` or `PageContent` inside a Page configured with header props.
+
+Action configurations use `label` and `onAction`. Primary actions also support
+`icon`, `loading`, `type="submit"`, and `form`; secondary actions support `icon`,
+`destructive`, and `loading`. Optional `key` values give breadcrumb and secondary
+actions stable identity when their lists change. The Page controls button sizes
+and variants.
+
+All action types support Base UI `render` as an element or render function.
+Use it to supply your framework's Link; functions must forward the provided
+props and ref. `paginationActions.previous` and `.next` each accept `render`.
+Secondary links keep their destinations and disabled behavior when moved into
+an overflow menu. Set `nativeButton` when a custom render returns a native button.
+Loading secondary actions are disabled in both inline and menu presentations.
+
+Built-in navigation and menu labels remain localized. Override action labels
+with `aria-label`, or use composition for container-level label customization.
+
+## Composition API
+
+<Preview path="page-composition" />
 
 ```tsx
 import {
@@ -215,11 +268,47 @@ functions. Set `nativeButton` when a custom render returns a native button.
 
 ### Page
 
-The root container component.
+The page container and optional generated header configuration.
 
 <AutoTypeTable
   path="../../components/page/index.tsx"
-  type="Pick<PageProps, 'variant' | 'className'>"
+  type="Pick<PageProps, 'variant' | 'className' | 'title' | 'description' | 'breadcrumbActions' | 'primaryAction' | 'secondaryActions' | 'paginationActions'>"
+/>
+
+### PagePrimaryActionConfig
+
+<AutoTypeTable
+  path="../../components/page/index.tsx"
+  type="Pick<PagePrimaryActionConfig, 'label' | 'icon' | 'disabled' | 'loading' | 'render' | 'nativeButton' | 'type' | 'form' | 'onAction'>"
+/>
+
+### PageSecondaryActionConfig
+
+<AutoTypeTable
+  path="../../components/page/index.tsx"
+  type="Pick<PageSecondaryActionConfig, 'key' | 'label' | 'icon' | 'destructive' | 'disabled' | 'loading' | 'render' | 'nativeButton' | 'onAction'>"
+/>
+
+### PageBreadcrumbActionConfig
+
+<AutoTypeTable
+  path="../../components/page/index.tsx"
+  type="Pick<PageBreadcrumbActionConfig, 'key' | 'label' | 'disabled' | 'render' | 'nativeButton' | 'onAction'>"
+/>
+
+### PagePaginationActionsConfig
+
+Each optional direction accepts `PagePaginationActionConfig`. Default accessible
+labels are translated as “Previous item” and “Next item”.
+
+<AutoTypeTable
+  path="../../components/page/index.tsx"
+  type="PagePaginationActionsConfig"
+/>
+
+<AutoTypeTable
+  path="../../components/page/index.tsx"
+  type="Pick<PagePaginationActionConfig, 'disabled' | 'loading' | 'render' | 'nativeButton' | 'aria-label' | 'onAction'>"
 />
 
 ### PageHeader
@@ -278,7 +367,7 @@ and `title` attributes are preserved in both inline buttons and overflow menus.
 
 <AutoTypeTable
   path="../../components/page/index.tsx"
-  type="Pick<PageSecondaryActionProps, 'children' | 'className' | 'destructive' | 'disabled' | 'icon' | 'onAction' | 'title'>"
+  type="Pick<PageSecondaryActionProps, 'children' | 'className' | 'destructive' | 'disabled' | 'loading' | 'icon' | 'render' | 'nativeButton' | 'onAction' | 'title'>"
 />
 
 ### PageDescription

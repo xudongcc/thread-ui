@@ -20,6 +20,7 @@ function hasCompleteExample(id) {
     /^components-(calendar|dateinput|datepicker|datafilter|complexfilter|datatable|codeblock|alertdialog|toast|layout|topbar|topbarmenu)--/.test(
       id,
     ) ||
+    /^components-page--(pagination|link-actions)$/.test(id) ||
     /^components-fileupload--(automatic-upload|manual-upload|retry-failure)$/.test(
       id,
     ) ||

@@ -567,3 +567,160 @@ test("Page wrapper preserves flex height for PageContent", async () => {
   expect(content.bottom).toBeCloseTo(frame.bottom - 16);
   expect(content.height).toBeGreaterThan(200);
 });
+
+for (const mode of ["element", "function"] as const) {
+  for (const width of [420, 1200]) {
+    test(`Props API preserves ${mode} secondary links and disabled/loading actions at ${width}px`, async () => {
+      await page.viewport(width, 800);
+      const click = vi.fn();
+      const blocked = vi.fn();
+      const link = (props: ComponentProps<"a"> = {}) => (
+        <Link
+          {...props}
+          to="#activity"
+          onClick={(event) => {
+            event.preventDefault();
+            props.onClick?.(event);
+          }}
+        />
+      );
+      mount(
+        <Page
+          primaryAction={{ label: "Save", loading: true, onAction: blocked }}
+          title={<strong>Settings</strong>}
+          description={
+            <>
+              Manage <a href="#team">your team</a>.
+            </>
+          }
+          paginationActions={{
+            previous: { disabled: true },
+            next: { onAction: click },
+          }}
+          secondaryActions={[
+            {
+              label: "Activity",
+              render: mode === "element" ? link() : (props) => link(props),
+              onAction: click,
+            },
+            {
+              label: "Disabled",
+              disabled: true,
+              render: <Link to="#disabled" />,
+              onAction: blocked,
+            },
+            {
+              label: "Loading",
+              loading: true,
+              render: <Link to="#loading" />,
+              onAction: blocked,
+            },
+          ]}
+        >
+          Content
+        </Page>,
+      );
+      await expect
+        .element(page.getByRole("button", { name: "Save" }))
+        .toBeDisabled();
+      if (width < 704)
+        await page.getByRole("button", { name: "More actions" }).click();
+      const role = width < 704 ? "menuitem" : "link";
+      const activity = page.getByRole(role, { name: "Activity" });
+      await expect.element(activity).toHaveAttribute("href", "#activity");
+      for (const name of ["Disabled", "Loading"]) {
+        const item = page.getByRole(role, { name });
+        await expect.element(item).toHaveAttribute("aria-disabled", "true");
+        // Dispatch directly because browser automation correctly refuses disabled actions.
+        (item.element() as HTMLElement).click();
+      }
+      expect(blocked).not.toHaveBeenCalled();
+      await activity.click();
+      expect(click).toHaveBeenCalledOnce();
+      const next = container.querySelector('[data-slot="page-pagination"]');
+      expect(next).not.toBeNull();
+      if (width >= 704) {
+        await page.getByRole("button", { name: "Next item" }).click();
+        expect(click).toHaveBeenCalledTimes(2);
+      }
+    });
+  }
+}
+
+test("Props API keeps rendered secondary links in desktop overflow", async () => {
+  await page.viewport(1200, 800);
+  const click = vi.fn();
+  mount(
+    <Page
+      title="Settings"
+      secondaryActions={[
+        { label: "First" },
+        { label: "Second" },
+        { label: "Activity", render: <Link to="#activity" />, onAction: click },
+        { label: "Fourth" },
+      ]}
+    >
+      Content
+    </Page>,
+  );
+  await page.getByRole("button", { name: "More actions" }).click();
+  const activity = page.getByRole("menuitem", { name: "Activity" });
+  await expect.element(activity).toHaveAttribute("href", "#activity");
+  await activity.click();
+  expect(click).toHaveBeenCalledOnce();
+});
+
+for (const mode of ["element", "function"] as const) {
+  test(`Props API forwards ${mode} primary and pagination links, refs and callbacks`, async () => {
+    await page.viewport(1200, 800);
+    const primaryRef = createRef<HTMLElement>();
+    const nextRef = createRef<HTMLElement>();
+    const primaryClick = vi.fn();
+    const nextClick = vi.fn();
+    const render: BreadcrumbActionProps["render"] =
+      mode === "element" ? (
+        <Link to="#destination" />
+      ) : (
+        (props) => <Link {...props} to="#destination" />
+      );
+    mount(
+      <Page
+        title="Settings"
+        paginationActions={{
+          previous: { disabled: true, render },
+          next: {
+            render,
+            ref: (node) => {
+              nextRef.current = node;
+            },
+            onAction: nextClick,
+          },
+        }}
+        primaryAction={{
+          label: "Edit",
+          render,
+          ref: (node) => {
+            primaryRef.current = node;
+          },
+          onAction: primaryClick,
+        }}
+      >
+        Content
+      </Page>,
+    );
+    for (const [name, ref] of [
+      ["Edit", primaryRef],
+      ["Next item", nextRef],
+    ] as const) {
+      const action = page.getByRole("link", { name });
+      await expect.element(action).toHaveAttribute("href", "#destination");
+      expect(action.element()).toBe(ref.current);
+      await action.click();
+    }
+    expect(primaryClick).toHaveBeenCalledOnce();
+    expect(nextClick).toHaveBeenCalledOnce();
+    await expect
+      .element(page.getByRole("link", { name: "Previous item" }))
+      .toHaveAttribute("aria-disabled", "true");
+  });
+}

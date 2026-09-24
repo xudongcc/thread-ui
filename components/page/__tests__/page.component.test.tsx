@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import {
   BreadcrumbAction,
   BreadcrumbActions,
+  Page,
   PageActions,
   PagePrimaryAction,
   PageSecondaryAction,
@@ -57,4 +58,82 @@ it("preserves secondary action attributes in inline buttons and overflow menus",
   expect(item.getAttribute("title")).toBe("Edit profile");
   await userEvent.click(item);
   expect(click).toHaveBeenCalledTimes(2);
+});
+
+it("composes ReactNode headers and forwards action configuration without DOM prop leakage", async () => {
+  const save = vi.fn();
+  const next = vi.fn();
+  const { container } = render(
+    <Page
+      data-testid="page"
+      breadcrumbActions={[
+        { label: "Projects", render: <a href="#projects" /> },
+      ]}
+      description={
+        <>
+          Manage <a href="#team">your team</a>.
+        </>
+      }
+      paginationActions={{
+        previous: { disabled: true },
+        next: { onAction: next },
+      }}
+      primaryAction={{
+        label: "Save",
+        type: "submit",
+        form: "project",
+        onAction: save,
+      }}
+      title={
+        <span>
+          Project <strong>settings</strong>
+        </span>
+      }
+    >
+      <article>Project content</article>
+    </Page>,
+  );
+  expect(screen.getByRole("heading").textContent).toBe("Project settings");
+  expect(
+    screen.getByRole("link", { name: "your team" }).closest("p"),
+  ).not.toBeNull();
+  expect(
+    screen.getByRole("link", { name: "Projects" }).getAttribute("href"),
+  ).toBe("#projects");
+  expect(screen.getByTestId("page").hasAttribute("title")).toBe(false);
+  expect(
+    container.querySelector("article")?.parentElement?.className,
+  ).toContain("flex-1");
+  const primary = screen.getByRole("button", { name: /Save$/ });
+  expect(primary.getAttribute("form")).toBe("project");
+  expect(primary.getAttribute("type")).toBe("submit");
+  await userEvent.click(primary);
+  await userEvent.click(screen.getByRole("button", { name: "Next item" }));
+  expect(save).toHaveBeenCalledOnce();
+  expect(next).toHaveBeenCalledOnce();
+  expect(
+    screen
+      .getByRole("button", { name: "Previous item" })
+      .hasAttribute("disabled"),
+  ).toBe(true);
+});
+
+it("omits empty configured headers and leaves composition children untouched", () => {
+  const { container, rerender } = render(
+    <Page breadcrumbActions={[]} paginationActions={{}} secondaryActions={[]}>
+      <article>Content</article>
+    </Page>,
+  );
+  expect(container.querySelector("header")).toBeNull();
+  expect(container.querySelector('[data-slot="page-actions"]')).toBeNull();
+  rerender(
+    <Page>
+      <article>Composed content</article>
+    </Page>,
+  );
+  expect(
+    container
+      .querySelector("article")
+      ?.parentElement?.getAttribute("data-slot"),
+  ).toBe("page");
 });

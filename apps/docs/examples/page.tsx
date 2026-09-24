@@ -1,43 +1,32 @@
 "use client";
 
-import {
-  BreadcrumbAction,
-  BreadcrumbActions,
-  Page,
-  PageActions,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PagePrimaryAction,
-  PageSecondaryAction,
-  PageTitle,
-} from "@/components/thread-ui/page";
+import { Page } from "@/components/thread-ui/page";
+import { Card, CardContent } from "@/components/ui/card";
 
-const Example = () => (
-  <Page>
-    <PageHeader>
-      <BreadcrumbActions>
-        <BreadcrumbAction render={<a href="#products" />}>
-          Products
-        </BreadcrumbAction>
-        <BreadcrumbAction render={<a href="#pet-accessories" />}>
-          Pet accessories
-        </BreadcrumbAction>
-      </BreadcrumbActions>
-      <PageTitle>3/4 inch Leather pet collar</PageTitle>
-      <PageDescription>Perfect for any pet</PageDescription>
-      <PageActions>
-        <PageSecondaryAction>Duplicate</PageSecondaryAction>
-        <PageSecondaryAction>Rename</PageSecondaryAction>
-        <PageSecondaryAction>Export</PageSecondaryAction>
-        <PageSecondaryAction destructive>Archive</PageSecondaryAction>
-        <PagePrimaryAction>Save</PagePrimaryAction>
-      </PageActions>
-    </PageHeader>
-    <PageContent>
-      <p className="text-muted-foreground">Your page content goes here.</p>
-    </PageContent>
-  </Page>
-);
-
-export default Example;
+export default function Example() {
+  return (
+    <Page
+      description="Perfect for any pet"
+      primaryAction={{ label: "Save" }}
+      title="3/4 inch Leather pet collar"
+      breadcrumbActions={[
+        { label: "Products", render: <a href="#products" /> },
+        { label: "Pet accessories", render: <a href="#pet-accessories" /> },
+      ]}
+      paginationActions={{
+        previous: { disabled: true },
+        next: { render: <a href="#next-product" /> },
+      }}
+      secondaryActions={[
+        { label: "Duplicate" },
+        { label: "Rename" },
+        { label: "Export" },
+        { label: "Archive", destructive: true },
+      ]}
+    >
+      <Card>
+        <CardContent>Your page content goes here.</CardContent>
+      </Card>
+    </Page>
+  );
+}
