@@ -39,7 +39,7 @@ test("hooks and libs are discoverable and install into configured aliases", asyn
         "registry:hook",
         "@hooks/use-resource-navigation.ts",
       ],
-      ["connection-search", "registry:lib", "@lib/connection-search.ts"],
+      ["graphql-connection", "registry:lib", "@lib/graphql-connection.ts"],
     ]) {
       assert.ok(names.includes(name));
       const item = registryItemSchema.parse(await getPackage(name));
@@ -56,6 +56,16 @@ test("hooks and libs are discoverable and install into configured aliases", asyn
         ),
       );
     }
+    const connection = await getPackage("graphql-connection");
+    assert.ok(
+      connection.dependencies.some((dep) => dep.startsWith("lodash-es@")),
+    );
+    assert.ok(
+      connection.devDependencies.some((dep) =>
+        dep.startsWith("@types/lodash-es@"),
+      ),
+    );
+    assert.match(connection.files[0].content, /createConnectionCursor/);
     const hook = await getPackage("use-resource-navigation");
     assert.ok(hook.dependencies.some((dep) => dep.startsWith("lodash-es@")));
     assert.ok(
@@ -77,7 +87,7 @@ test("shadcn installs both utilities with custom aliases and consumer types", as
   try {
     const items = Object.fromEntries(
       await Promise.all(
-        ["use-resource-navigation", "connection-search"].map(async (name) => [
+        ["use-resource-navigation", "graphql-connection"].map(async (name) => [
           name,
           await getPackage(name),
         ]),
@@ -146,7 +156,7 @@ test("shadcn installs both utilities with custom aliases and consumer types", as
         require.resolve("shadcn"),
         "add",
         "@thread-ui/use-resource-navigation",
-        "@thread-ui/connection-search",
+        "@thread-ui/graphql-connection",
         "--yes",
         "--cwd",
         dir,
@@ -158,7 +168,7 @@ test("shadcn installs both utilities with custom aliases and consumer types", as
       "utf8",
     );
     const lib = await readFile(
-      join(dir, "src/shared/lib/connection-search.ts"),
+      join(dir, "src/shared/lib/graphql-connection.ts"),
       "utf8",
     );
     assert.match(hook, /useResourceNavigation/);
@@ -171,12 +181,14 @@ test("shadcn installs both utilities with custom aliases and consumer types", as
       join(dir, "src/example.ts"),
       `
 import { useResourceNavigation } from "@/shared/hooks/use-resource-navigation";
-import { OrderDirection, createConnectionSearchSchema, createFilterSchema, createInputFilterItemSearchSchema } from "@/shared/lib/connection-search";
+import { OrderDirection, createConnectionCursor, encodeConnectionCursor, createConnectionSearchSchema, createFilterSchema, createInputFilterItemSearchSchema } from "@/shared/lib/graphql-connection";
 const searchSchema = createConnectionSearchSchema({
   pageSize: 20, orderField: { ID: "ID" } as const,
   defaultOrderField: "ID", defaultOrderDirection: OrderDirection.ASC,
   filterSchema: createFilterSchema({ name: createInputFilterItemSearchSchema() }),
 });
+export const cursor = createConnectionCursor({ id: "123" }, searchSchema.parse({}));
+export const idOnlyCursor = encodeConnectionCursor({ id: "123" });
 export function useExample() {
   return useResourceNavigation({ key: ["user", "products"], searchSchema });
 }

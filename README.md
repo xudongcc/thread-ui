@@ -22,8 +22,8 @@ so they are excluded from registry payloads.
 
 ```sh
 pnpm --filter @repo/use-resource-navigation test
-pnpm --filter @repo/connection-search test
+pnpm --filter @repo/graphql-connection test
 pnpm --filter @repo/use-resource-navigation check-types
-pnpm --filter @repo/connection-search check-types
+pnpm --filter @repo/graphql-connection check-types
 node --test apps/docs/lib/__tests__/*.test.mjs
 ```

@@ -1,15 +1,15 @@
 ---
-title: connection-search
-description: Typed Zod schemas for cursor pagination and DataFilter values.
+title: graphql-connection
+description: GraphQL connection cursors, typed pagination, and DataFilter search schemas.
 ---
 
 ## Installation
 
 ```bash
-pnpm dlx shadcn@latest add @thread-ui/connection-search
+pnpm dlx shadcn@latest add @thread-ui/graphql-connection
 ```
 
-Installs into your configured `lib` alias. Requires Zod 4; no React or GraphQL
+Installs into your configured `lib` alias. Requires Zod 4 and lodash-es; no React or GraphQL
 client is needed. The helpers model `first` / `last` / `before` / `after`, an
 optional `query`, and `orderBy: { field, direction }`. Adapt this search shape to
 your API in your data layer; it is not a universal GraphQL input format.
@@ -27,7 +27,7 @@ import {
   createDateFilterItemSearchSchema,
   createNumberFilterItemSearchSchema,
   createCheckboxFilterItemSearchSchema,
-} from "@/lib/connection-search";
+} from "@/lib/graphql-connection";
 
 export const resourceSearchSchema = createConnectionSearchSchema({
   pageSize: 20,
@@ -58,13 +58,13 @@ Every item factory includes `.optional().catch(undefined)`: missing or malformed
 items are discarded while valid conditions retain their types. Unknown operator
 keys are rejected. `$eq` and `$ne` accept `null` in all item types.
 
-| Factory                                                           | Shorthand               | Operators                                              |
-| ----------------------------------------------------------------- | ----------------------- | ------------------------------------------------------ |
-| `createInputFilterItemSearchSchema(valueSchema?, { fulltext? }?)` | String                  | `$eq`, `$ne`; `$fulltext` only with explicit opt-in    |
-| `createSelectFilterItemSearchSchema(valueSchema, max?)`           | Array of values         | `$in`, `$nin`; `$eq` / `$ne` for `null` only           |
-| `createDateFilterItemSearchSchema()`                              | UTC ISO datetime string | `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$between` |
-| `createNumberFilterItemSearchSchema(valueSchema?)`                | Number                  | `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$between` |
-| `createCheckboxFilterItemSearchSchema()`                          | Boolean                 | `$eq`, `$ne`                                           |
+| Factory                                                           | Shorthand                                | Operators                                              |
+| ----------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------ |
+| `createInputFilterItemSearchSchema(valueSchema?, { fulltext? }?)` | String                                   | `$eq`, `$ne`; `$fulltext` only with explicit opt-in    |
+| `createSelectFilterItemSearchSchema(valueSchema, max?)`           | Array of values                          | `$in`, `$nin`; `$eq` / `$ne` for `null` only           |
+| `createDateFilterItemSearchSchema()`                              | Calendar date or UTC ISO datetime string | `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$between` |
+| `createNumberFilterItemSearchSchema(valueSchema?)`                | Number                                   | `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$between` |
+| `createCheckboxFilterItemSearchSchema()`                          | Boolean                                  | `$eq`, `$ne`                                           |
 
 Input defaults to a string of at most 255 characters; number defaults to a finite
 number. `$between` requires two valid bounds. These operators match the serialized
@@ -81,7 +81,7 @@ the schema returns the first page and default ordering.
 import {
   getNextPageSearch,
   getPreviousPageSearch,
-} from "@/lib/connection-search";
+} from "@/lib/graphql-connection";
 
 // Use these values with your router; guard actions using pageInfo's flags.
 const nextSearch = getNextPageSearch(search, connection.pageInfo);
@@ -91,3 +91,31 @@ const previousSearch = getPreviousPageSearch(search, connection.pageInfo);
 The helpers preserve filters, ordering, custom fields, and page size. They select
 `endCursor` / `startCursor` without decoding them. `PageInfo` uses
 `hasNextPage`, `hasPreviousPage`, `startCursor`, and `endCursor`.
+
+## Record cursors
+
+```ts
+import {
+  createConnectionCursor,
+  encodeConnectionCursor,
+} from "@/lib/graphql-connection";
+
+const cursor = createConnectionCursor(
+  { id: "123", createdAt: "2026-09-24T00:00:00.000Z" },
+  search,
+);
+const idOnlyCursor = encodeConnectionCursor({ id: "123" });
+```
+
+`createConnectionCursor(record, search)` converts the ordering field to camelCase
+(for example, `CREATED_AT` to `createdAt`) and encodes `{ id, value }` as UTF-8
+base64 JSON. Without ordering, it encodes only `{ id }`. Missing sort fields throw;
+`null` and zero values are preserved.
+
+This encoding matches `@nest-boot/graphql-connection`; GraphQL does not prescribe
+a cursor encoding. Use these helpers only when your backend shares this contract.
+Otherwise use the opaque cursors returned by your API.
+
+Date filter schemas accept both `YYYY-MM-DD` and precise UTC ISO timestamps.
+They validate and preserve those values without expanding day boundaries or
+applying time-zone offsets; those semantics belong to the backend.

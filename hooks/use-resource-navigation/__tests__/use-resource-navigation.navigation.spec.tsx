@@ -7,7 +7,7 @@ import { useResourceNavigation } from "../use-resource-navigation";
 import {
   OrderDirection,
   createConnectionSearchSchema,
-} from "../../../libs/connection-search/connection-search";
+} from "../../../libs/graphql-connection/graphql-connection";
 import { ResourceOrderField, resourceSearchSchema } from "./search-fixture";
 import type {
   ResourceNavigationEdge,

@@ -6,7 +6,7 @@ import {
   createDateFilterItemSearchSchema,
   createFilterSchema,
   createInputFilterItemSearchSchema,
-} from "../../../libs/connection-search/connection-search";
+} from "../../../libs/graphql-connection/graphql-connection";
 
 export const ResourceOrderField = {
   ID: "ID",

@@ -12,7 +12,7 @@ import {
   createSelectFilterItemSearchSchema,
   getNextPageSearch,
   getPreviousPageSearch,
-} from "../connection-search";
+} from "../graphql-connection";
 import { serializeDataFilterValueFilter } from "../../../components/data-filter/utils/data-filter-value";
 import { dataFilterDefaultCheckboxOperators } from "../../../components/data-filter/utils/data-filter-default-checkbox-operators";
 import { dataFilterDefaultDatePickerOperators } from "../../../components/data-filter/utils/data-filter-default-date-picker-operators";
@@ -22,7 +22,7 @@ import { dataFilterDefaultSelectOperators } from "../../../components/data-filte
 import type {
   ConnectionSearch,
   CreateConnectionSearchSchemaOptions,
-} from "../connection-search";
+} from "../graphql-connection";
 
 const start = "2026-09-01T00:00:00.000Z";
 const end = "2026-09-23T00:00:00.000Z";
@@ -67,6 +67,16 @@ const filterCases = [
 ];
 
 describe("DataFilter compatibility", () => {
+  it("accepts date-only calendar values and retains precise timestamps", () => {
+    const schema = createDateFilterItemSearchSchema();
+    expect(schema.parse("2026-09-24")).toBe("2026-09-24");
+    expect(schema.parse({ $between: ["2026-09-01", "2026-09-24"] })).toEqual({
+      $between: ["2026-09-01", "2026-09-24"],
+    });
+    expect(schema.parse(start)).toBe(start);
+    expect(schema.parse("2026-02-30")).toBeUndefined();
+  });
+
   it.each(filterCases)(
     "accepts all default $name operators after serialization",
     ({ schema, operators, value, range }) => {
