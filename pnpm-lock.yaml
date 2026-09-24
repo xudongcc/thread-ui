@@ -1189,6 +1189,62 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  hooks/use-resource-navigation:
+    dependencies:
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.18.1
+      react:
+        specifier: ^19.2.7
+        version: 19.3.0
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.3.0(@types/react@19.3.0)
+      jsdom:
+        specifier: ^29.1.1
+        version: 29.1.1(@noble/hashes@1.8.0)
+      react-dom:
+        specifier: ^19.2.7
+        version: 19.3.0(react@19.3.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@25.0.9)(@vitest/browser-playwright@4.1.9)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.12.7(@types/node@25.0.9)(typescript@5.9.3))(vite@8.3.0(@types/node@25.0.9)(esbuild@0.27.2)(jiti@2.7.0)(yaml@2.9.0))
+
+  libs/connection-search:
+    dependencies:
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@25.0.9)(@vitest/browser-playwright@4.1.9)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.12.7(@types/node@25.0.9)(typescript@5.9.3))(vite@8.3.0(@types/node@25.0.9)(esbuild@0.27.2)(jiti@2.7.0)(yaml@2.9.0))
+
   locales: {}
 
   packages/shadcn-ui:

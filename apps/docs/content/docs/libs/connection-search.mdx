@@ -1,0 +1,93 @@
+---
+title: connection-search
+description: Typed Zod schemas for cursor pagination and DataFilter values.
+---
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/connection-search
+```
+
+Installs into your configured `lib` alias. Requires Zod 4; no React or GraphQL
+client is needed. The helpers model `first` / `last` / `before` / `after`, an
+optional `query`, and `orderBy: { field, direction }`. Adapt this search shape to
+your API in your data layer; it is not a universal GraphQL input format.
+
+## Define a search schema
+
+```ts
+import { z } from "zod";
+import {
+  OrderDirection,
+  createConnectionSearchSchema,
+  createFilterSchema,
+  createInputFilterItemSearchSchema,
+  createSelectFilterItemSearchSchema,
+  createDateFilterItemSearchSchema,
+  createNumberFilterItemSearchSchema,
+  createCheckboxFilterItemSearchSchema,
+} from "@/lib/connection-search";
+
+export const resourceSearchSchema = createConnectionSearchSchema({
+  pageSize: 20,
+  orderField: { ID: "ID", CREATED_AT: "CREATED_AT" } as const,
+  defaultOrderField: "CREATED_AT",
+  defaultOrderDirection: OrderDirection.DESC,
+  filterSchema: createFilterSchema({
+    name: createInputFilterItemSearchSchema(z.string().max(100), {
+      fulltext: true,
+    }),
+    status: createSelectFilterItemSearchSchema(z.enum(["ACTIVE", "ARCHIVED"])),
+    created_at: createDateFilterItemSearchSchema(),
+    count: createNumberFilterItemSearchSchema(z.number().int().min(0)),
+    enabled: createCheckboxFilterItemSearchSchema(),
+  }),
+}).and(z.object({ savedViewId: z.string().optional() }));
+
+export type ResourceSearch = z.output<typeof resourceSearchSchema>;
+```
+
+`filterSchema` is optional and preserves the supplied schema's concrete input,
+output, defaults, and requiredness. `createFilterSchema(shape)` creates an optional
+object. Use your own Zod object when the filter itself should be required.
+
+## Filter factories
+
+Every item factory includes `.optional().catch(undefined)`: missing or malformed
+items are discarded while valid conditions retain their types. Unknown operator
+keys are rejected. `$eq` and `$ne` accept `null` in all item types.
+
+| Factory                                                           | Shorthand               | Operators                                              |
+| ----------------------------------------------------------------- | ----------------------- | ------------------------------------------------------ |
+| `createInputFilterItemSearchSchema(valueSchema?, { fulltext? }?)` | String                  | `$eq`, `$ne`; `$fulltext` only with explicit opt-in    |
+| `createSelectFilterItemSearchSchema(valueSchema, max?)`           | Array of values         | `$in`, `$nin`; `$eq` / `$ne` for `null` only           |
+| `createDateFilterItemSearchSchema()`                              | UTC ISO datetime string | `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$between` |
+| `createNumberFilterItemSearchSchema(valueSchema?)`                | Number                  | `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$between` |
+| `createCheckboxFilterItemSearchSchema()`                          | Boolean                 | `$eq`, `$ne`                                           |
+
+Input defaults to a string of at most 255 characters; number defaults to a finite
+number. `$between` requires two valid bounds. These operators match the serialized
+values of Thread UI's [DataFilter](/docs/form/data-filter).
+
+## Pagination
+
+`pageSize` sets the default and maximum allowed count. Invalid counts fall back
+to it. Forward pagination (`first` or `after`) takes precedence over backward
+pagination (`last` or `before`); unused direction fields are removed. With neither,
+the schema returns the first page and default ordering.
+
+```ts
+import {
+  getNextPageSearch,
+  getPreviousPageSearch,
+} from "@/lib/connection-search";
+
+// Use these values with your router; guard actions using pageInfo's flags.
+const nextSearch = getNextPageSearch(search, connection.pageInfo);
+const previousSearch = getPreviousPageSearch(search, connection.pageInfo);
+```
+
+The helpers preserve filters, ordering, custom fields, and page size. They select
+`endCursor` / `startCursor` without decoding them. `PageInfo` uses
+`hasNextPage`, `hasPreviousPage`, `startCursor`, and `endCursor`.

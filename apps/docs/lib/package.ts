@@ -8,6 +8,7 @@ import type { ChildNode } from "postcss";
 import type { RegistryItem } from "shadcn/schema";
 
 const devDependencyBlocklist = new Set([
+  "react-dom",
   "@types/react",
   "@types/react-dom",
   "typescript",
@@ -108,13 +109,56 @@ const getThemePackage = async (rootDir: string): Promise<RegistryItem> => {
   };
 };
 
+const packageGroups = [
+  { directory: "components", type: "registry:ui" },
+  { directory: "hooks", type: "registry:hook" },
+  { directory: "libs", type: "registry:lib" },
+] as const;
+
+/** The catalog and item resolver share one public package namespace. */
+export const getPackageNames = async () => {
+  const rootDir = join(process.cwd(), "..", "..");
+  const names = new Set<string>();
+  for (const { directory } of packageGroups) {
+    const entries = await fs.readdir(join(rootDir, directory), {
+      withFileTypes: true,
+    });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (names.has(entry.name)) {
+        throw new Error(`Duplicate registry package: ${entry.name}`);
+      }
+      names.add(entry.name);
+    }
+  }
+  return [...names].sort();
+};
+
 export const getPackage = async (packageName: string) => {
   const rootDir = join(process.cwd(), "..", "..");
   if (packageName === "theme") return getThemePackage(rootDir);
   const isLocalesPackage = packageName === "locales";
-  const packageDir = isLocalesPackage
-    ? join(rootDir, "locales")
-    : join(rootDir, "components", packageName);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(packageName)) {
+    throw new Error("Invalid registry package name");
+  }
+  let packageType: "registry:ui" | "registry:hook" | "registry:lib" =
+    "registry:ui";
+  let packageDir = join(rootDir, "locales");
+  if (!isLocalesPackage) {
+    let found = false;
+    for (const group of packageGroups) {
+      const candidate = join(rootDir, group.directory, packageName);
+      const manifest = await fs
+        .stat(join(candidate, "package.json"))
+        .catch(() => null);
+      if (!manifest?.isFile()) continue;
+      if (found) throw new Error(`Duplicate registry package: ${packageName}`);
+      found = true;
+      packageDir = candidate;
+      packageType = group.type;
+    }
+    if (!found) throw new Error(`Unknown registry package: ${packageName}`);
+  }
   const packagePath = join(packageDir, "package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf-8"));
   const packageDependencies = (packageJson.dependencies || {}) as Record<
@@ -186,12 +230,16 @@ export const getPackage = async (packageName: string) => {
       : `~/public/${fileName}`;
 
     files.push({
-      type: isLocaleResource ? "registry:file" : "registry:ui",
+      type: isLocaleResource ? "registry:file" : packageType,
       path: fileName,
       content,
       target: isLocaleResource
         ? localeTarget
-        : `components/thread-ui/${packageName}/${fileName}`,
+        : packageType === "registry:hook"
+          ? `@hooks/${fileName}`
+          : packageType === "registry:lib"
+            ? `@lib/${fileName}`
+            : `components/thread-ui/${packageName}/${fileName}`,
     });
   }
 
@@ -296,7 +344,7 @@ export const getPackage = async (packageName: string) => {
 
   let type: RegistryItem["type"] = isLocalesPackage
     ? "registry:item"
-    : "registry:ui";
+    : packageType;
 
   if (!Object.keys(files).length && Object.keys(css).length) {
     type = "registry:style";

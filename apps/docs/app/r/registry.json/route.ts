@@ -1,9 +1,6 @@
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-
 import { track } from "@vercel/analytics/server";
 import { NextResponse } from "next/server";
-import { getPackage } from "../../../lib/package";
+import { getPackage, getPackageNames } from "../../../lib/package";
 import type { NextRequest } from "next/server";
 import type { Registry } from "shadcn/schema";
 
@@ -24,14 +21,7 @@ export const GET = async (_: NextRequest) => {
     items: [await getPackage("theme")],
   };
 
-  const componentsDir = join(process.cwd(), "..", "..", "components");
-  const componentDirectories = await readdir(componentsDir, {
-    withFileTypes: true,
-  });
-
-  const componentNames = componentDirectories
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
+  const componentNames = await getPackageNames();
 
   for (const name of componentNames) {
     try {

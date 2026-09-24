@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
@@ -8,19 +7,14 @@ import { test } from "node:test";
 const root = resolve(import.meta.dirname, "../../../..");
 const docsDir = resolve(root, "apps/docs");
 const packageModuleUrl = pathToFileURL(resolve(docsDir, "lib/package.ts")).href;
-const { getPackage } = await import(packageModuleUrl);
+const { getPackage, getPackageNames } = await import(packageModuleUrl);
 
 test("public registry packages exclude internal dependencies and test tooling", async () => {
   const previousCwd = process.cwd();
   process.chdir(docsDir);
 
   try {
-    const entries = await readdir(resolve(root, "components"), {
-      withFileTypes: true,
-    });
-    const packageNames = entries
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name);
+    const packageNames = await getPackageNames();
 
     for (const packageName of [...packageNames, "locales"]) {
       const registryPackage = await getPackage(packageName);

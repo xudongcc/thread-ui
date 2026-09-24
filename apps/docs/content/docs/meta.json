@@ -17,6 +17,10 @@
     "---Layout---",
     "...layout",
     "---Overlay---",
-    "...overlay"
+    "...overlay",
+    "---Hooks---",
+    "...hooks",
+    "---Libs---",
+    "...libs"
   ]
 }
