@@ -2,13 +2,14 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@repo/styles/theme.css";
+@import "@fontsource-variable/inter";
 
 @source "../../components";
 @source "../../packages/shadcn-ui";
 @source "./stories";
 
 :root {
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-geist-mono: ui-monospace, monospace;
 }
 
@@ -19,9 +20,9 @@
   min-width: 0;
 }
 
-/* Shared story surface; --sidebar follows the active light/dark theme. */
+/* Shared story canvas follows the active light/dark theme. */
 body.sb-show-main,
 .docs-story {
-  background: var(--sidebar);
+  background: var(--canvas);
   color: var(--foreground);
 }

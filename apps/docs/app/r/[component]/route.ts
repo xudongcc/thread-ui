@@ -50,7 +50,9 @@ export const generateStaticParams = async () => {
     withFileTypes: true,
   });
 
-  return componentDirectories
+  const components = componentDirectories
     .map((dirent) => dirent.name)
     .map((name) => ({ component: name }));
+
+  return [...components, { component: "theme.json" }];
 };

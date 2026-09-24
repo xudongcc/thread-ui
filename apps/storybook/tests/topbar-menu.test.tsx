@@ -231,10 +231,10 @@ for (const globalDark of [false, true]) {
       const foreground = dark ? [250, 250, 250, 255] : [10, 10, 10, 255];
       const accent = dark ? [38, 38, 38, 255] : [245, 245, 245, 255];
       const accentForeground = dark ? [250, 250, 250, 255] : [23, 23, 23, 255];
-      const background = dark ? [10, 10, 10, 255] : [255, 255, 255, 255];
+      const headerBackground = dark ? [23, 23, 23, 255] : [255, 255, 255, 255];
       const header = container.querySelector("header")!;
       expect(pixel(getComputedStyle(header).backgroundColor)).toEqual(
-        background,
+        headerBackground,
       );
       expect(pixel(getComputedStyle(header).color)).toEqual(foreground);
       const action = page.getByRole("button", { name: "Notifications" });
@@ -249,7 +249,7 @@ for (const globalDark of [false, true]) {
       );
       expect(
         pixel(getComputedStyle(trigger.element()).backgroundColor),
-      ).toEqual(background);
+      ).toEqual(headerBackground);
       await action.hover();
       await expect
         .poll(() => pixel(getComputedStyle(action.element()).backgroundColor))
@@ -263,6 +263,11 @@ for (const globalDark of [false, true]) {
         accentForeground,
       );
       // The portaled popup remains in the page's theme, outside the header scope.
+      expect(
+        pixel(
+          getComputedStyle(page.getByRole("menu").element()).backgroundColor,
+        ),
+      ).toEqual(globalDark ? [23, 23, 23, 255] : [255, 255, 255, 255]);
       expect(
         pixel(
           getComputedStyle(page.getByRole("menu").element()).getPropertyValue(
@@ -280,6 +285,8 @@ test("automatic Topbar inherits custom application colors", async () => {
       style={
         {
           "--background": "rgb(20 40 60)",
+          "--sidebar": "rgb(40 60 80)",
+          "--topbar": "rgb(30 50 70)",
           "--foreground": "rgb(240 230 220)",
           "--accent": "rgb(60 80 100)",
           "--accent-foreground": "rgb(250 250 250)",
@@ -291,12 +298,12 @@ test("automatic Topbar inherits custom application colors", async () => {
   );
   const header = container.querySelector("header")!;
   expect(pixel(getComputedStyle(header).backgroundColor)).toEqual([
-    20, 40, 60, 255,
+    30, 50, 70, 255,
   ]);
   expect(pixel(getComputedStyle(header).color)).toEqual([240, 230, 220, 255]);
   const trigger = page.getByRole("button", { name: "Account: Alex Morgan" });
   expect(pixel(getComputedStyle(trigger.element()).backgroundColor)).toEqual([
-    20, 40, 60, 255,
+    30, 50, 70, 255,
   ]);
   await trigger.hover();
   await expect

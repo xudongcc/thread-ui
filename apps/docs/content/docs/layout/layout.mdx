@@ -6,6 +6,7 @@ description: Grid application shell composed with Topbar, shadcn Sidebar, and sc
 ## Installation
 
 ```bash
+pnpm dlx shadcn@latest add @thread-ui/theme
 pnpm dlx shadcn@latest add @thread-ui/layout
 pnpm dlx shadcn@latest add @thread-ui/topbar
 ```
@@ -15,6 +16,10 @@ pnpm dlx shadcn@latest add @thread-ui/topbar
 `Layout` provides `SidebarProvider` and a viewport-height Grid. Compose `Topbar`,
 the original shadcn `Sidebar`, and `LayoutContent` directly as children. These
 parts can also be returned through fragments or custom components.
+
+`Layout` and `LayoutContent` use `bg-canvas` for the page surface. Customize
+`--canvas` in the light and dark themes to change this background independently
+of `--sidebar` and `--card`. In light mode, the canvas is light gray and the sidebar is white.
 
 ```tsx
 import { Layout, LayoutContent } from "@/components/thread-ui/layout";

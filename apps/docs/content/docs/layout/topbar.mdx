@@ -93,7 +93,12 @@ appearance independently of the global theme.
 Actions and the TopbarMenu trigger adapt their hover, focus, and expanded styles.
 The menu trigger becomes a circular avatar button below 640px.
 
-Topbar reuses the existing theme variables: `--background`, `--foreground`,
+The header and menu trigger use `bg-topbar`: white in light mode and Neutral 900 in dark mode.
+Customize `--topbar` independently of the sidebar, canvas, and `--background`.
+Both the theme registry and standalone Topbar installation include this token
+and its Tailwind mapping.
+
+For its other colors, Topbar reuses `--background`, `--foreground`,
 `--accent`, `--accent-foreground`, `--border`, and `--ring`. Actions and the menu
 trigger use the same accent treatment as other components.
 

@@ -4,6 +4,7 @@ import { join, relative } from "node:path";
 
 import postcss from "postcss";
 import postcssNested from "postcss-nested";
+import type { ChildNode } from "postcss";
 import type { RegistryItem } from "shadcn/schema";
 
 const devDependencyBlocklist = new Set([
@@ -41,8 +42,75 @@ const getPackageFiles = async (dir: string): Promise<Array<string>> => {
   return files;
 };
 
+type RegistryCss = NonNullable<RegistryItem["css"]>;
+
+const toRegistryCss = (nodes: ChildNode[]): RegistryCss => {
+  const css: RegistryCss = {};
+  for (const node of nodes) {
+    if (node.type === "decl") {
+      css[node.prop] = `${node.value}${node.important ? " !important" : ""}`;
+    } else if (node.type === "rule") {
+      css[node.selector] = toRegistryCss(node.nodes);
+    } else if (node.type === "atrule") {
+      const key = `@${node.name}${node.params ? ` ${node.params}` : ""}`;
+      css[key] = node.nodes ? toRegistryCss(node.nodes) : {};
+    }
+  }
+  return css;
+};
+
+const getThemePackage = async (rootDir: string): Promise<RegistryItem> => {
+  const theme = postcss.parse(
+    await readFile(join(rootDir, "packages/styles/theme.css"), "utf-8"),
+  );
+  const cssVars = { theme: {}, light: {}, dark: {} } as {
+    theme: Record<string, string>;
+    light: Record<string, string>;
+    dark: Record<string, string>;
+  };
+  const css: RegistryCss = {};
+
+  for (const node of theme.nodes) {
+    if (node.type === "atrule" && node.name === "theme") {
+      node.walkDecls((decl) => {
+        // The applications supply these font families (Next/font or Fontsource).
+        // Keep the consuming project's fonts instead of exporting dangling refs.
+        if (["--font-sans", "--font-mono"].includes(decl.prop)) return;
+        cssVars.theme[decl.prop.slice(2)] = decl.value;
+      });
+    } else if (node.type === "rule") {
+      for (const selector of node.selectors) {
+        if (selector === ":root" || selector === ".dark") {
+          const values = selector === ":root" ? cssVars.light : cssVars.dark;
+          node.walkDecls((decl) => {
+            if (decl.prop.startsWith("--")) {
+              values[decl.prop.slice(2)] = decl.value;
+            }
+          });
+        } else {
+          css[selector] = toRegistryCss(node.nodes);
+        }
+      }
+    } else {
+      Object.assign(css, toRegistryCss([node]));
+    }
+  }
+
+  return {
+    $schema: "https://ui.shadcn.com/schema/registry-item.json",
+    name: "theme",
+    type: "registry:theme",
+    title: "Thread UI Theme",
+    description:
+      "Thread UI light and dark colors, canvas, radius, and base styles.",
+    cssVars,
+    css,
+  };
+};
+
 export const getPackage = async (packageName: string) => {
   const rootDir = join(process.cwd(), "..", "..");
+  if (packageName === "theme") return getThemePackage(rootDir);
   const isLocalesPackage = packageName === "locales";
   const packageDir = isLocalesPackage
     ? join(rootDir, "locales")
@@ -234,6 +302,29 @@ export const getPackage = async (packageName: string) => {
     type = "registry:style";
   }
 
+  // Standalone Topbar installs its own background token without replacing the
+  // consuming application's general palette with the full Thread UI theme.
+  let cssVars: RegistryItem["cssVars"];
+  if (packageName === "topbar") {
+    cssVars = { theme: {}, light: {}, dark: {} };
+    theme.walkAtRules("theme", (rule) => {
+      rule.walkDecls("--color-topbar", (decl) => {
+        cssVars!.theme!["color-topbar"] = decl.value;
+      });
+    });
+    theme.walkRules((rule) => {
+      const mode = rule.selectors.includes(":root")
+        ? "light"
+        : rule.selectors.includes(".dark")
+          ? "dark"
+          : undefined;
+      if (!mode) return;
+      rule.walkDecls("--topbar", (decl) => {
+        cssVars![mode]!.topbar = decl.value;
+      });
+    });
+  }
+
   const response: RegistryItem = {
     $schema: "https://ui.shadcn.com/schema/registry-item.json",
     name: packageName,
@@ -245,6 +336,7 @@ export const getPackage = async (packageName: string) => {
     registryDependencies,
     files,
     css,
+    ...(cssVars ? { cssVars } : {}),
   };
 
   return response;
