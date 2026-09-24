@@ -10,8 +10,8 @@ import {
   createInputFilterItemSearchSchema,
   createNumberFilterItemSearchSchema,
   createSelectFilterItemSearchSchema,
-  getNextPageSearch,
-  getPreviousPageSearch,
+  getNextSearch,
+  getPreviousSearch,
 } from "../graphql-connection";
 import { serializeDataFilterValueFilter } from "../../../components/data-filter/utils/data-filter-value";
 import { dataFilterDefaultCheckboxOperators } from "../../../components/data-filter/utils/data-filter-default-checkbox-operators";
@@ -196,8 +196,8 @@ describe("connection search type inference", () => {
     const search = schema.parse({
       filter: { status: { $in: ["ACTIVE"] }, enabled: false },
     });
-    const next = getNextPageSearch(search);
-    const previous = getPreviousPageSearch(search);
+    const next = getNextSearch(search);
+    const previous = getPreviousSearch(search);
     expectTypeOf(next.filter).toEqualTypeOf<Search["filter"]>();
     expectTypeOf(previous.filter).toEqualTypeOf<Search["filter"]>();
     expect(next.filter).toEqual(search.filter);

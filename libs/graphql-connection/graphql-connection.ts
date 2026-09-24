@@ -225,7 +225,7 @@ export type ConnectionSearch<
     : ReturnType<typeof createConnectionSearchSchema<OrderField>>
 >;
 
-export function getPreviousPageSearch<
+export function getPreviousSearch<
   Search extends ConnectionSearch<EnumLike> = ConnectionSearch<EnumLike>,
 >(search: Search, pageInfo?: PageInfo) {
   return {
@@ -237,7 +237,7 @@ export function getPreviousPageSearch<
   };
 }
 
-export function getNextPageSearch<
+export function getNextSearch<
   Search extends ConnectionSearch<EnumLike> = ConnectionSearch<EnumLike>,
 >(search: Search, pageInfo?: PageInfo) {
   return {

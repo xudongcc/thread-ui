@@ -78,14 +78,11 @@ pagination (`last` or `before`); unused direction fields are removed. With neith
 the schema returns the first page and default ordering.
 
 ```ts
-import {
-  getNextPageSearch,
-  getPreviousPageSearch,
-} from "@/lib/graphql-connection";
+import { getNextSearch, getPreviousSearch } from "@/lib/graphql-connection";
 
 // Use these values with your router; guard actions using pageInfo's flags.
-const nextSearch = getNextPageSearch(search, connection.pageInfo);
-const previousSearch = getPreviousPageSearch(search, connection.pageInfo);
+const nextSearch = getNextSearch(search, connection.pageInfo);
+const previousSearch = getPreviousSearch(search, connection.pageInfo);
 ```
 
 The helpers preserve filters, ordering, custom fields, and page size. They select
