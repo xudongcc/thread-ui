@@ -1,14 +1,19 @@
-import { expect } from "storybook/test";
+import { expect, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
 import {
+  CustomFilterItemExample,
   FilterExample,
+  FilterItemExample,
   asyncFilters,
   customFilters,
   filters,
   noFilters,
 } from "./examples/data-filter";
 import implementation from "./examples/data-filter.tsx?raw";
-import { withExampleParameters } from "./utils/example-source";
+import {
+  withExampleParameters,
+  withExampleSource,
+} from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { DataFilter } from "@/components/thread-ui/data-filter";
 
@@ -46,7 +51,7 @@ export const Default: Story = {
 export const Populated: Story = {
   args: {
     value: {
-      query: "Thread",
+      query: "Thread{Enter}",
       filter: {
         name: { $fulltext: "Thread" },
         amount: { $between: [10, 100] },
@@ -104,4 +109,42 @@ export const CustomValue: Story = {
     filters: customFilters,
     value: { query: "", filter: { name: { $eq: "Thread UI" } } },
   },
+  play: testOnly(async ({ canvas }) => {
+    const trigger = canvas.getByRole("button", { name: "Name is Thread UI" });
+    await expect(trigger.querySelector("strong")).toHaveTextContent(
+      "Thread UI",
+    );
+  }),
+};
+
+export const StandaloneItem: Story = {
+  parameters: { docs: { source: withExampleSource(implementation) } },
+  render: () => <FilterItemExample />,
+  play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: /Name/ }));
+    await userEvent.type(
+      await body.findByRole("textbox", { name: "Name" }),
+      "Thread{Enter}",
+    );
+    await userEvent.click(body.getByRole("button", { name: "Remove filter" }));
+    await expect(canvas.getByRole("button", { name: /Name/ })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: /Name/ }));
+    await expect(
+      await body.findByRole("textbox", { name: "Name" }),
+    ).toHaveValue("");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(
+        canvasElement.ownerDocument.querySelector(
+          '[data-slot="data-filter-popover-content"]',
+        ),
+      ).toBeNull();
+    });
+  }),
+};
+
+export const CustomItem: Story = {
+  parameters: { docs: { source: withExampleSource(implementation) } },
+  render: () => <CustomFilterItemExample />,
 };

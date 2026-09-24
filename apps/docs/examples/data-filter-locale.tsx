@@ -6,7 +6,7 @@ import { useState } from "react";
 import en from "../../../locales/en/thread-ui.json";
 import zh from "../../../locales/zh/thread-ui.json";
 import type {
-  DataFilterItemProps,
+  DataFilterField,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 import { AppProvider } from "@/components/thread-ui/app-provider";
@@ -31,7 +31,7 @@ void i18n.use(initReactI18next).init({
   },
 });
 
-const filters: Array<DataFilterItemProps> = [
+const filters: Array<DataFilterField> = [
   {
     defaultOperator: "$fulltext",
     field: "customer",

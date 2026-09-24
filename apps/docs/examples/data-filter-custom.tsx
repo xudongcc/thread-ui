@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type {
-  DataFilterItemProps,
+  DataFilterField,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 import { DataFilter } from "@/components/thread-ui/data-filter";
@@ -25,26 +25,24 @@ export default function DataFilterCustomExample() {
     query: "",
   });
 
-  const filters: DataFilterItemProps[] = [
+  const filters: DataFilterField[] = [
     {
       field: "role",
       label: "User Role",
       type: "input",
       render: ({ field: { value, onChange } }) => (
-        <div className="min-w-48 p-2">
-          <Select
-            placeholder="Select role"
-            value={value}
-            items={[
-              { value: "admin", label: "Admin" },
-              { value: "editor", label: "Editor" },
-              { value: "viewer", label: "Viewer" },
-            ]}
-            onValueChange={(nextValue) => {
-              onChange(nextValue ?? undefined);
-            }}
-          />
-        </div>
+        <Select
+          placeholder="Select role"
+          value={value}
+          items={[
+            { value: "admin", label: "Admin" },
+            { value: "editor", label: "Editor" },
+            { value: "viewer", label: "Viewer" },
+          ]}
+          onValueChange={(nextValue) => {
+            onChange(nextValue ?? undefined);
+          }}
+        />
       ),
       renderValue: ({ value }) => {
         const roles: Record<string, string> = {
@@ -66,22 +64,18 @@ export default function DataFilterCustomExample() {
             : undefined;
 
         return (
-          <div className="min-w-48 p-2">
-            <DatePicker
-              selected={selectedValue ? new Date(selectedValue) : undefined}
-              render={
-                <Button
-                  className="w-full justify-start text-left font-normal"
-                  variant="outline"
-                >
-                  {selectedValue ? formatDate(selectedValue) : "Pick a date"}
-                </Button>
-              }
-              onSelect={(date) =>
-                onChange(date ? date.toISOString() : undefined)
-              }
-            />
-          </div>
+          <DatePicker
+            selected={selectedValue ? new Date(selectedValue) : undefined}
+            render={
+              <Button
+                className="w-full justify-start text-left font-normal"
+                variant="outline"
+              >
+                {selectedValue ? formatDate(selectedValue) : "Pick a date"}
+              </Button>
+            }
+            onSelect={(date) => onChange(date ? date.toISOString() : undefined)}
+          />
         );
       },
       renderValue: ({ value }) => {

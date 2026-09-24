@@ -1,17 +1,19 @@
 import { useState } from "react";
 import type {
-  DataFilterItemProps,
+  DataFilterConditionValue,
+  DataFilterField,
   DataFilterProps,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
-import { DataFilter } from "@/components/thread-ui/data-filter";
+import { DataFilter, DataFilterItem } from "@/components/thread-ui/data-filter";
+import { Input } from "@/components/ui/input";
 
 const options = [
   { label: "Active", value: "active" },
   { label: "Archived", value: "archived" },
 ];
-export const noFilters: DataFilterItemProps[] = [];
-export const filters: DataFilterItemProps[] = [
+export const noFilters: DataFilterField[] = [];
+export const filters: DataFilterField[] = [
   {
     field: "name",
     label: "Name",
@@ -65,8 +67,8 @@ export const asyncFilters = [
     resolveSelectedOptions: async (values) =>
       options.filter((option) => values.includes(option.value)),
   },
-] satisfies DataFilterItemProps[];
-export const customFilters: DataFilterItemProps[] = [
+] satisfies DataFilterField[];
+export const customFilters: DataFilterField[] = [
   {
     field: "name",
     label: "Name",
@@ -77,3 +79,57 @@ export const customFilters: DataFilterItemProps[] = [
 
 // Keep Code panel component names stable in production builds.
 FilterExample.displayName = "FilterExample";
+
+export function FilterItemExample() {
+  const [condition, setCondition] = useState<DataFilterConditionValue>();
+  return (
+    <div className="space-y-4">
+      <DataFilterItem
+        defaultOperator="$fulltext"
+        field="name"
+        label="Name"
+        operators={["$eq", "$ne", "$fulltext"]}
+        placeholder="Enter a name"
+        type="input"
+        value={condition}
+        onChange={setCondition}
+        onRemove={() => setCondition(undefined)}
+      />
+      <pre
+        aria-label="Condition"
+        className="bg-muted overflow-auto rounded-md p-4 text-sm"
+      >
+        {JSON.stringify(condition ?? null, null, 2)}
+      </pre>
+    </div>
+  );
+}
+
+export function CustomFilterItemExample() {
+  const [condition, setCondition] = useState<
+    DataFilterConditionValue | undefined
+  >({
+    $eq: "Thread UI",
+  });
+  return (
+    <DataFilterItem
+      field="name"
+      label="Name"
+      type="input"
+      value={condition}
+      render={({ field, operator }) => (
+        <Input
+          aria-label="Custom name"
+          placeholder={`Value for ${operator}`}
+          value={field.value ?? ""}
+          onChange={(event) => field.onChange(event.target.value || undefined)}
+        />
+      )}
+      onChange={setCondition}
+      onRemove={() => setCondition(undefined)}
+    />
+  );
+}
+
+FilterItemExample.displayName = "FilterItemExample";
+CustomFilterItemExample.displayName = "CustomFilterItemExample";

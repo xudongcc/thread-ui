@@ -12,7 +12,10 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
 import { DataFilter } from "../data-filter";
-import type { DataFilterItemProps, DataFilterValue } from "../types";
+import { DataFilterItem } from "../index";
+import { DataFilterRemoveAction } from "../components/data-filter-remove-action";
+import type { DataFilterConditionValue } from "../index";
+import type { DataFilterField, DataFilterValue } from "../types";
 import type { ReactElement } from "react";
 import { AppProvider } from "@/components/thread-ui/app-provider";
 
@@ -23,6 +26,41 @@ const createResources = () => ({
   zh: {
     "thread-ui": structuredClone(zh),
   },
+});
+
+describe("DataFilterRemoveAction", () => {
+  it("uses the translated label and removes without submitting its parent form", async () => {
+    const onRemove = vi.fn();
+    const onSubmit = vi.fn((event) => event.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <DataFilterRemoveAction onClick={onRemove} />
+      </form>,
+      { language: "zh" },
+    );
+
+    await userEvent.click(
+      screen.getByRole("button", { name: zh.dataFilter.removeFilter }),
+    );
+
+    expect(onRemove).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("allows a custom label and forwards disabled", async () => {
+    const onRemove = vi.fn();
+    render(
+      <DataFilterRemoveAction
+        disabled
+        aria-label="Remove name filter"
+        onClick={onRemove}
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: "Remove name filter" });
+    await userEvent.click(button);
+    expect(onRemove).not.toHaveBeenCalled();
+  });
 });
 
 const createI18n = (language = "en") => {
@@ -93,7 +131,7 @@ const ControlledDataFilter = () => {
     },
     query: "",
   });
-  const filters: Array<DataFilterItemProps> = [
+  const filters: Array<DataFilterField> = [
     {
       field: "status",
       label: "Status",
@@ -127,7 +165,7 @@ const DocsDataFilterExample = () => {
     orderBy: { direction: "DESC", field: "createdAt" },
     query: "Acme",
   });
-  const filters: Array<DataFilterItemProps> = [
+  const filters: Array<DataFilterField> = [
     {
       defaultOperator: "$fulltext",
       field: "name",
@@ -695,4 +733,151 @@ describe("DataFilter", () => {
       false,
     );
   });
+});
+
+describe("DataFilterItem", () => {
+  it("edits a standalone controlled condition and lets its parent handle removal", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const onRemove = vi.fn();
+    function Example() {
+      const [value, setValue] = useState<DataFilterConditionValue>();
+      return (
+        <DataFilterItem
+          field="name"
+          label="Name"
+          type="input"
+          value={value}
+          onChange={(next) => {
+            onChange(next);
+            setValue(next);
+          }}
+          onRemove={() => {
+            onRemove();
+            setValue(undefined);
+          }}
+        />
+      );
+    }
+    render(<Example />);
+    expect(screen.queryByRole("textbox")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Name is" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Name" }),
+      "Thread{Enter}",
+    );
+    expect(onChange).toHaveBeenLastCalledWith({ $eq: "Thread" });
+    await user.click(screen.getByRole("button", { name: "Remove filter" }));
+    expect(onRemove).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Name is" })).toBeTruthy();
+  });
+
+  it("supports render and null operators without exposing a remove action", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const config = { field: "name", label: "Name", type: "input" as const };
+    const customRender = vi.fn(({ field }) => (
+      <input
+        aria-label="Custom name"
+        value={field.value ?? ""}
+        onChange={(event) => field.onChange(event.target.value)}
+      />
+    ));
+    const { rerender } = render(
+      <DataFilterItem
+        {...config}
+        render={customRender}
+        value={{ $eq: "Thread" }}
+        onChange={onChange}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Name is Thread" }));
+    expect(screen.queryByRole("button", { name: "Remove filter" })).toBeNull();
+    await user.type(screen.getByRole("textbox", { name: "Custom name" }), "!");
+    expect(onChange).toHaveBeenLastCalledWith({ $eq: "Thread!" });
+    // A parent that does not accept onChange must retain its supplied condition.
+    expect(screen.getByRole("button", { name: "Name is Thread" })).toBeTruthy();
+    rerender(
+      <AppProvider i18n={createI18n()}>
+        <DataFilterItem
+          {...config}
+          render={customRender}
+          value={{ $ne: null }}
+          onChange={onChange}
+        />
+      </AppProvider>,
+    );
+    await waitFor(() => expect(screen.queryByRole("textbox")).toBeNull());
+    expect(
+      screen.getByRole("button", { name: "Name is not empty" }),
+    ).toBeTruthy();
+  });
+
+  it("resolves async selected option labels without a toolbar", async () => {
+    const resolveSelectedOptions = vi.fn(async () => [
+      { label: "Active", value: "active" },
+    ]);
+    render(
+      <DataFilterItem
+        field="status"
+        label="Status"
+        options={async () => []}
+        resolveSelectedOptions={resolveSelectedOptions}
+        type="select"
+        value={{ $in: ["active"] }}
+        onChange={vi.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(resolveSelectedOptions).toHaveBeenCalledWith(["active"]),
+    );
+    expect(
+      await screen.findByRole("button", { name: /Status .*Active/ }),
+    ).toBeTruthy();
+  });
+});
+
+it("keeps a standalone partial range controlled and supports external reset", async () => {
+  const user = userEvent.setup();
+  const onChange = vi.fn();
+  const config: Extract<DataFilterField, { type: "number-input" }> = {
+    field: "amount",
+    label: "Amount",
+    type: "number-input" as const,
+    defaultOperator: "$between" as const,
+    render: ({ field }) => (
+      <input
+        aria-label="Minimum"
+        value={Array.isArray(field.value) ? (field.value[0] ?? "") : ""}
+        onChange={(event) =>
+          field.onChange([Number(event.target.value), undefined])
+        }
+      />
+    ),
+  };
+  const { rerender } = render(
+    <DataFilterItem
+      {...config}
+      value={{ $between: [10, undefined] }}
+      onChange={onChange}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: /Amount/ }));
+  expect(
+    (screen.getByRole("textbox", { name: "Minimum" }) as HTMLInputElement)
+      .value,
+  ).toBe("10");
+  rerender(
+    <AppProvider i18n={createI18n()}>
+      <DataFilterItem {...config} value={undefined} onChange={onChange} />
+    </AppProvider>,
+  );
+  await waitFor(() =>
+    expect(
+      (screen.getByRole("textbox", { name: "Minimum" }) as HTMLInputElement)
+        .value,
+    ).toBe(""),
+  );
+  await user.type(screen.getByRole("textbox", { name: "Minimum" }), "5");
+  expect(onChange).toHaveBeenLastCalledWith({ $between: [5, undefined] });
 });

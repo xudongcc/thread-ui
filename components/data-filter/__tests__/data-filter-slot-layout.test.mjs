@@ -147,7 +147,7 @@ for (const obsoletePropsPath of obsoletePropsPaths) {
   assert.ok(!existsSync(obsoletePropsPath), `${obsoletePropsPath} was removed`);
 }
 assert.ok(typesIndex.includes("./data-filter-item-base-props"));
-assert.ok(typesIndex.includes("./data-filter-item-props"));
+assert.ok(typesIndex.includes("./data-filter-field"));
 assert.ok(typesIndex.includes("./data-filter-render-context"));
 assert.ok(typesIndex.includes("./data-filter-select-options"));
 assert.ok(typesIndex.includes("./data-filter-sort-options"));
@@ -199,24 +199,20 @@ assert.ok(
   tagList.includes('<Button size="xs" type="button" variant="secondary">'),
 );
 assert.ok(tagList.includes('<DropdownMenuContent className="w-64">'));
-assert.ok(
-  tagItem.includes(
-    'className="grid w-fit max-w-64 min-w-48 gap-1 rounded-2xl p-1"',
-  ),
-);
+assert.ok(tagItem.includes("<DataFilterPopoverContent aria-label={label}>"));
 assert.ok(tagItem.includes("interface DataFilterTagItemProps"));
 assert.ok(tagItem.includes("useDataFilterContext"));
 assert.ok(tagItem.includes('import { useTranslation } from "react-i18next";'));
 assert.ok(tagItem.includes('useTranslation("thread-ui")'));
 assert.ok(!tagItem.includes("useThreadUITranslation"));
-assert.ok(tagItem.includes("item: DataFilterItemProps;"));
+assert.ok(tagItem.includes("item: DataFilterField;"));
 assert.ok(!tagItem.includes("value: unknown;"));
 assert.ok(!tagItem.includes("onEmptyClose"));
 assert.ok(!tagItem.includes("min-w-56"));
-assert.ok(tagItem.includes('data-slot="data-filter-tag-item-header"'));
+assert.ok(tagItem.includes("<DataFilterPopoverHeader>"));
 assert.ok(tagItem.includes("const shouldRenderContent = rawValue !== null;"));
 assert.ok(tagItem.includes("{shouldRenderContent && ("));
-assert.ok(tagItem.includes('data-slot="data-filter-tag-item-content"'));
+assert.ok(tagItem.includes("<DataFilterPopoverBody>"));
 assert.ok(!tagItem.includes('data-slot="data-filter-tag-item-footer"'));
 assert.ok(tagItem.includes('from "@/components/ui/tooltip"'));
 assert.ok(tagItem.includes("<TooltipProvider>"));

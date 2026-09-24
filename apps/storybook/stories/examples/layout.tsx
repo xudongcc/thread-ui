@@ -24,7 +24,7 @@ import type { LayoutProps } from "@/components/thread-ui/layout";
 import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
 import type {
   DataFilterConditionValue,
-  DataFilterItemProps,
+  DataFilterField,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 import { Layout, LayoutContent } from "@/components/thread-ui/layout";
@@ -633,7 +633,7 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   },
 ];
 
-const orderFilters: DataFilterItemProps[] = [
+const orderFilters: DataFilterField[] = [
   {
     field: "status",
     label: "Fulfillment",

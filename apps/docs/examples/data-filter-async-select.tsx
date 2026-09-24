@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type {
-  DataFilterItemProps,
+  DataFilterField,
   DataFilterSelectOption,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
@@ -57,7 +57,7 @@ const resolveSelectedTagOptions = async (
   });
 };
 
-const filters: Array<DataFilterItemProps> = [
+const filters: Array<DataFilterField> = [
   {
     defaultOperator: "$in",
     field: "tags",

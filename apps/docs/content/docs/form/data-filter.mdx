@@ -22,13 +22,13 @@ pnpm dlx shadcn@latest add @thread-ui/data-filter
 ```tsx
 import {
   DataFilter,
-  type DataFilterItemProps,
+  type DataFilterField,
   type DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 ```
 
 ```tsx
-const filters: DataFilterItemProps[] = [
+const filters: DataFilterField[] = [
   {
     field: "name",
     label: "Name",
@@ -182,11 +182,102 @@ Select filters can load options from an async function. The function receives th
 
 ### Custom Render Components
 
-You can use built-in `input`, `number-input`, `date-picker`, and `checkbox` filters, or replace them with sophisticated components such as a `Select` drop-down or a `DatePicker` block via the `render` prop function. Custom renderers receive the selected `operator` and the raw field value. Use `renderValue` to specify how the formatted value appears in the badge.
+Built-in editors support `input`, `number-input`, `date-picker`, `checkbox`, and `select`. Use `render` to replace an editor; it receives the selected `operator`, raw `field.value`, and `field.onChange`. Return the editor directly: the filter popover supplies its outer padding. Use `renderValue` to format the value in the filter trigger and tooltip; it can return text or non-interactive JSX.
 
 <Preview path="data-filter-custom" />
 
+## Standalone filter item
+
+`DataFilterItem` edits one controlled condition without a `DataFilter` toolbar.
+Pass the configuration fields directly or spread a `DataFilterField`.
+`value` is the condition object (for example `{ $eq: "Thread" }`), and `onChange`
+receives the edited condition. Pass it back through `value` to accept the change.
+Unlike the toolbar's submitted query, this preserves the selected operator with
+an empty value and partially entered ranges (for example `{ $between: [10, undefined] }`).
+Set `value` to `undefined` to reset the item. Validate or clean incomplete
+conditions before using them in a query.
+It shares the built-in editors, translations, and async select behavior with
+`DataFilter`. Configure translations through `AppProvider` as usual.
+
+```tsx
+import { useState } from "react";
+import {
+  DataFilterItem,
+  type DataFilterConditionValue,
+} from "@/components/thread-ui/data-filter";
+
+function NameFilter() {
+  const [condition, setCondition] = useState<DataFilterConditionValue>();
+
+  return (
+    <DataFilterItem
+      field="name"
+      label="Name"
+      type="input"
+      operators={["$eq", "$ne", "$fulltext"]}
+      defaultOperator="$fulltext"
+      placeholder="Enter a name"
+      value={condition}
+      onChange={setCondition}
+      onRemove={() => setCondition(undefined)}
+    />
+  );
+}
+```
+
+The popover starts closed. `onRemove` shows a remove action; the parent decides
+whether to clear the condition or remove the item entirely. Omit `onRemove` to
+hide that action. Trigger, operator selector, and popover layout are internal.
+
+For a custom editor, use the same `render` callback as `DataFilter.filters`:
+
+```tsx
+import { Input } from "@/components/ui/input";
+
+<DataFilterItem
+  field="name"
+  label="Name"
+  type="input"
+  value={condition}
+  onChange={setCondition}
+  render={({ field, operator }) => (
+    <Input
+      aria-label="Name"
+      placeholder={`Value for ${operator}`}
+      value={field.value ?? ""}
+      onChange={(event) => field.onChange(event.target.value || undefined)}
+    />
+  )}
+/>;
+```
+
+`render` receives the selected `operator` and raw `field.value` / `field.onChange`.
+Without `render`, the editor is selected by `type`. Empty/not-empty operators
+hide the editor automatically. `DataFilter.filters` remains a configuration
+array and continues to use its `render` callback.
+
+The field configuration type is `DataFilterField`;
+`DataFilterItemProps` describes the standalone component, including its controlled
+value and callbacks.
+
 ## API Reference
+
+### DataFilterItemProps
+
+Accepts a flat `DataFilterField` configuration and the following controlled state
+props. It does not expose the trigger, operator selector, or popover subcomponents.
+
+<AutoTypeTable
+  path="../../components/data-filter/data-filter-item.tsx"
+  type={`Pick<DataFilterItemProps, 'value' | 'onChange' | 'onRemove'>`}
+/>
+
+### DataFilterField
+
+A discriminated union selected by `type`: `input`, `number-input`, `date-picker`,
+`checkbox`, or `select`. Pass these definitions to `DataFilter.filters` or spread
+one into `DataFilterItem`. Shared and type-specific configuration properties are
+listed below.
 
 ### DataFilterProps
 

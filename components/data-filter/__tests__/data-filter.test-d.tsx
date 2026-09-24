@@ -10,12 +10,12 @@ import {
 import type {
   DataFilterDatePickerBetweenValue,
   DataFilterDatePickerOperator,
+  DataFilterField,
   DataFilterItemBaseProps,
   DataFilterItemCheckboxProps,
   DataFilterItemDatePickerProps,
   DataFilterItemInputProps,
   DataFilterItemNumberInputProps,
-  DataFilterItemProps,
   DataFilterItemSelectProps,
   DataFilterNumberInputBetweenValue,
   DataFilterNumberInputOperator,
@@ -30,7 +30,7 @@ import type {
   DataFilterValue,
 } from "../index";
 
-const filters: DataFilterItemProps[] = [
+const filters: DataFilterField[] = [
   {
     field: "status",
     label: "Status",
@@ -587,7 +587,7 @@ const invalidSortValue: DataFilterSortValue = {
   direction: "newest",
 };
 
-const invalidFilter: DataFilterItemProps = {
+const invalidFilter: DataFilterField = {
   field: "status",
   label: "Status",
   type: "input",
@@ -596,27 +596,27 @@ const invalidFilter: DataFilterItemProps = {
 };
 
 // @ts-expect-error type is required.
-const invalidFilterWithoutType: DataFilterItemProps = {
+const invalidFilterWithoutType: DataFilterField = {
   field: "status",
   label: "Status",
   render: () => <input />,
 };
 
-const invalidStringFilterType: DataFilterItemProps = {
+const invalidStringFilterType: DataFilterField = {
   field: "status",
   label: "Status",
   // @ts-expect-error use input instead of string.
   type: "string",
 };
 
-const invalidNumberFilterType: DataFilterItemProps = {
+const invalidNumberFilterType: DataFilterField = {
   field: "amount",
   label: "Amount",
   // @ts-expect-error use number-input instead of number.
   type: "number",
 };
 
-const invalidDateFilterType: DataFilterItemProps = {
+const invalidDateFilterType: DataFilterField = {
   field: "createdAt",
   label: "Created At",
   // @ts-expect-error use date-picker instead of date.

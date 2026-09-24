@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type {
-  DataFilterItemProps,
+  DataFilterField,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
 import { DataFilter } from "@/components/thread-ui/data-filter";
@@ -33,7 +33,7 @@ export default function DataFilterExample() {
     query: "Acme",
   });
 
-  const filters: DataFilterItemProps[] = [
+  const filters: DataFilterField[] = [
     {
       defaultOperator: "$fulltext",
       field: "customer",
