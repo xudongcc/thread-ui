@@ -200,7 +200,9 @@ assert.ok(
 );
 assert.ok(tagList.includes('<DropdownMenuContent className="w-64">'));
 assert.ok(
-  tagItem.includes('className="grid w-fit max-w-64 min-w-48 gap-1 p-1"'),
+  tagItem.includes(
+    'className="grid w-fit max-w-64 min-w-48 gap-1 rounded-2xl p-1"',
+  ),
 );
 assert.ok(tagItem.includes("interface DataFilterTagItemProps"));
 assert.ok(tagItem.includes("useDataFilterContext"));

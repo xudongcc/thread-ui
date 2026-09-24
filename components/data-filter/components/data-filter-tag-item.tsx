@@ -166,10 +166,10 @@ export const DataFilterTagItem: FC<DataFilterTagItemProps> = ({ item }) => {
 
       <PopoverContent
         align="start"
-        className="grid w-fit max-w-64 min-w-48 gap-1 p-1"
+        className="grid w-fit max-w-64 min-w-48 gap-1 rounded-2xl p-1"
       >
         <div
-          className="flex items-center justify-between"
+          className="flex items-center justify-between px-2 pt-1"
           data-slot="data-filter-tag-item-header"
         >
           <DataFilterOperatorSelect
