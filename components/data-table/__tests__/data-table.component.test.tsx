@@ -1,4 +1,5 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { createRef } from "react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -120,9 +121,9 @@ describe("DataTable", () => {
   );
 
   it("adapts public cell contexts and pins columns without an explicit id", () => {
-    const renderCell = vi.fn(
-      ({ getValue, row }) => `${getValue()} / ${row.id}`,
-    );
+    const renderCell = vi.fn((props, { getValue, row }) => (
+      <strong {...props}>{`${getValue()} / ${row.id}`}</strong>
+    ));
     renderWithProvider(
       <DataTable<User, string>
         data={data}
@@ -131,8 +132,10 @@ describe("DataTable", () => {
           {
             id: "contact",
             accessorFn: (user) => user.name.toUpperCase(),
-            header: ({ column }) => column.id,
-            cell: renderCell,
+            headerRender: (props, { column }) => (
+              <em {...props}>{column.id}</em>
+            ),
+            render: renderCell,
             pinned: "right",
           },
         ]}
@@ -140,7 +143,7 @@ describe("DataTable", () => {
     );
     expect(screen.getByText("ADA / 1")).toBeTruthy();
     expect(screen.getByText("contact")).toBeTruthy();
-    const context = renderCell.mock.calls[0]![0];
+    const context = renderCell.mock.calls[0]![1];
     expect(Object.keys(context).sort()).toEqual(["column", "getValue", "row"]);
     expect(context.row).toEqual({ id: "1", index: 0, original: data[0] });
     expect(screen.getByText("Ada").closest("td")!.className).toContain(
@@ -149,6 +152,75 @@ describe("DataTable", () => {
     expect(screen.getByText("ADA / 1").closest("td")!.className).toContain(
       "right-(--column-offset)",
     );
+  });
+
+  it("merges element renders and refs without leaking context to the DOM", () => {
+    const ref = createRef<HTMLElement>();
+    renderWithProvider(
+      <DataTable
+        data={[data[0]!]}
+        columns={[
+          {
+            accessorKey: "name",
+            header: "Name",
+            headerRender: <em />,
+            render: <strong ref={ref} className="font-medium" />,
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Name").tagName).toBe("EM");
+    const cellContent = screen.getByText("Ada");
+    expect(cellContent.tagName).toBe("STRONG");
+    expect(ref.current).toBe(cellContent);
+    expect(cellContent.className).toBe("font-medium");
+    expect(cellContent.closest("td")).toBeTruthy();
+    expect(cellContent.hasAttribute("data-context")).toBe(false);
+    expect(cellContent.hasAttribute("data-row")).toBe(false);
+  });
+
+  it("preserves keyboard activation and disabled state for custom action links", async () => {
+    const user = userEvent.setup();
+    const onAction = vi.fn();
+    const onRowClick = vi.fn();
+    renderWithProvider(
+      <DataTable
+        columns={columns}
+        data={[data[0]!]}
+        rowActions={() => [
+          {
+            label: "View",
+            onClick: onAction,
+            render: (props, { row }) => (
+              <a {...props} href={`#person-${row.id}`} />
+            ),
+          },
+          {
+            label: "Disabled",
+            disabled: true,
+            onClick: onAction,
+            render: <a href="#disabled" />,
+          },
+        ]}
+        onRowClick={onRowClick}
+      />,
+    );
+    await user.click(screen.getByLabelText("打开行操作"));
+    const disabled = await screen.findByRole("menuitem", { name: "Disabled" });
+    expect(disabled.getAttribute("aria-disabled")).toBe("true");
+    await user.click(disabled);
+    expect(onAction).not.toHaveBeenCalled();
+    const view = screen.getByRole("menuitem", { name: "View" });
+    expect(view.tagName).toBe("A");
+    expect(view.getAttribute("href")).toBe("#person-1");
+    view.focus();
+    await user.keyboard("{Enter}");
+    expect(onAction).toHaveBeenCalledWith({
+      id: "1",
+      index: 0,
+      original: data[0],
+    });
+    expect(onRowClick).not.toHaveBeenCalled();
   });
 
   it("selects all supplied rows without implicitly paginating them", async () => {

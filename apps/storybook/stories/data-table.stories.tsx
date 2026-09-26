@@ -62,8 +62,6 @@ export const RowSelection: Story = {
   }),
 };
 export const RowActions: Story = {
-  // TODO(a11y): empty-table-header: the actions column needs an accessible heading.
-  parameters: { a11y: { test: "todo" } },
   args: {
     rowActions,
     onRowClick: fn(),
@@ -105,8 +103,26 @@ export const CustomCells: Story = {
         id: "contact",
         header: "Contact",
         accessorFn: (person) => `${person.name} <${person.email}>`,
-        cell: ({ getValue }) => <strong>{String(getValue())}</strong>,
+        render: (props, { getValue }) => (
+          <strong {...props}>{String(getValue())}</strong>
+        ),
       },
+    ],
+  },
+};
+
+export const RenderElement: Story = {
+  args: {
+    columns: [
+      {
+        accessorKey: "name",
+        header: "Name",
+        headerRender: <em />,
+        render: <strong />,
+      },
+    ],
+    rowActions: (row) => [
+      { label: "View profile", render: <a href={`#person-${row.id}`} /> },
     ],
   },
 };

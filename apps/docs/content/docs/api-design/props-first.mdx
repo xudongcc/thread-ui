@@ -64,7 +64,9 @@ customization points:
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => <Badge>{row.original.status}</Badge>,
+      render: (props, { row }) => (
+        <Badge {...props}>{row.original.status}</Badge>
+      ),
     },
   ]}
   data={rows}

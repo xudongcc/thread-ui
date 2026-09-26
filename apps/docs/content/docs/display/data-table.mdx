@@ -97,7 +97,7 @@ Thread UI owns this interface; it does not extend TanStack Table types.
 
 <AutoTypeTable
   path="../../components/data-table/types.ts"
-  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'accessorFn' | 'cell' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
+  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'accessorFn' | 'render' | 'headerRender' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
 />
 
 ### DataTableRowActionProps
@@ -106,7 +106,7 @@ Configuration for row action items in the dropdown menu.
 
 <AutoTypeTable
   path="../../components/data-table/types.ts"
-  type={`Pick<DataTableRowActionProps<any>, 'label' | 'icon' | 'disabled' | 'onClick'>`}
+  type={`Pick<DataTableRowActionProps<any>, 'label' | 'icon' | 'disabled' | 'render' | 'onClick'>`}
 />
 
 ### DataTablePaginationProps
@@ -120,7 +120,17 @@ Props for pagination controls.
 
 ### Custom cell and row contexts
 
-`cell` receives `{ row, column, getValue }`; `header` receives `{ column }`.
+Following [Base UI composition](https://base-ui.com/react/handbook/composition),
+`render` and `headerRender` accept either a React element or `(props, state) => JSX`.
+Always forward `props` (including the ref) to your root element. Element form merges
+props automatically. Custom components must forward those props and their ref.
+
+Both replace a content `span` inside the cell; the outer `td` / `th` stays owned by
+DataTable to preserve semantics and column pinning. `header` is the default content.
+The default cell content is the accessor value converted to text.
+
+`render` state contains `{ row, column, getValue }`; `headerRender` state contains
+`{ column }`. These state objects are not forwarded to DOM attributes.
 `row`, including the row passed to `rowActions`, action callbacks, and `onRowClick`,
 contains only `{ id, index, original }`. `onRowSelectionChange` receives the original
 records. No TanStack instance or methods are exposed.
@@ -131,7 +141,7 @@ const columns: DataTableColumnProps<User, string>[] = [
     id: "contact",
     accessorFn: (user) => `${user.name} <${user.email}>`,
     header: "Contact",
-    cell: ({ getValue }) => <strong>{getValue()}</strong>,
+    render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
   },
 ];
 ```
@@ -144,3 +154,33 @@ and pagination of the input records remain the application's responsibility.
 When migrating from the old inherited types, replace engine-specific calls such
 as `row.getValue("name")` with `row.original.name`, or use `getValue()` inside a
 cell. Custom headers no longer receive a table instance.
+
+Element form keeps the default content:
+
+```tsx
+const columns: DataTableColumnProps<User>[] = [
+  {
+    accessorKey: "name",
+    header: "Name",
+    headerRender: <em />,
+    render: <strong />,
+  },
+];
+```
+
+Row action `render` replaces the menu item and supports framework Link components.
+Its callback receives `(props, { row, disabled, highlighted })`. Forward `props` to
+preserve keyboard interaction, disabled state, menu semantics, and action handlers.
+
+```tsx
+<DataTable
+  columns={columns}
+  data={data}
+  rowActions={(row) => [
+    { label: "View profile", render: <Link href={`/users/${row.id}`} /> },
+  ]}
+/>
+```
+
+Replace `cell: (context) => ...` with `render: (props, context) => ...`, forwarding
+`props` to the returned element. Replace functional `header` with `headerRender`.

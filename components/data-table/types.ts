@@ -1,4 +1,17 @@
+import type { HTMLProps } from "@base-ui/react/types";
 import type { ReactElement, ReactNode } from "react";
+
+/** Base UI DOM props, including the ref and composed event handlers. */
+export type DataTableRenderProps = HTMLProps;
+
+export type DataTableRender<TState> =
+  ReactElement | ((props: DataTableRenderProps, state: TState) => ReactElement);
+
+export interface DataTableRowActionState<TData extends object> {
+  row: DataTableRow<TData>;
+  disabled: boolean;
+  highlighted: boolean;
+}
 
 /** A row exposed to consumers, independent of the internal table engine. */
 export interface DataTableRow<TData extends object> {
@@ -28,10 +41,11 @@ export interface DataTableColumnProps<TData extends object, TValue = unknown> {
   /** Object key or dotted path. When omitted, id is used as the accessor. */
   accessorKey?: string;
   accessorFn?: (row: TData, index: number) => TValue;
-  header?:
-    ReactNode | ((context: DataTableHeaderContext<TData, TValue>) => ReactNode);
-  cell?:
-    ReactNode | ((context: DataTableCellContext<TData, TValue>) => ReactNode);
+  header?: ReactNode;
+  /** Replaces the content element inside th; forward props to your element. */
+  headerRender?: DataTableRender<DataTableHeaderContext<TData, TValue>>;
+  /** Replaces the content element inside td; forward props to your element. */
+  render?: DataTableRender<DataTableCellContext<TData, TValue>>;
   size?: number;
   minSize?: number;
   maxSize?: number;
@@ -49,6 +63,7 @@ export interface DataTableRowActionProps<TData extends object> {
   disabled?: boolean;
   icon?: ReactElement;
   label: string;
+  render?: DataTableRender<DataTableRowActionState<TData>>;
   onClick?: (row: DataTableRow<TData>) => Promise<void> | void;
 }
 

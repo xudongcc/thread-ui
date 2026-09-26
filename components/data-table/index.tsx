@@ -1,5 +1,6 @@
 "use client";
 
+import { useRender } from "@base-ui/react/use-render";
 import {
   columnPinningFeature,
   columnSizingFeature,
@@ -23,8 +24,13 @@ import type {
   Row,
   RowSelectionState,
 } from "@tanstack/react-table";
-import type { CSSProperties } from "react";
-import type { DataTableProps, DataTableRow } from "./types";
+import type { CSSProperties, ReactNode } from "react";
+import type {
+  DataTableProps,
+  DataTableRender,
+  DataTableRow,
+  DataTableRowActionProps,
+} from "./types";
 
 import { Empty } from "@/components/thread-ui/empty";
 import { Button } from "@/components/ui/button";
@@ -48,6 +54,58 @@ import {
 import { cn } from "@/lib/utils";
 
 export type * from "./types";
+
+// Keep table structure/pinning outside the replaceable content element.
+function RenderContent<TState extends Record<string, unknown>>({
+  render,
+  state,
+  children,
+}: {
+  render?: DataTableRender<TState>;
+  state: TState;
+  children?: ReactNode;
+}) {
+  return useRender({
+    defaultTagName: "span",
+    render:
+      typeof render === "function"
+        ? (props, { context }) => render(props, context)
+        : render,
+    state: { context: state },
+    // Row data and functions belong to the render context, never DOM attributes.
+    stateAttributesMapping: { context: () => null },
+    props: { children },
+  });
+}
+
+function RowActionItem<TData extends object>({
+  action,
+  row,
+}: {
+  action: DataTableRowActionProps<TData>;
+  row: DataTableRow<TData>;
+}) {
+  const { render } = action;
+  return (
+    <DropdownMenuItem
+      disabled={action.disabled}
+      render={
+        typeof render === "function"
+          ? (props, state) =>
+              render(props, {
+                row,
+                disabled: state.disabled,
+                highlighted: state.highlighted,
+              })
+          : render
+      }
+      onClick={action.onClick ? () => action.onClick?.(row) : undefined}
+    >
+      {action.icon}
+      {action.label}
+    </DropdownMenuItem>
+  );
+}
 
 const features = tableFeatures({
   columnPinningFeature,
@@ -141,23 +199,31 @@ export function DataTable<TData extends object, TValue = unknown>({
         minSize: column.minSize,
         maxSize: column.maxSize,
         pinned: column.pinned,
-        header: () => flexRender(column.header, { column }),
-        ...(column.cell !== undefined
-          ? {
-              cell: (context) =>
-                flexRender(column.cell, {
-                  column,
-                  row: publicRow(context.row),
-                  getValue: () => context.getValue<TValue>(),
-                }),
-            }
-          : {}),
+        header: () => (
+          <RenderContent render={column.headerRender} state={{ column }}>
+            {column.header}
+          </RenderContent>
+        ),
+        cell: (context) => (
+          <RenderContent
+            render={column.render}
+            state={{
+              column,
+              row: publicRow(context.row),
+              getValue: () => context.getValue<TValue>(),
+            }}
+          >
+            {context.getValue() == null ? null : String(context.getValue())}
+          </RenderContent>
+        ),
       })),
       ...(hasRowActions
         ? [
             {
               id: "$actions",
-              header: () => null,
+              header: () => (
+                <span className="sr-only">{t("dataTable.openRowActions")}</span>
+              ),
               cell: ({ row }) => (
                 <DropdownMenu>
                   <DropdownMenuTrigger
@@ -175,18 +241,11 @@ export function DataTable<TData extends object, TValue = unknown>({
                   />
                   <DropdownMenuContent align="end">
                     {rowActions?.(publicRow(row)).map((action) => (
-                      <DropdownMenuItem
+                      <RowActionItem
                         key={action.label}
-                        disabled={action.disabled}
-                        {...(action.onClick
-                          ? {
-                              onClick: () => action.onClick?.(publicRow(row)),
-                            }
-                          : {})}
-                      >
-                        {action.icon}
-                        {action.label}
-                      </DropdownMenuItem>
+                        action={action}
+                        row={publicRow(row)}
+                      />
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>

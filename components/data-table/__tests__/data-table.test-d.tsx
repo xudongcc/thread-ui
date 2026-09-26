@@ -29,11 +29,11 @@ export const dataTableWithPublicContexts = (
       {
         id: "name",
         accessorFn: (item) => item.name,
-        cell: ({ getValue, row }) => {
+        render: (props, { getValue, row }) => {
           const value: string = getValue();
           // @ts-expect-error Internal table methods are not public API.
           row.getIsSelected();
-          return value;
+          return <span {...props}>{value}</span>;
         },
         // @ts-expect-error Engine-specific options are not public API.
         enableSorting: true,
