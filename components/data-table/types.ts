@@ -1,6 +1,55 @@
 import type { HTMLProps } from "@base-ui/react/types";
 import type { ReactElement, ReactNode } from "react";
 
+// Bound recursion so recursive row models remain usable by the type checker.
+type FieldPath<T, Depth extends unknown[] = []> = Depth["length"] extends 6
+  ? never
+  : unknown extends T
+    ? string
+    : T extends Date | RegExp | ((...args: never[]) => unknown)
+      ? never
+      : T extends readonly unknown[]
+        ? number extends T["length"]
+          ? | `${bigint}`
+            | `${bigint}.${FieldPath<T[number], [...Depth, unknown]>}`
+          : {
+              [K in Exclude<keyof T, keyof (readonly unknown[])> & string]:
+                K | `${K}.${FieldPath<T[K], [...Depth, unknown]>}`;
+            }[Exclude<keyof T, keyof (readonly unknown[])> & string]
+        : T extends object
+          ? {
+              [K in keyof T & (string | number)]:
+                `${K}` | `${K}.${FieldPath<T[K], [...Depth, unknown]>}`;
+            }[keyof T & (string | number)]
+          : never;
+
+/** Object keys and dotted paths, including array indices, up to six segments. */
+export type DataTableField<TData extends object> = FieldPath<TData>;
+
+type FieldPart<T, K extends string> = unknown extends T
+  ? unknown
+  : T extends null | undefined
+    ? undefined
+    : K extends keyof T
+      ? T[K]
+      : T extends readonly (infer Item)[]
+        ? K extends `${bigint}`
+          ? Item | undefined
+          : undefined
+        : K extends `${infer N extends number}`
+          ? N extends keyof T
+            ? T[N]
+            : undefined
+          : undefined;
+
+/** The raw field value; missing optional parents and array entries include undefined. */
+export type DataTableFieldValue<
+  TData,
+  TField extends string,
+> = TField extends `${infer Head}.${infer Tail}`
+  ? DataTableFieldValue<FieldPart<TData, Head>, Tail>
+  : FieldPart<TData, TField>;
+
 /** Base UI DOM props, including the ref and composed event handlers. */
 export type DataTableRenderProps = HTMLProps;
 
@@ -42,7 +91,7 @@ export interface DataTableBaseColumnProps<
 > {
   id?: string;
   /** Object key or dotted path. When omitted, id is used as the accessor. */
-  field?: string;
+  field?: DataTableField<TData>;
   /** Computes the cell value; takes precedence over field. */
   getValue?: (row: TData, index: number) => TValue;
   /** Header content, or a render function receiving DOM props and column context. */

@@ -6,8 +6,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
-import { DataTable } from "../index";
-import type { DataTableColumnProps } from "../index";
+import { DataTable, createDataTableColumnHelper } from "../index";
+import type { DataTableColumnProps, DataTableField } from "../index";
 import { AppProvider } from "@/components/thread-ui/app-provider";
 
 interface User {
@@ -78,6 +78,58 @@ afterEach(() => {
 });
 
 describe("DataTable", () => {
+  it("renders inferred nested, indexed, and computed values in one table", () => {
+    interface RecordData {
+      id: string;
+      price: number;
+      customer?: { name: string };
+      tags: string[];
+    }
+    const helper = createDataTableColumnHelper<RecordData>();
+    const inferredColumns = helper.columns([
+      helper.accessor("price", {
+        header: "Price",
+        type: "currency",
+        currency: "USD",
+      }),
+      helper.accessor("customer.name", {
+        header: "Customer",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
+        ),
+      }),
+      helper.accessor("tags.0", {
+        header: "Tag",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue() ?? "No tag"}</span>
+        ),
+      }),
+      helper.accessor((row, index) => row.price * 2 + index, {
+        id: "computed",
+        header: "Computed",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue().toFixed(1)}</span>
+        ),
+      }),
+    ]);
+    renderWithProvider(
+      <DataTable
+        columns={inferredColumns}
+        locale="en-US"
+        data={[
+          { id: "1", price: 12.5, customer: { name: "Ada" }, tags: ["New"] },
+          { id: "2", price: 20, tags: [] },
+        ]}
+      />,
+    );
+    expect(
+      screen.getByRole("row", { name: "$12.50 ADA New 25.0" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("row", { name: "$20.00 Guest No tag 41.0" }),
+    ).toBeTruthy();
+  });
+
   it("uses column, table, and runtime formatting locales without translating UI labels", async () => {
     const i18n = createI18n();
     const formattingColumns: DataTableColumnProps<User>[] = [
@@ -613,7 +665,7 @@ describe("DataTable", () => {
         },
       },
     ];
-    const makeView = (field: string) => (
+    const makeView = (field: DataTableField<(typeof records)[number]>) => (
       <AppProvider i18n={i18n}>
         <DataTable
           columns={[{ id: "value", field, header: "Value" }]}
@@ -628,9 +680,8 @@ describe("DataTable", () => {
       ["nested.zero", "0"],
       ["nested.no", "false"],
       ["nested.empty", ""],
-      ["missing.path", ""],
-    ]) {
-      view.rerender(makeView(field!));
+    ] as const) {
+      view.rerender(makeView(field));
       expect(screen.getByRole("cell").textContent).toBe(text);
     }
   });

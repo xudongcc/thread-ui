@@ -2,7 +2,10 @@ import { useState } from "react";
 import { fn } from "storybook/test";
 import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
 import type { ComponentProps } from "react";
-import { DataTable } from "@/components/thread-ui/data-table";
+import {
+  DataTable,
+  createDataTableColumnHelper,
+} from "@/components/thread-ui/data-table";
 import { Empty } from "@/components/thread-ui/empty";
 import { Button } from "@/components/thread-ui/button";
 
@@ -152,3 +155,30 @@ export function TypedColumnsDataTableExample() {
 }
 
 TypedColumnsDataTableExample.displayName = "TypedColumnsDataTableExample";
+
+const userColumn = createDataTableColumnHelper<User>();
+const inferredColumns = userColumn.columns([
+  userColumn.accessor("name", {
+    header: "Name",
+    render: (props, { getValue }) => (
+      <strong {...props}>{getValue().toUpperCase()}</strong>
+    ),
+  }),
+  userColumn.accessor((user) => `${user.name} <${user.email}>`, {
+    id: "contact",
+    header: "Contact",
+    render: (props, { getValue }) => <span {...props}>{getValue()}</span>,
+  }),
+  userColumn.accessor((user) => user.name.length, {
+    id: "nameLength",
+    header: "Name length",
+    type: "number",
+    render: (props, { getValue }) => (
+      <span {...props}>{getValue().toFixed(0)}</span>
+    ),
+  }),
+]);
+
+export function InferredValuesDataTableExample() {
+  return <DataTable columns={inferredColumns} data={data} />;
+}

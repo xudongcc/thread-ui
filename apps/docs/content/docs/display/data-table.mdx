@@ -213,7 +213,9 @@ The root component props for the data table.
 `DataTableTimeColumnProps`, and `DataTableDurationColumnProps`.
 Each extends `DataTableBaseColumnProps<TData, TValue>`. All types are exported and
 remain independent of TanStack Table. `TValue` preserves the accessor and render
-context's value type. Omitting `type` keeps existing text-column behavior.
+context's value type. Plain objects default to `unknown`; use the column helper
+below to infer it from a field or computed accessor. Omitting `type` keeps existing
+text-column behavior.
 
 The base properties are shared by all column types:
 
@@ -221,6 +223,65 @@ The base properties are shared by all column types:
   path="../../components/data-table/types.ts"
   type={`Pick<DataTableBaseColumnProps<any>, 'id' | 'header' | 'field' | 'getValue' | 'render' | 'align' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
 />
+
+### Inferred column values
+
+`createDataTableColumnHelper<TData>()` follows the accessor-helper pattern: pass a
+field path or a function to `accessor`, and its raw value type is inferred in
+`render` and `header`. The helper uses Thread UI's own types, not TanStack types.
+
+```tsx
+import {
+  DataTable,
+  createDataTableColumnHelper,
+} from "@/components/thread-ui/data-table";
+
+interface Product {
+  id: string;
+  price: number;
+  customer?: { name: string };
+}
+
+const column = createDataTableColumnHelper<Product>();
+const columns = column.columns([
+  column.accessor("price", {
+    type: "currency",
+    currency: "USD",
+    header: "Price",
+  }),
+  column.accessor("customer.name", {
+    header: "Customer",
+    render: (props, { getValue }) => (
+      <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
+    ), // getValue(): string | undefined
+  }),
+  column.accessor((product) => product.price * 2, {
+    id: "doublePrice",
+    header: "Double price",
+    render: (props, { getValue }) => (
+      <span {...props}>{getValue().toFixed(2)}</span>
+    ), // getValue(): number
+  }),
+]);
+
+const products: Product[] = [{ id: "1", price: 12.5 }];
+<DataTable columns={columns} data={products} />;
+```
+
+`accessor` requires an options object (use `{}` for a field with defaults).
+Computed accessors require `id`; `field` and `getValue` cannot be replaced in the
+options. Use `column.columns([...])` to combine columns with different value types.
+It keeps the same array at runtime and normalizes its type to
+`DataTableColumnProps<TData>[]` for the table; each callback is type-checked at its
+`accessor` call. Existing plain objects and explicit `TValue` remain supported.
+
+Field paths are checked in both the helper and plain column definitions. Nested
+objects, numeric array indices (`items.0.name`), and tuple positions are supported.
+Optional parents and potentially missing array entries infer `undefined`; nullable
+leaf values retain `null`. Paths are limited to six segments to support recursive
+row models without unbounded type expansion. Use a computed accessor for deeper
+paths or dynamic access. Exported `DataTableField<TData>` and
+`DataTableFieldValue<TData, TField>` are available for reusable field selectors.
 
 ### DataTableRowActionProps
 
