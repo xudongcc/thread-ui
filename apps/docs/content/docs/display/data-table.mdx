@@ -36,12 +36,12 @@ const columns: Array<DataTableColumnProps<User>> = [
   {
     id: "name",
     header: "Name",
-    accessorKey: "name",
+    field: "name",
   },
   {
     id: "email",
     header: "Email",
-    accessorKey: "email",
+    field: "email",
   },
 ];
 
@@ -97,7 +97,7 @@ Thread UI owns this interface; it does not extend TanStack Table types.
 
 <AutoTypeTable
   path="../../components/data-table/types.ts"
-  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'accessorFn' | 'render' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
+  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'field' | 'getValue' | 'render' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
 />
 
 ### DataTableRowActionProps
@@ -143,15 +143,17 @@ records. No TanStack instance or methods are exposed.
 const columns: DataTableColumnProps<User, string>[] = [
   {
     id: "contact",
-    accessorFn: (user) => `${user.name} <${user.email}>`,
+    getValue: (user) => `${user.name} <${user.email}>`,
     header: "Contact",
     render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
   },
 ];
 ```
 
-`accessorKey` supports dotted object paths. If it is omitted, `id` is used as the
-accessor unless `accessorFn` is provided. Supply an explicit `id` for computed
+`field` supports dotted object paths such as `customer.name`. If it is omitted,
+`id` is used as the field unless `getValue` is provided. Column `getValue(record, index)`
+computes the value and takes precedence over `field`; the render context’s
+`getValue()` returns that computed value. Supply an explicit `id` for computed
 columns. Column sizing and left/right pinning are supported; sorting, filtering,
 and pagination of the input records remain the application's responsibility.
 
@@ -165,7 +167,7 @@ its own label:
 ```tsx
 const columns: DataTableColumnProps<User>[] = [
   {
-    accessorKey: "name",
+    field: "name",
     header: <em>Name</em>,
     render: <strong />,
   },
@@ -195,3 +197,5 @@ header: (props, { column }) => <strong {...props}>{column.id}</strong>;
 
 The separate `headerRender` option has been removed. Move it to `header`; when
 using a JSX element, include the label as its children.
+
+Rename legacy column options `accessorKey` to `field` and `accessorFn` to `getValue`.

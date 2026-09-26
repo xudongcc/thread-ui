@@ -7,7 +7,7 @@ interface Item {
 
 export const dataTableWithEmptyProp = (
   <DataTable<Item>
-    columns={[{ id: "name", header: "Name", accessorKey: "name" }]}
+    columns={[{ id: "name", header: "Name", field: "name" }]}
     data={[]}
     empty={<div>No custom items</div>}
   />
@@ -15,7 +15,7 @@ export const dataTableWithEmptyProp = (
 
 export const dataTableWithUnsupportedLocaleProp = (
   <DataTable<Item>
-    columns={[{ id: "name", header: "Name", accessorKey: "name" }]}
+    columns={[{ id: "name", header: "Name", field: "name" }]}
     data={[]}
     // @ts-expect-error locale is provided by AppProvider.
     locale="zh"
@@ -28,7 +28,7 @@ export const dataTableWithPublicContexts = (
     columns={[
       {
         id: "name",
-        accessorFn: (item) => item.name,
+        getValue: (item) => item.name,
         header: (props, { column }) => <strong {...props}>{column.id}</strong>,
         render: (props, { getValue, row }) => {
           const value: string = getValue();
@@ -48,7 +48,7 @@ export const dataTableWithRemovedHeaderRender = (
     data={[]}
     columns={[
       {
-        accessorKey: "name",
+        field: "name",
         // @ts-expect-error Use header for both content and render functions.
         headerRender: <strong />,
       },

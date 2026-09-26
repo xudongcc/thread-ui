@@ -14,17 +14,17 @@ const columns: Array<DataTableColumnProps<User>> = [
   {
     id: "name",
     header: "Name",
-    accessorKey: "name",
+    field: "name",
   },
   {
     id: "email",
     header: "Email",
-    accessorKey: "email",
+    field: "email",
   },
   {
     id: "role",
     header: "Role",
-    accessorKey: "role",
+    field: "role",
   },
 ];
 

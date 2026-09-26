@@ -17,7 +17,7 @@ interface User {
 
 const columns: Array<DataTableColumnProps<User>> = [
   {
-    accessorKey: "name",
+    field: "name",
     header: "Name",
     id: "name",
   },
@@ -128,10 +128,10 @@ describe("DataTable", () => {
       <DataTable<User, string>
         data={data}
         columns={[
-          { accessorKey: "name", header: "Name", pinned: "left", size: 120 },
+          { field: "name", header: "Name", pinned: "left", size: 120 },
           {
             id: "contact",
-            accessorFn: (user) => user.name.toUpperCase(),
+            getValue: (user) => user.name.toUpperCase(),
             header: (props, { column }) => <em {...props}>{column.id}</em>,
             render: renderCell,
             pinned: "right",
@@ -159,7 +159,7 @@ describe("DataTable", () => {
         data={[data[0]!]}
         columns={[
           {
-            accessorKey: "name",
+            field: "name",
             header: <em>Name</em>,
             render: <strong ref={ref} className="font-medium" />,
           },

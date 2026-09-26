@@ -19,9 +19,9 @@ export const data: User[] = [
   { id: "4", name: "Diana Prince", email: "diana@example.com", role: "Member" },
 ];
 export const columns: DataTableColumnProps<User>[] = [
-  { id: "name", header: "Name", accessorKey: "name" },
-  { id: "email", header: "Email", accessorKey: "email" },
-  { id: "role", header: "Role", accessorKey: "role" },
+  { id: "name", header: "Name", field: "name" },
+  { id: "email", header: "Email", field: "email" },
+  { id: "role", header: "Role", field: "role" },
 ];
 
 export function RowSelectionDataTableExample(

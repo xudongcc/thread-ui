@@ -192,9 +192,9 @@ export function DataTable<TData extends object, TValue = unknown>({
           ]
         : []),
       ...columns.map((column, index): InternalColumn<TData> => ({
-        id: column.id ?? column.accessorKey ?? `column_${index}`,
-        accessorKey: column.accessorKey ?? column.id,
-        accessorFn: column.accessorFn,
+        id: column.id ?? column.field ?? `column_${index}`,
+        accessorKey: column.field ?? column.id,
+        accessorFn: column.getValue,
         size: column.size,
         minSize: column.minSize,
         maxSize: column.maxSize,

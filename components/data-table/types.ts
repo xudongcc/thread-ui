@@ -39,8 +39,9 @@ export interface DataTableCellContext<
 export interface DataTableColumnProps<TData extends object, TValue = unknown> {
   id?: string;
   /** Object key or dotted path. When omitted, id is used as the accessor. */
-  accessorKey?: string;
-  accessorFn?: (row: TData, index: number) => TValue;
+  field?: string;
+  /** Computes the cell value; takes precedence over field. */
+  getValue?: (row: TData, index: number) => TValue;
   /** Header content, or a render function receiving DOM props and column context. */
   header?:
     | ReactNode

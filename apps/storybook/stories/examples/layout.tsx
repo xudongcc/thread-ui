@@ -593,7 +593,7 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   {
     id: "id",
     header: "Order",
-    accessorKey: "id",
+    field: "id",
     size: 100,
     render: (props, { row }) => (
       <span {...props} className="font-medium">
@@ -604,7 +604,7 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   {
     id: "customer",
     header: "Customer",
-    accessorKey: "customer",
+    field: "customer",
     size: 220,
     render: (props, { row }) => (
       <div {...props} className="space-y-1">
@@ -618,7 +618,7 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   {
     id: "status",
     header: "Fulfillment",
-    accessorKey: "status",
+    field: "status",
     size: 150,
     render: (props, { row }) => (
       <Badge
@@ -632,7 +632,7 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   {
     id: "total",
     header: "Total",
-    accessorKey: "total",
+    field: "total",
     size: 110,
     render: (props, { row }) => (
       <span {...props} className="tabular-nums">

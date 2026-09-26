@@ -102,7 +102,7 @@ export const CustomCells: Story = {
       {
         id: "contact",
         header: "Contact",
-        accessorFn: (person) => `${person.name} <${person.email}>`,
+        getValue: (person) => `${person.name} <${person.email}>`,
         render: (props, { getValue }) => (
           <strong {...props}>{String(getValue())}</strong>
         ),
@@ -115,7 +115,7 @@ export const RenderElement: Story = {
   args: {
     columns: [
       {
-        accessorKey: "name",
+        field: "name",
         header: <em>Name</em>,
         render: <strong />,
       },
