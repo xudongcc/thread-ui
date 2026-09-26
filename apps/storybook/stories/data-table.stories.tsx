@@ -2,8 +2,10 @@ import { expect, fn, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
 import {
   DataTableExample,
+  InferredValuesDataTableExample,
   PaginationDataTableExample,
   RowSelectionDataTableExample,
+  TypedColumnsDataTableExample,
   columns,
   customEmpty,
   data,
@@ -124,4 +126,30 @@ export const RenderElement: Story = {
       { label: "View profile", render: <a href={`#person-${row.id}`} /> },
     ],
   },
+};
+
+export const ColumnAlignment: Story = {
+  args: {
+    columns: [
+      { field: "name", header: "Name" },
+      { field: "role", header: "Role", align: "center" },
+      { field: "id", header: "ID", align: "right" },
+    ],
+  },
+};
+
+export const ColumnTypes: Story = {
+  render: () => <TypedColumnsDataTableExample />,
+  parameters: { docs: { source: withExampleSource(implementation) } },
+};
+
+export const InferredValues: Story = {
+  render: () => <InferredValuesDataTableExample />,
+  parameters: { docs: { source: withExampleSource(implementation) } },
+  play: testOnly(async ({ canvas }) => {
+    await expect(canvas.getByText("ALICE JOHNSON")).toBeVisible();
+    await expect(
+      canvas.getByText("Alice Johnson <alice@example.com>"),
+    ).toBeVisible();
+  }),
 };

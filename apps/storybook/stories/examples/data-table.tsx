@@ -2,7 +2,10 @@ import { useState } from "react";
 import { fn } from "storybook/test";
 import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
 import type { ComponentProps } from "react";
-import { DataTable } from "@/components/thread-ui/data-table";
+import {
+  DataTable,
+  createDataTableColumnHelper,
+} from "@/components/thread-ui/data-table";
 import { Empty } from "@/components/thread-ui/empty";
 import { Button } from "@/components/thread-ui/button";
 
@@ -85,3 +88,97 @@ export const rowActions = () => [
 RowSelectionDataTableExample.displayName = "RowSelectionDataTableExample";
 PaginationDataTableExample.displayName = "PaginationDataTableExample";
 DataTableExample.displayName = "DataTableExample";
+
+interface Order {
+  id: string;
+  quantity: number;
+  total: number;
+  rate: number;
+  date: string;
+  createdAt: string;
+  elapsed: number;
+}
+
+const typedColumns: DataTableColumnProps<Order>[] = [
+  { field: "id", header: "Order" },
+  { field: "quantity", header: "Quantity", type: "number", precision: 0 },
+  { field: "total", header: "Total", type: "currency", currency: "USD" },
+  { field: "rate", header: "Rate", type: "percent", precision: 1 },
+  { field: "elapsed", header: "Duration", type: "duration", unit: "seconds" },
+  { field: "date", header: "Date", type: "date", locale: "en-GB" },
+  {
+    field: "createdAt",
+    header: "Created (Shanghai)",
+    type: "datetime",
+    locale: "zh-CN",
+  },
+  {
+    id: "createdAtNewYork",
+    field: "createdAt",
+    header: "Time (New York)",
+    type: "time",
+    hour12: false,
+    timeZone: "America/New_York",
+  },
+];
+
+const typedData: Order[] = [
+  {
+    id: "#1001",
+    quantity: 1200,
+    total: 1234.5,
+    rate: 0.125,
+    date: "2026-01-01",
+    createdAt: "2026-01-01T01:00:00Z",
+    elapsed: 3661,
+  },
+  {
+    id: "#1002",
+    quantity: 0,
+    total: 0,
+    rate: 0,
+    date: "2026-01-02",
+    createdAt: "2026-01-02T16:30:00Z",
+    elapsed: 90.5,
+  },
+];
+
+export function TypedColumnsDataTableExample() {
+  return (
+    <DataTable
+      columns={typedColumns}
+      data={typedData}
+      locale="en-US"
+      timeZone="Asia/Shanghai"
+    />
+  );
+}
+
+TypedColumnsDataTableExample.displayName = "TypedColumnsDataTableExample";
+
+const userColumn = createDataTableColumnHelper<User>();
+const inferredColumns = userColumn.columns([
+  userColumn.accessor("name", {
+    header: "Name",
+    render: (props, { getValue }) => (
+      <strong {...props}>{getValue().toUpperCase()}</strong>
+    ),
+  }),
+  userColumn.accessor((user) => `${user.name} <${user.email}>`, {
+    id: "contact",
+    header: "Contact",
+    render: (props, { getValue }) => <span {...props}>{getValue()}</span>,
+  }),
+  userColumn.accessor((user) => user.name.length, {
+    id: "nameLength",
+    header: "Name length",
+    type: "number",
+    render: (props, { getValue }) => (
+      <span {...props}>{getValue().toFixed(0)}</span>
+    ),
+  }),
+]);
+
+export function InferredValuesDataTableExample() {
+  return <DataTable columns={inferredColumns} data={data} />;
+}

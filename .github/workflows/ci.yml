@@ -36,5 +36,10 @@ jobs:
           pnpm --filter @repo/graphql-connection check-types
           node --test apps/docs/lib/__tests__/*.test.mjs
 
+      - name: DataTable tests and types
+        run: |
+          pnpm --filter @repo/data-table test
+          pnpm --filter @repo/data-table check-types
+
       - name: Build
         run: pnpm build

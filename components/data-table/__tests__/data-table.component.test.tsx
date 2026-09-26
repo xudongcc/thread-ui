@@ -6,8 +6,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import en from "@repo/locales/en/thread-ui.json";
 import zh from "@repo/locales/zh/thread-ui.json";
-import { DataTable } from "../index";
-import type { DataTableColumnProps } from "../index";
+import { DataTable, createDataTableColumnHelper } from "../index";
+import type { DataTableColumnProps, DataTableField } from "../index";
 import { AppProvider } from "@/components/thread-ui/app-provider";
 
 interface User {
@@ -78,6 +78,211 @@ afterEach(() => {
 });
 
 describe("DataTable", () => {
+  it("renders inferred nested, indexed, and computed values in one table", () => {
+    interface RecordData {
+      id: string;
+      price: number;
+      customer?: { name: string };
+      tags: string[];
+    }
+    const helper = createDataTableColumnHelper<RecordData>();
+    const inferredColumns = helper.columns([
+      helper.accessor("price", {
+        header: "Price",
+        type: "currency",
+        currency: "USD",
+      }),
+      helper.accessor("customer.name", {
+        header: "Customer",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
+        ),
+      }),
+      helper.accessor("tags.0", {
+        header: "Tag",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue() ?? "No tag"}</span>
+        ),
+      }),
+      helper.accessor((row, index) => row.price * 2 + index, {
+        id: "computed",
+        header: "Computed",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue().toFixed(1)}</span>
+        ),
+      }),
+    ]);
+    renderWithProvider(
+      <DataTable
+        columns={inferredColumns}
+        locale="en-US"
+        data={[
+          { id: "1", price: 12.5, customer: { name: "Ada" }, tags: ["New"] },
+          { id: "2", price: 20, tags: [] },
+        ]}
+      />,
+    );
+    expect(
+      screen.getByRole("row", { name: "$12.50 ADA New 25.0" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("row", { name: "$20.00 Guest No tag 41.0" }),
+    ).toBeTruthy();
+  });
+
+  it("uses column, table, and runtime formatting locales without translating UI labels", async () => {
+    const i18n = createI18n();
+    const formattingColumns: DataTableColumnProps<User>[] = [
+      {
+        id: "number",
+        header: "Number",
+        type: "number",
+        getValue: () => 1234.5,
+      },
+      {
+        id: "override",
+        header: "Override",
+        type: "number",
+        locale: "de-DE",
+        getValue: () => 1234.5,
+      },
+    ];
+    const view = (locale?: string) => (
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={formattingColumns}
+          data={data.slice(0, 1)}
+          locale={locale}
+          pagination={{}}
+        />
+      </AppProvider>
+    );
+    const { rerender } = render(view("fr-FR"));
+    expect(screen.getByRole("cell", { name: "1\u202f234,5" })).toBeTruthy();
+    expect(screen.getByRole("cell", { name: "1.234,5" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: zh.dataTable.nextPage }),
+    ).toBeTruthy();
+    rerender(view());
+    const runtimeValue = new Intl.NumberFormat().format(1234.5);
+    expect(screen.getAllByRole("cell")[0].textContent).toBe(runtimeValue);
+    await i18n.changeLanguage("de-DE");
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: en.dataTable.nextPage }),
+      ).toBeTruthy(),
+    );
+    expect(screen.getAllByRole("cell")[0].textContent).toBe(runtimeValue);
+  });
+
+  it("updates table time zones while preserving column overrides and calendar dates", () => {
+    const dateColumns: DataTableColumnProps<User>[] = [
+      { id: "default", type: "date", getValue: () => "2026-01-01T01:00:00Z" },
+      {
+        id: "override",
+        type: "date",
+        timeZone: "Asia/Shanghai",
+        getValue: () => "2026-01-01T01:00:00Z",
+      },
+      { id: "calendar", type: "date", getValue: () => "2026-01-01" },
+    ];
+    const i18n = createI18n();
+    const view = (timeZone?: string) => (
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={dateColumns}
+          data={data.slice(0, 1)}
+          locale="en-US"
+          timeZone={timeZone}
+        />
+      </AppProvider>
+    );
+    const { rerender } = render(view("America/Los_Angeles"));
+    expect(screen.getAllByRole("cell").map((cell) => cell.textContent)).toEqual(
+      ["12/31/2025", "01/01/2026", "01/01/2026"],
+    );
+    rerender(view("UTC"));
+    expect(screen.getAllByRole("cell").map((cell) => cell.textContent)).toEqual(
+      ["01/01/2026", "01/01/2026", "01/01/2026"],
+    );
+    rerender(view());
+    expect(screen.getAllByRole("cell")[0].textContent).toBe(
+      new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date("2026-01-01T01:00:00Z")),
+    );
+  });
+
+  it("aligns numeric headers and cells while allowing explicit alignment", () => {
+    renderWithProvider(
+      <DataTable
+        data={data.slice(0, 1)}
+        columns={[
+          { field: "id", header: "ID", type: "number" },
+          {
+            id: "center",
+            header: "Centered",
+            type: "percent",
+            align: "center",
+            getValue: () => 0.125,
+            precision: 1,
+          },
+        ]}
+      />,
+    );
+    expect(
+      screen
+        .getByRole("columnheader", { name: "ID" })
+        .classList.contains("text-right"),
+    ).toBe(true);
+    expect(
+      screen.getByRole("cell", { name: "1" }).classList.contains("text-right"),
+    ).toBe(true);
+    expect(
+      screen
+        .getByRole("columnheader", { name: "Centered" })
+        .classList.contains("text-center"),
+    ).toBe(true);
+    expect(
+      screen
+        .getByRole("cell", { name: "12.5%" })
+        .classList.contains("text-center"),
+    ).toBe(true);
+  });
+
+  it("preserves raw render values and supplies formatted children to render elements", () => {
+    renderWithProvider(
+      <DataTable
+        data={data.slice(0, 1)}
+        locale="en-US"
+        columns={[
+          {
+            id: "custom",
+            type: "percent",
+            precision: 1,
+            getValue: () => 0.125,
+            render: (props, { getValue }) => (
+              <strong {...props}>
+                Raw: {String(getValue())}; child: {props.children}
+              </strong>
+            ),
+          },
+          {
+            id: "element",
+            type: "currency",
+            currency: "USD",
+            getValue: () => 12.5,
+            render: <em />,
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Raw: 0.125; child: 0.125")).toBeTruthy();
+    expect(screen.getByText("$12.50").tagName).toBe("EM");
+  });
+
   it.each(["pointer", "keyboard"])(
     "keeps %s row actions separate from row navigation",
     async (interaction) => {
@@ -460,7 +665,7 @@ describe("DataTable", () => {
         },
       },
     ];
-    const makeView = (field: string) => (
+    const makeView = (field: DataTableField<(typeof records)[number]>) => (
       <AppProvider i18n={i18n}>
         <DataTable
           columns={[{ id: "value", field, header: "Value" }]}
@@ -475,9 +680,8 @@ describe("DataTable", () => {
       ["nested.zero", "0"],
       ["nested.no", "false"],
       ["nested.empty", ""],
-      ["missing.path", ""],
-    ]) {
-      view.rerender(makeView(field!));
+    ] as const) {
+      view.rerender(makeView(field));
       expect(screen.getByRole("cell").textContent).toBe(text);
     }
   });
