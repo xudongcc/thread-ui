@@ -41,9 +41,13 @@ export interface DataTableColumnProps<TData extends object, TValue = unknown> {
   /** Object key or dotted path. When omitted, id is used as the accessor. */
   accessorKey?: string;
   accessorFn?: (row: TData, index: number) => TValue;
-  header?: ReactNode;
-  /** Replaces the content element inside th; forward props to your element. */
-  headerRender?: DataTableRender<DataTableHeaderContext<TData, TValue>>;
+  /** Header content, or a render function receiving DOM props and column context. */
+  header?:
+    | ReactNode
+    | ((
+        props: DataTableRenderProps,
+        state: DataTableHeaderContext<TData, TValue>,
+      ) => ReactElement);
   /** Replaces the content element inside td; forward props to your element. */
   render?: DataTableRender<DataTableCellContext<TData, TValue>>;
   size?: number;

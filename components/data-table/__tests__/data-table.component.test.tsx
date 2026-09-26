@@ -132,9 +132,7 @@ describe("DataTable", () => {
           {
             id: "contact",
             accessorFn: (user) => user.name.toUpperCase(),
-            headerRender: (props, { column }) => (
-              <em {...props}>{column.id}</em>
-            ),
+            header: (props, { column }) => <em {...props}>{column.id}</em>,
             render: renderCell,
             pinned: "right",
           },
@@ -162,8 +160,7 @@ describe("DataTable", () => {
         columns={[
           {
             accessorKey: "name",
-            header: "Name",
-            headerRender: <em />,
+            header: <em>Name</em>,
             render: <strong ref={ref} className="font-medium" />,
           },
         ]}

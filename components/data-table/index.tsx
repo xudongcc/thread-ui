@@ -199,11 +199,12 @@ export function DataTable<TData extends object, TValue = unknown>({
         minSize: column.minSize,
         maxSize: column.maxSize,
         pinned: column.pinned,
-        header: () => (
-          <RenderContent render={column.headerRender} state={{ column }}>
-            {column.header}
-          </RenderContent>
-        ),
+        header: () =>
+          typeof column.header === "function" ? (
+            <RenderContent render={column.header} state={{ column }} />
+          ) : (
+            column.header
+          ),
         cell: (context) => (
           <RenderContent
             render={column.render}

@@ -29,6 +29,7 @@ export const dataTableWithPublicContexts = (
       {
         id: "name",
         accessorFn: (item) => item.name,
+        header: (props, { column }) => <strong {...props}>{column.id}</strong>,
         render: (props, { getValue, row }) => {
           const value: string = getValue();
           // @ts-expect-error Internal table methods are not public API.
@@ -37,6 +38,19 @@ export const dataTableWithPublicContexts = (
         },
         // @ts-expect-error Engine-specific options are not public API.
         enableSorting: true,
+      },
+    ]}
+  />
+);
+
+export const dataTableWithRemovedHeaderRender = (
+  <DataTable<Item>
+    data={[]}
+    columns={[
+      {
+        accessorKey: "name",
+        // @ts-expect-error Use header for both content and render functions.
+        headerRender: <strong />,
       },
     ]}
   />

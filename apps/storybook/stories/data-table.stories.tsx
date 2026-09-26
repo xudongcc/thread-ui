@@ -116,8 +116,7 @@ export const RenderElement: Story = {
     columns: [
       {
         accessorKey: "name",
-        header: "Name",
-        headerRender: <em />,
+        header: <em>Name</em>,
         render: <strong />,
       },
     ],

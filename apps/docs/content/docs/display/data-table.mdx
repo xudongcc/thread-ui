@@ -97,7 +97,7 @@ Thread UI owns this interface; it does not extend TanStack Table types.
 
 <AutoTypeTable
   path="../../components/data-table/types.ts"
-  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'accessorFn' | 'render' | 'headerRender' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
+  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'accessorFn' | 'render' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
 />
 
 ### DataTableRowActionProps
@@ -121,15 +121,19 @@ Props for pagination controls.
 ### Custom cell and row contexts
 
 Following [Base UI composition](https://base-ui.com/react/handbook/composition),
-`render` and `headerRender` accept either a React element or `(props, state) => JSX`.
-Always forward `props` (including the ref) to your root element. Element form merges
-props automatically. Custom components must forward those props and their ref.
+`render` accepts either a React element or `(props, state) => JSX`.
+`header` accepts any ReactNode (including text and JSX), or the same render-function
+signature. A header element supplies its own content: `header: <strong>Name</strong>`.
+For render functions, always forward `props` (including the ref) to your root
+element. The element form of cell/action `render` merges props automatically.
+Custom components used there must forward those props and their ref.
 
-Both replace a content `span` inside the cell; the outer `td` / `th` stays owned by
-DataTable to preserve semantics and column pinning. `header` is the default content.
+Custom cell renders replace a content `span`. Header nodes render directly;
+header functions render a custom content element. The outer `td` / `th` stays
+owned by DataTable to preserve semantics and column pinning.
 The default cell content is the accessor value converted to text.
 
-`render` state contains `{ row, column, getValue }`; `headerRender` state contains
+`render` state contains `{ row, column, getValue }`; `header` callback state contains
 `{ column }`. These state objects are not forwarded to DOM attributes.
 `row`, including the row passed to `rowActions`, action callbacks, and `onRowClick`,
 contains only `{ id, index, original }`. `onRowSelectionChange` receives the original
@@ -155,14 +159,14 @@ When migrating from the old inherited types, replace engine-specific calls such
 as `row.getValue("name")` with `row.original.name`, or use `getValue()` inside a
 cell. Custom headers no longer receive a table instance.
 
-Element form keeps the default content:
+The cell `render` element keeps the default value, while the header element supplies
+its own label:
 
 ```tsx
 const columns: DataTableColumnProps<User>[] = [
   {
     accessorKey: "name",
-    header: "Name",
-    headerRender: <em />,
+    header: <em>Name</em>,
     render: <strong />,
   },
 ];
@@ -183,4 +187,11 @@ preserve keyboard interaction, disabled state, menu semantics, and action handle
 ```
 
 Replace `cell: (context) => ...` with `render: (props, context) => ...`, forwarding
-`props` to the returned element. Replace functional `header` with `headerRender`.
+`props` to the returned element. Header callbacks use `(props, { column })`:
+
+```tsx
+header: (props, { column }) => <strong {...props}>{column.id}</strong>;
+```
+
+The separate `headerRender` option has been removed. Move it to `header`; when
+using a JSX element, include the label as its children.
