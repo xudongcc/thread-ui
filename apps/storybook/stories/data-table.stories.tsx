@@ -4,6 +4,7 @@ import {
   DataTableExample,
   PaginationDataTableExample,
   RowSelectionDataTableExample,
+  TypedColumnsDataTableExample,
   columns,
   customEmpty,
   data,
@@ -124,4 +125,19 @@ export const RenderElement: Story = {
       { label: "View profile", render: <a href={`#person-${row.id}`} /> },
     ],
   },
+};
+
+export const ColumnAlignment: Story = {
+  args: {
+    columns: [
+      { field: "name", header: "Name" },
+      { field: "role", header: "Role", align: "center" },
+      { field: "id", header: "ID", align: "right" },
+    ],
+  },
+};
+
+export const ColumnTypes: Story = {
+  render: () => <TypedColumnsDataTableExample />,
+  parameters: { docs: { source: withExampleSource(implementation) } },
 };

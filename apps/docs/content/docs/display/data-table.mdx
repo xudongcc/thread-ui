@@ -74,6 +74,110 @@ exits that mode and reports `false`. It does not load or retain records across p
 
 <Preview path="data-table-selection" />
 
+### Column Types
+
+<Preview path="data-table-types" />
+
+| Type             | Default alignment | Options                                    |
+| ---------------- | ----------------- | ------------------------------------------ |
+| `text` (default) | Left              | Common column props only                   |
+| `number`         | Right             | `locale`, `precision`                      |
+| `currency`       | Right             | `locale`, `precision`, required `currency` |
+| `percent`        | Right             | `locale`, `precision`                      |
+| `date`           | Left              | `locale`, `timeZone`                       |
+| `datetime`       | Left              | `locale`, `timeZone`                       |
+| `time`           | Left              | `locale`, `timeZone`, `hour12`             |
+| `duration`       | Right             | `locale`, `unit`, `style`                  |
+
+```tsx
+<DataTable
+  locale="en-US"
+  timeZone="Asia/Shanghai"
+  columns={[
+    { field: "name", header: "Name" },
+    { field: "total", header: "Total", type: "currency", currency: "USD" },
+    { field: "rate", header: "Rate", type: "percent", precision: 1 },
+    {
+      field: "elapsed",
+      header: "Duration",
+      type: "duration",
+      unit: "seconds",
+      style: "digital",
+    },
+    {
+      field: "createdAt",
+      header: "Created",
+      type: "datetime",
+      locale: "zh-CN",
+      timeZone: "America/New_York",
+    },
+  ]}
+  data={data}
+/>
+```
+
+- **Locale:** column `locale` → table `locale` → runtime default locale (the user's
+  browser locale on the client). This only affects formatted values; empty states, pagination, and other UI
+  labels continue to use AppProvider. Text columns have no `locale` option.
+- **Precision:** fixed fraction digits (0–100). Omit it to use `Intl.NumberFormat`
+  defaults: up to 3 decimal places for numbers, the currency's minor-unit digits
+  for amounts, and 0 decimal places for percentages.
+- **Currency:** specify an ISO 4217 code such as `USD`, `CNY`, or `JPY`. Values are
+  in major units (`12.5` means $12.50 for USD), not cents. Locale never implies a currency.
+- **Percent:** supply a ratio; `0.125` with `precision: 1` displays as `12.5%`.
+- **Dates:** accept `Date`, epoch milliseconds, `YYYY-MM-DD`, or ISO timestamps
+  with an explicit `Z` / UTC offset. `date` displays year/month/day; `datetime`
+  also displays hours/minutes/seconds using the locale's clock convention.
+  Time zone priority is column `timeZone` → table `timeZone` → runtime default
+  time zone (the user's browser time zone on the client). Date-only strings in a
+  `date` column keep their calendar date regardless of `timeZone`.
+  A date-only string in `datetime` or `time` is midnight UTC converted to the chosen zone.
+- **Time:** `type: "time"` displays only hours/minutes/seconds and supports the same
+  date inputs and locale/time-zone precedence. `hour12: true` selects a 12-hour
+  clock; `false` selects a 24-hour clock; omit it to follow the locale. Bare time
+  strings such as `13:04:05` remain plain text because they have no date or time
+  zone; supply a timestamp to enable formatting and time-zone conversion.
+- **Duration:** accepts a finite numeric elapsed time. `unit` is `milliseconds`,
+  `seconds` (default), `minutes`, or `hours`. Values are rounded to the nearest
+  millisecond, then split into hours, minutes, seconds, and milliseconds.
+  Hours do not wrap at 24; negative values keep their sign. `style` supports
+  `digital` (default), `long`, `short`, and `narrow`, using `Intl.DurationFormat`.
+  For example, `3661` seconds displays as `1:01:01`; `long` with `en-US` displays
+  `1 hour, 1 minute, 1 second`. Locale follows the usual column/table/runtime
+  precedence. Durations have no `timeZone` and ignore the table's time zone.
+  Values outside the safe integer millisecond range remain plain text.
+  On runtimes without `Intl.DurationFormat`, the raw value remains visible;
+  load a compatible polyfill before rendering if localized durations are needed.
+- **Empty/invalid values:** `null` and `undefined` stay blank; zero remains visible.
+  Numeric formatting accepts finite numbers and bigints; other values, invalid
+  dates, and datetime strings without a UTC offset remain plain text. Invalid
+  locale, currency, time zone, or precision configurations follow Intl's validation.
+
+When server-rendering, pass the user's `locale` and `timeZone` explicitly to keep
+server and browser output consistent. Unspecified Intl options use the server's
+settings during SSR, which may differ from the browser's settings. AppProvider's
+language controls UI translations, not the default formatting locale.
+
+`render` and `align` can override defaults. Formatting changes only presentation;
+row data and `getValue()` remain unformatted.
+
+### Column Alignment
+
+Set `align` to `"left"`, `"center"`, or `"right"` to align both the header and
+cells. Numeric and duration types default to `"right"`; other types default to `"left"`.
+An explicit `align` overrides the type default.
+
+```tsx
+const columns: DataTableColumnProps<User>[] = [
+  { field: "name", header: "Name" },
+  { field: "email", header: "Email", align: "center" },
+  { field: "id", header: "ID", align: "right" },
+];
+```
+
+Alignment applies to the outer `th` / `td`, including pinned columns. Custom
+renderers that use their own flex or grid layout control their internal alignment.
+
 ### Row Actions
 
 Add actions dropdown menu for each row using the `rowActions` prop.
@@ -97,16 +201,25 @@ The root component props for the data table.
 
 <AutoTypeTable
   path="../../components/data-table/types.ts"
-  type={`Pick<DataTableProps<any>, 'columns' | 'data' | 'rowActions' | 'pagination' | 'onRowSelectionChange' | 'onAllRowsSelectedChange' | 'bulkActions' | 'empty' | 'getRowId' | 'onRowClick'>`}
+  type={`Pick<DataTableProps<any>, 'columns' | 'data' | 'locale' | 'timeZone' | 'rowActions' | 'pagination' | 'onRowSelectionChange' | 'onAllRowsSelectedChange' | 'bulkActions' | 'empty' | 'getRowId' | 'onRowClick'>`}
 />
 
 ### DataTableColumnProps
 
-Thread UI owns this interface; it does not extend TanStack Table types.
+`DataTableColumnProps<TData, TValue>` is a discriminated union of
+`DataTableTextColumnProps`, `DataTableNumberColumnProps`,
+`DataTableCurrencyColumnProps`, `DataTablePercentColumnProps`,
+`DataTableDateColumnProps`, `DataTableDateTimeColumnProps`,
+`DataTableTimeColumnProps`, and `DataTableDurationColumnProps`.
+Each extends `DataTableBaseColumnProps<TData, TValue>`. All types are exported and
+remain independent of TanStack Table. `TValue` preserves the accessor and render
+context's value type. Omitting `type` keeps existing text-column behavior.
+
+The base properties are shared by all column types:
 
 <AutoTypeTable
   path="../../components/data-table/types.ts"
-  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'field' | 'getValue' | 'render' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
+  type={`Pick<DataTableBaseColumnProps<any>, 'id' | 'header' | 'field' | 'getValue' | 'render' | 'align' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
 />
 
 ### DataTableRowActionProps
@@ -140,7 +253,10 @@ Custom components used there must forward those props and their ref.
 Custom cell renders replace a content `span`. Header nodes render directly;
 header functions render a custom content element. The outer `td` / `th` stays
 owned by DataTable to preserve semantics and column pinning.
-The default cell content is the accessor value converted to text.
+Without `render`, the column type formats the accessor value. A render function
+takes precedence over formatting and receives the raw value through `getValue()`
+(and the original text fallback in `props.children`). A render element receives
+the formatted default children, preserving the Base UI element composition API.
 
 `render` state contains `{ row, column, getValue }`; `header` callback state contains
 `{ column }`. These state objects are not forwarded to DOM attributes.

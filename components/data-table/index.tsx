@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { createColumnFormatter, getColumnAlign } from "./format";
 import type {
   Column,
   ColumnDef,
@@ -25,6 +26,7 @@ import type {
 } from "@tanstack/react-table";
 import type { CSSProperties, ReactNode } from "react";
 import type {
+  DataTableColumnProps,
   DataTableProps,
   DataTableRender,
   DataTableRow,
@@ -125,12 +127,8 @@ const features = tableFeatures({
   rowSelectionFeature,
 });
 
-type InternalColumn<TData extends object> = ColumnDef<
-  typeof features,
-  TData
-> & {
-  pinned?: "left" | "right" | false;
-};
+type InternalColumn<TData extends object> = ColumnDef<typeof features, TData> &
+  Pick<DataTableColumnProps<TData>, "pinned" | "align">;
 
 function publicRow<TData extends object>(
   row: Row<typeof features, TData>,
@@ -138,11 +136,13 @@ function publicRow<TData extends object>(
   return { id: row.id, index: row.index, original: row.original };
 }
 
-function getCommonPinningClassNames<TData extends object>(
+function getColumnClassNames<TData extends object>(
   column: Column<typeof features, TData>,
 ): string {
   const isPinned = column.getIsPinned();
+  const { align = "left" } = column.columnDef as InternalColumn<TData>;
   return cn(
+    { left: "text-left", center: "text-center", right: "text-right" }[align],
     "w-(--column-width)",
     isPinned ? "sticky z-1" : "relative z-0",
     isPinned === "start" && "left-(--column-offset)",
@@ -178,6 +178,8 @@ interface SelectionState {
 export function DataTable<TData extends object, TValue = unknown>({
   columns,
   data,
+  locale,
+  timeZone,
   pagination,
   bulkActions,
   empty,
@@ -220,41 +222,45 @@ export function DataTable<TData extends object, TValue = unknown>({
             } satisfies InternalColumn<TData>,
           ]
         : []),
-      ...columns.map((column, index): InternalColumn<TData> => ({
-        id: column.id ?? column.field ?? `column_${index}`,
-        accessorKey: column.field ?? column.id,
-        accessorFn: column.getValue,
-        size: column.size,
-        minSize: column.minSize,
-        maxSize: column.maxSize,
-        pinned: column.pinned,
-        header: () =>
-          typeof column.header === "function" ? (
-            <RenderContent render={column.header} state={{ column }} />
-          ) : (
-            column.header
-          ),
-        cell: (context) => {
-          // Read the current accessor once. TanStack's per-row value cache is
-          // keyed by column ID and can outlive changes to field/getValue.
-          const value = context.column.accessorFn?.(
-            context.row.original,
-            context.row.index,
-          ) as TValue;
-          return (
-            <RenderContent
-              render={column.render}
-              state={{
-                column,
-                row: publicRow(context.row),
-                getValue: () => value,
-              }}
-            >
-              {value == null ? null : String(value)}
-            </RenderContent>
-          );
-        },
-      })),
+      ...columns.map((column, index): InternalColumn<TData> => {
+        const format = createColumnFormatter(column, locale, timeZone);
+        return {
+          id: column.id ?? column.field ?? `column_${index}`,
+          accessorKey: column.field ?? column.id,
+          accessorFn: column.getValue,
+          size: column.size,
+          minSize: column.minSize,
+          maxSize: column.maxSize,
+          pinned: column.pinned,
+          align: getColumnAlign(column),
+          header: () =>
+            typeof column.header === "function" ? (
+              <RenderContent render={column.header} state={{ column }} />
+            ) : (
+              column.header
+            ),
+          cell: (context) => {
+            // Read the current accessor once. TanStack's per-row value cache is
+            // keyed by column ID and can outlive changes to field/getValue.
+            const value = context.column.accessorFn?.(
+              context.row.original,
+              context.row.index,
+            ) as TValue;
+            return (
+              <RenderContent
+                render={column.render}
+                state={{
+                  column,
+                  row: publicRow(context.row),
+                  getValue: () => value,
+                }}
+              >
+                {format(value)}
+              </RenderContent>
+            );
+          },
+        };
+      }),
       ...(hasRowActions
         ? [
             {
@@ -290,11 +296,20 @@ export function DataTable<TData extends object, TValue = unknown>({
               ),
               size: 60,
               pinned: "right",
+              align: "right",
             } satisfies InternalColumn<TData>,
           ]
         : []),
     ];
-  }, [columns, hasRowSelection, hasRowActions, rowActions, t]);
+  }, [
+    columns,
+    hasRowSelection,
+    hasRowActions,
+    rowActions,
+    t,
+    locale,
+    timeZone,
+  ]);
 
   const currentRowIds = useMemo(
     () => new Set(data.map(getRowId)),
@@ -486,7 +501,7 @@ export function DataTable<TData extends object, TValue = unknown>({
                     style={getCommonPinningStyles(header.column)}
                     className={cn(
                       "bg-card group-hover:bg-muted whitespace-normal",
-                      getCommonPinningClassNames<TData>(header.column),
+                      getColumnClassNames<TData>(header.column),
                     )}
                   >
                     {header.isPlaceholder ? null : (
@@ -520,8 +535,7 @@ export function DataTable<TData extends object, TValue = unknown>({
                       style={getCommonPinningStyles(cell.column)}
                       className={cn(
                         "bg-card group-hover:bg-muted whitespace-normal",
-                        getCommonPinningClassNames<TData>(cell.column),
-                        cell.column.id === "$actions" && "text-right",
+                        getColumnClassNames<TData>(cell.column),
                       )}
                       onClick={
                         cell.column.id === "$actions"
