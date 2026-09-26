@@ -1,9 +1,13 @@
 "use client";
 
 import {
+  columnPinningFeature,
+  columnSizingFeature,
+  columnVisibilityFeature,
   flexRender,
-  getCoreRowModel,
-  useReactTable,
+  rowSelectionFeature,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table";
 import {
   ChevronDown,
@@ -17,11 +21,10 @@ import type {
   Column,
   ColumnDef,
   Row,
-  RowData,
   RowSelectionState,
-  TableOptions,
 } from "@tanstack/react-table";
-import type { CSSProperties, ReactElement, ReactNode } from "react";
+import type { CSSProperties } from "react";
+import type { DataTableProps, DataTableRow } from "./types";
 
 import { Empty } from "@/components/thread-ui/empty";
 import { Button } from "@/components/ui/button";
@@ -44,52 +47,41 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-function getCommonPinningClassNames<TData>(column: Column<TData>): string {
-  const isPinned = column.getIsPinned();
+export type * from "./types";
 
-  return cn(
-    "w-(--column-width)",
-    isPinned ? "sticky z-1" : "relative z-0",
-    isPinned === "left" && "left-(--column-offset)",
-    isPinned === "right" && "right-(--column-offset)",
-  );
-}
+const features = tableFeatures({
+  columnPinningFeature,
+  columnSizingFeature,
+  columnVisibilityFeature,
+  rowSelectionFeature,
+});
 
-export interface DataTablePaginationProps {
-  hasPreviousPage?: boolean;
-  hasNextPage?: boolean;
-  onPreviousPage?: () => void;
-  onNextPage?: () => void;
-}
-
-export type DataTableColumnProps<
-  TData extends RowData,
-  TValue = unknown,
-> = ColumnDef<TData, TValue> & {
+type InternalColumn<TData extends object> = ColumnDef<
+  typeof features,
+  TData
+> & {
   pinned?: "left" | "right" | false;
 };
 
-export interface DataTableRowActionProps<TData extends RowData> {
-  disabled?: boolean;
-  icon?: ReactElement;
-  label: string;
-  onClick?: (row: Row<TData>) => Promise<void> | void;
+function publicRow<TData extends object>(
+  row: Row<typeof features, TData>,
+): DataTableRow<TData> {
+  return { id: row.id, index: row.index, original: row.original };
 }
 
-export interface DataTableProps<TData extends RowData, TValue = unknown> {
-  columns: Array<DataTableColumnProps<TData, TValue>>;
-  data: Array<TData>;
-  rowActions?: (row: Row<TData>) => Array<DataTableRowActionProps<TData>>;
-  pagination?: DataTablePaginationProps;
-  onRowSelectionChange?: (rows: Array<TData>) => void;
-  onAllRowsSelectedChange?: (selected: boolean) => void;
-  bulkActions?: ReactNode;
-  empty?: ReactNode;
-  getRowId?: TableOptions<TData>["getRowId"];
-  onRowClick?: (row: Row<TData>) => void;
+function getCommonPinningClassNames<TData extends object>(
+  column: Column<typeof features, TData>,
+): string {
+  const isPinned = column.getIsPinned();
+  return cn(
+    "w-(--column-width)",
+    isPinned ? "sticky z-1" : "relative z-0",
+    isPinned === "start" && "left-(--column-offset)",
+    isPinned === "end" && "right-(--column-offset)",
+  );
 }
 
-export function DataTable<TData extends RowData, TValue = unknown>({
+export function DataTable<TData extends object, TValue = unknown>({
   columns,
   data,
   pagination,
@@ -135,14 +127,32 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                   onClick={(event) => event.stopPropagation()}
                 />
               ),
-              enableSorting: false,
               enableHiding: false,
               size: 32,
               pinned: "left",
-            } satisfies DataTableColumnProps<TData, TValue>,
+            } satisfies InternalColumn<TData>,
           ]
         : []),
-      ...columns,
+      ...columns.map((column, index): InternalColumn<TData> => ({
+        id: column.id ?? column.accessorKey ?? `column_${index}`,
+        accessorKey: column.accessorKey ?? column.id,
+        accessorFn: column.accessorFn,
+        size: column.size,
+        minSize: column.minSize,
+        maxSize: column.maxSize,
+        pinned: column.pinned,
+        header: () => flexRender(column.header, { column }),
+        ...(column.cell !== undefined
+          ? {
+              cell: (context) =>
+                flexRender(column.cell, {
+                  column,
+                  row: publicRow(context.row),
+                  getValue: () => context.getValue<TValue>(),
+                }),
+            }
+          : {}),
+      })),
       ...(hasRowActions
         ? [
             {
@@ -164,13 +174,13 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                     }
                   />
                   <DropdownMenuContent align="end">
-                    {rowActions?.(row).map((action) => (
+                    {rowActions?.(publicRow(row)).map((action) => (
                       <DropdownMenuItem
                         key={action.label}
                         disabled={action.disabled}
                         {...(action.onClick
                           ? {
-                              onClick: () => action.onClick?.(row),
+                              onClick: () => action.onClick?.(publicRow(row)),
                             }
                           : {})}
                       >
@@ -183,18 +193,13 @@ export function DataTable<TData extends RowData, TValue = unknown>({
               ),
               size: 60,
               pinned: "right",
-            } satisfies DataTableColumnProps<TData, TValue>,
+            } satisfies InternalColumn<TData>,
           ]
         : []),
     ];
   }, [columns, hasRowSelection, hasRowActions, rowActions, t]);
 
-  const tableColumns: Array<ColumnDef<TData, TValue>> = useMemo(() => {
-    return processedColumns.map((column) => ({
-      accessorKey: column.id,
-      ...column,
-    }));
-  }, [processedColumns]);
+  const tableColumns = processedColumns;
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [isAllPageRowsSelected, setIsAllPageRowsSelected] = useState(false);
@@ -207,30 +212,38 @@ export function DataTable<TData extends RowData, TValue = unknown>({
     onAllRowsSelectedChangeRef.current = onAllRowsSelectedChange;
   }, [onRowSelectionChange, onAllRowsSelectedChange]);
 
-  const table = useReactTable<TData>({
+  const table = useTable({
+    features,
     data,
     columns: tableColumns,
     state: {
       columnPinning: {
-        left: processedColumns
+        start: processedColumns
           .filter((column) => column.pinned === "left")
           .map((column) => column.id!),
-        right: processedColumns
+        end: processedColumns
           .filter((column) => column.pinned === "right")
           .map((column) => column.id!),
       },
       rowSelection,
     },
     getRowId,
-    getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
   });
 
+  const lastSelectedRows = useRef<TData[] | undefined>(undefined);
   useEffect(() => {
-    onRowSelectionChangeRef.current?.(
-      table.getSelectedRowModel().rows.map((row) => row.original),
-    );
-  }, [rowSelection, data.length, table]);
+    const rows = table.getSelectedRowModel().rows.map((row) => row.original);
+    const previous = lastSelectedRows.current;
+    if (
+      !previous ||
+      previous.length !== rows.length ||
+      rows.some((row, index) => row !== previous[index])
+    ) {
+      lastSelectedRows.current = rows;
+      onRowSelectionChangeRef.current?.(rows);
+    }
+  }, [rowSelection, data, table]);
 
   const handleAllRowsSelectedChange = useCallback((selected: boolean) => {
     setIsAllPageRowsSelected(selected);
@@ -270,7 +283,7 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                       onClick={() => table.toggleAllPageRowsSelected(true)}
                     >
                       {t("dataTable.selectAllRowsOnPage", {
-                        count: table.getRowCount(),
+                        count: table.getRowModel().rows.length,
                       })}
                     </DropdownMenuItem>
                   )}
@@ -320,9 +333,9 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                       {
                         "--column-width": `${header.column.getSize()}px`,
                         "--column-offset": `${
-                          header.column.getIsPinned() === "right"
-                            ? header.column.getAfter("right")
-                            : header.column.getStart("left")
+                          header.column.getIsPinned() === "end"
+                            ? header.column.getAfter("end")
+                            : header.column.getStart("start")
                         }px`,
                       } as CSSProperties
                     }
@@ -348,7 +361,9 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                     "group bg-card hover:bg-muted",
                     onRowClick && "cursor-pointer",
                   )}
-                  {...(onRowClick ? { onClick: () => onRowClick?.(row) } : {})}
+                  {...(onRowClick
+                    ? { onClick: () => onRowClick?.(publicRow(row)) }
+                    : {})}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -362,9 +377,9 @@ export function DataTable<TData extends RowData, TValue = unknown>({
                         {
                           "--column-width": `${cell.column.getSize()}px`,
                           "--column-offset": `${
-                            cell.column.getIsPinned() === "right"
-                              ? cell.column.getAfter("right")
-                              : cell.column.getStart("left")
+                            cell.column.getIsPinned() === "end"
+                              ? cell.column.getAfter("end")
+                              : cell.column.getStart("start")
                           }px`,
                         } as CSSProperties
                       }

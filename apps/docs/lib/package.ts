@@ -115,14 +115,41 @@ const getThemePackage = async (
   };
 };
 
-const packageGroups = [
-  { directory: "components", type: "registry:ui" },
-  { directory: "hooks", type: "registry:hook" },
-  { directory: "libs", type: "registry:lib" },
-  { directory: "themes", type: "registry:theme" },
-] as const;
+// Keep each filesystem root explicit so Next.js traces only registry sources.
+const getPackageGroups = () =>
+  [
+    {
+      directory: (name: string) =>
+        join(process.cwd(), "../../components", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../components"), {
+          withFileTypes: true,
+        }),
+      type: "registry:ui",
+    },
+    {
+      directory: (name: string) => join(process.cwd(), "../../hooks", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../hooks"), { withFileTypes: true }),
+      type: "registry:hook",
+    },
+    {
+      directory: (name: string) => join(process.cwd(), "../../libs", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../libs"), { withFileTypes: true }),
+      type: "registry:lib",
+    },
+    {
+      directory: (name: string) => join(process.cwd(), "../../themes", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../themes"), {
+          withFileTypes: true,
+        }),
+      type: "registry:theme",
+    },
+  ] as const;
 
-type PackageType = (typeof packageGroups)[number]["type"];
+type PackageType = ReturnType<typeof getPackageGroups>[number]["type"];
 
 export interface RegistryCatalogItem {
   name: string;
@@ -133,19 +160,16 @@ export interface RegistryCatalogItem {
 
 /** The catalog and item resolver share one public package namespace. */
 const getPackageEntries = async () => {
-  const rootDir = join(process.cwd(), "..", "..");
   const packages = new Map<string, { directory: string; type: PackageType }>();
-  for (const { directory, type } of packageGroups) {
-    const entries = await fs.readdir(join(rootDir, directory), {
-      withFileTypes: true,
-    });
+  for (const { directory, type, entries: readEntries } of getPackageGroups()) {
+    const entries = await readEntries();
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       if (packages.has(entry.name)) {
         throw new Error(`Duplicate registry package: ${entry.name}`);
       }
       packages.set(entry.name, {
-        directory: join(rootDir, directory, entry.name),
+        directory: directory(entry.name),
         type,
       });
     }
@@ -175,17 +199,16 @@ export const getPackageCatalog = async (): Promise<RegistryCatalogItem[]> =>
   );
 
 export const getPackage = async (packageName: string) => {
-  const rootDir = join(process.cwd(), "..", "..");
   const isLocalesPackage = packageName === "locales";
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(packageName)) {
     throw new Error("Invalid registry package name");
   }
-  let packageType: (typeof packageGroups)[number]["type"] = "registry:ui";
-  let packageDir = join(rootDir, "locales");
+  let packageType: PackageType = "registry:ui";
+  let packageDir = join(process.cwd(), "../../locales");
   if (!isLocalesPackage) {
     let found = false;
-    for (const group of packageGroups) {
-      const candidate = join(rootDir, group.directory, packageName);
+    for (const group of getPackageGroups()) {
+      const candidate = group.directory(packageName);
       const manifest = await fs
         .stat(join(candidate, "package.json"))
         .catch(() => null);
@@ -369,7 +392,10 @@ export const getPackage = async (packageName: string) => {
   // Export local appearance scopes from the same theme used by the preview.
   // Keep the existing variable names and leave the consumer's global theme intact.
   const theme = postcss.parse(
-    await fs.readFile(join(rootDir, "themes/default-theme/theme.css"), "utf-8"),
+    await fs.readFile(
+      join(process.cwd(), "../../themes/default-theme/theme.css"),
+      "utf-8",
+    ),
   );
   theme.walkRules((rule) => {
     const selectors = rule.selectors.filter((selector) =>

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -107,13 +107,97 @@ describe("DataTable", () => {
       }
 
       expect(onAction).toHaveBeenCalledTimes(1);
-      expect(onAction.mock.calls[0]![0].original).toEqual(data[0]);
+      expect(onAction.mock.calls[0]![0]).toEqual({
+        id: "1",
+        index: 0,
+        original: data[0],
+      });
       expect(onRowClick).not.toHaveBeenCalled();
 
       await user.click(trigger.closest("td")!);
       expect(onRowClick).not.toHaveBeenCalled();
     },
   );
+
+  it("adapts public cell contexts and pins columns without an explicit id", () => {
+    const renderCell = vi.fn(
+      ({ getValue, row }) => `${getValue()} / ${row.id}`,
+    );
+    renderWithProvider(
+      <DataTable<User, string>
+        data={data}
+        columns={[
+          { accessorKey: "name", header: "Name", pinned: "left", size: 120 },
+          {
+            id: "contact",
+            accessorFn: (user) => user.name.toUpperCase(),
+            header: ({ column }) => column.id,
+            cell: renderCell,
+            pinned: "right",
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText("ADA / 1")).toBeTruthy();
+    expect(screen.getByText("contact")).toBeTruthy();
+    const context = renderCell.mock.calls[0]![0];
+    expect(Object.keys(context).sort()).toEqual(["column", "getValue", "row"]);
+    expect(context.row).toEqual({ id: "1", index: 0, original: data[0] });
+    expect(screen.getByText("Ada").closest("td")!.className).toContain(
+      "left-(--column-offset)",
+    );
+    expect(screen.getByText("ADA / 1").closest("td")!.className).toContain(
+      "right-(--column-offset)",
+    );
+  });
+
+  it("selects all supplied rows without implicitly paginating them", async () => {
+    const user = userEvent.setup();
+    const rows = Array.from({ length: 15 }, (_, index) => ({
+      id: String(index),
+      name: `Person ${index}`,
+    }));
+    const onSelection = vi.fn();
+    renderWithProvider(
+      <DataTable
+        columns={columns}
+        data={rows}
+        onRowSelectionChange={onSelection}
+      />,
+    );
+    expect(screen.getAllByLabelText("选择行")).toHaveLength(15);
+    await user.click(screen.getByLabelText("选择所有行"));
+    expect(onSelection).toHaveBeenLastCalledWith(rows);
+  });
+
+  it("refreshes selected records when data changes without changing its length", async () => {
+    const user = userEvent.setup();
+    const onSelection = vi.fn();
+    const i18n = createI18n();
+    const view = render(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={columns}
+          data={data}
+          onRowSelectionChange={onSelection}
+        />
+      </AppProvider>,
+    );
+    await user.click(screen.getAllByLabelText("选择行")[0]!);
+    const updated = [{ id: "1", name: "Updated Ada" }, data[1]!];
+    view.rerender(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={columns}
+          data={updated}
+          onRowSelectionChange={onSelection}
+        />
+      </AppProvider>,
+    );
+    await waitFor(() =>
+      expect(onSelection).toHaveBeenLastCalledWith([updated[0]]),
+    );
+  });
 
   it("uses AppProvider translations for the built-in empty state", () => {
     renderWithProvider(<DataTable columns={columns} data={[]} />);

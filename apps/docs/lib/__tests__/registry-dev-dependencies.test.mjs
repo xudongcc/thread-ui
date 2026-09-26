@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
@@ -41,9 +42,14 @@ test("public registry dependencies keep package versions", async () => {
 
   try {
     const calendarPackage = await getPackage("calendar");
+    const calendarManifest = JSON.parse(
+      await readFile(resolve(root, "components/calendar/package.json"), "utf8"),
+    );
 
     assert.ok(
-      calendarPackage.dependencies?.includes("react-day-picker@9.14.0"),
+      calendarPackage.dependencies?.includes(
+        `react-day-picker@${calendarManifest.dependencies["react-day-picker"]}`,
+      ),
       "calendar should install the tested react-day-picker version",
     );
     assert.ok(
@@ -57,7 +63,9 @@ test("public registry dependencies keep package versions", async () => {
       "data-filter source needs lodash-es types in consuming TypeScript apps",
     );
     assert.ok(
-      calendarPackage.devDependencies?.includes("i18next@^26.3.1"),
+      calendarPackage.devDependencies?.includes(
+        `i18next@${calendarManifest.devDependencies.i18next}`,
+      ),
       "development dependencies outside the blocklist should keep their versions",
     );
 

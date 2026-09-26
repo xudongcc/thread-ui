@@ -1,6 +1,6 @@
 ---
 title: DataTable
-description: A powerful data table component with sorting, selection, pagination, and row actions.
+description: A powerful data table component with selection, pagination, and row actions.
 ---
 
 <Preview path="data-table" />
@@ -78,7 +78,7 @@ Add actions dropdown menu for each row using the `rowActions` prop.
 - **Column Pinning** - Pin columns to the left or right for better visibility
 - **Pagination** - Built-in pagination controls
 - **Row Click** - Handle row click events for navigation or detail views
-- **Flexible Columns** - Powered by TanStack Table with full column customization
+- **Flexible Columns** - Thread UI column definitions with custom headers, cells, and accessors
 
 ## API Reference
 
@@ -87,17 +87,17 @@ Add actions dropdown menu for each row using the `rowActions` prop.
 The root component props for the data table.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
+  path="../../components/data-table/types.ts"
   type={`Pick<DataTableProps<any>, 'columns' | 'data' | 'rowActions' | 'pagination' | 'onRowSelectionChange' | 'onAllRowsSelectedChange' | 'bulkActions' | 'empty' | 'getRowId' | 'onRowClick'>`}
 />
 
 ### DataTableColumnProps
 
-Column definition extending TanStack Table's ColumnDef.
+Thread UI owns this interface; it does not extend TanStack Table types.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
-  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'cell' | 'pinned' | 'size'>`}
+  path="../../components/data-table/types.ts"
+  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'accessorFn' | 'cell' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
 />
 
 ### DataTableRowActionProps
@@ -105,7 +105,7 @@ Column definition extending TanStack Table's ColumnDef.
 Configuration for row action items in the dropdown menu.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
+  path="../../components/data-table/types.ts"
   type={`Pick<DataTableRowActionProps<any>, 'label' | 'icon' | 'disabled' | 'onClick'>`}
 />
 
@@ -114,6 +114,33 @@ Configuration for row action items in the dropdown menu.
 Props for pagination controls.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
+  path="../../components/data-table/types.ts"
   type={`Pick<DataTablePaginationProps, 'hasPreviousPage' | 'hasNextPage' | 'onPreviousPage' | 'onNextPage'>`}
 />
+
+### Custom cell and row contexts
+
+`cell` receives `{ row, column, getValue }`; `header` receives `{ column }`.
+`row`, including the row passed to `rowActions`, action callbacks, and `onRowClick`,
+contains only `{ id, index, original }`. `onRowSelectionChange` receives the original
+records. No TanStack instance or methods are exposed.
+
+```tsx
+const columns: DataTableColumnProps<User, string>[] = [
+  {
+    id: "contact",
+    accessorFn: (user) => `${user.name} <${user.email}>`,
+    header: "Contact",
+    cell: ({ getValue }) => <strong>{getValue()}</strong>,
+  },
+];
+```
+
+`accessorKey` supports dotted object paths. If it is omitted, `id` is used as the
+accessor unless `accessorFn` is provided. Supply an explicit `id` for computed
+columns. Column sizing and left/right pinning are supported; sorting, filtering,
+and pagination of the input records remain the application's responsibility.
+
+When migrating from the old inherited types, replace engine-specific calls such
+as `row.getValue("name")` with `row.original.name`, or use `getValue()` inside a
+cell. Custom headers no longer receive a table instance.

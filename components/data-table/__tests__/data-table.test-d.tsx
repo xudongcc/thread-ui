@@ -21,3 +21,23 @@ export const dataTableWithUnsupportedLocaleProp = (
     locale="zh"
   />
 );
+
+export const dataTableWithPublicContexts = (
+  <DataTable<Item, string>
+    data={[]}
+    columns={[
+      {
+        id: "name",
+        accessorFn: (item) => item.name,
+        cell: ({ getValue, row }) => {
+          const value: string = getValue();
+          // @ts-expect-error Internal table methods are not public API.
+          row.getIsSelected();
+          return value;
+        },
+        // @ts-expect-error Engine-specific options are not public API.
+        enableSorting: true,
+      },
+    ]}
+  />
+);

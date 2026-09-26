@@ -97,3 +97,16 @@ export const Pagination: Story = {
     await expect(canvas.queryByText("Alice Johnson")).not.toBeInTheDocument();
   }),
 };
+
+export const CustomCells: Story = {
+  args: {
+    columns: [
+      {
+        id: "contact",
+        header: "Contact",
+        accessorFn: (person) => `${person.name} <${person.email}>`,
+        cell: ({ getValue }) => <strong>{String(getValue())}</strong>,
+      },
+    ],
+  },
+};
