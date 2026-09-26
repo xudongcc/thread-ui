@@ -105,7 +105,8 @@ Obsolete results from record switches, scope changes, or unmounts are ignored.
 After a successful neighbor query, an existing saved list search is updated to
 forward pagination after `previousEdge.cursor`, so the current record becomes
 the first row when returning. No predecessor means the filtered first page.
-Loading and failed requests retain the saved position. Direct detail entry with
+Each result updates storage once; later list pagination changes are not overwritten
+by an already completed detail query. Loading and failed requests retain the saved position. Direct detail entry with
 no saved list visit uses schema defaults and does not create a stored visit.
 
 ## Storage

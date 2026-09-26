@@ -256,3 +256,17 @@ describe("connection search type inference", () => {
     ).toEqual({ first: 2, after: "next", orderBy });
   });
 });
+
+it("preserves a custom page size when switching direction before schema normalization", () => {
+  const search = createConnectionSearchSchema(options).parse({ first: 5 });
+  const pageInfo = {
+    hasNextPage: true,
+    hasPreviousPage: true,
+    startCursor: "start",
+    endCursor: "end",
+  };
+  const previous = getPreviousSearch(search, pageInfo);
+  const next = getNextSearch(previous, pageInfo);
+  expect(next.first).toBe(5);
+  expect(getPreviousSearch(next, pageInfo).last).toBe(5);
+});

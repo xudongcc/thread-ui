@@ -310,14 +310,21 @@ export function useResourceNavigation<
     });
   }, [savedSearch, data, search, searchSchema]);
 
-  useEffect(() => {
-    if (!data) return;
-    // Direct entry must not create a saved list visit.
+  const persistBackSearch = useEffectEvent(() => {
+    // Direct entry must not create a saved list visit, and another consumer may
+    // have changed the saved search since this result's render.
     // Search schemas must accept their normalized output, as storage reads do.
     setSearch((saved) =>
-      saved === undefined ? undefined : (backSearch as z.input<Schema>),
+      saved === undefined || !isEqual(saved, savedSearch)
+        ? (saved as z.input<Schema> | undefined)
+        : (backSearch as z.input<Schema>),
     );
-  }, [data, backSearch, setSearch]);
+  });
+  useEffect(() => {
+    // Persist on a new result only. Replaying on shared pagination changes
+    // would override list navigation or compete with another detail consumer.
+    if (current?.data) persistBackSearch();
+  }, [current]);
 
   return {
     search,

@@ -225,24 +225,33 @@ export type ConnectionSearch<
     : ReturnType<typeof createConnectionSearchSchema<OrderField>>
 >;
 
+interface ConnectionPaginationSearch {
+  first?: number;
+  last?: number;
+  after?: string;
+  before?: string;
+}
+
 export function getPreviousSearch<
-  Search extends ConnectionSearch<EnumLike> = ConnectionSearch<EnumLike>,
+  Search extends ConnectionPaginationSearch = ConnectionSearch<EnumLike>,
 >(search: Search, pageInfo?: PageInfo) {
+  const { first, last, after: _after, before: _before, ...conditions } = search;
   return {
-    ...search,
+    ...conditions,
     first: undefined,
-    last: "last" in search ? search.last : search.first,
+    last: last ?? first,
     before: pageInfo?.startCursor ?? undefined,
     after: undefined,
   };
 }
 
 export function getNextSearch<
-  Search extends ConnectionSearch<EnumLike> = ConnectionSearch<EnumLike>,
+  Search extends ConnectionPaginationSearch = ConnectionSearch<EnumLike>,
 >(search: Search, pageInfo?: PageInfo) {
+  const { first, last, after: _after, before: _before, ...conditions } = search;
   return {
-    ...search,
-    first: "first" in search ? search.first : search.last,
+    ...conditions,
+    first: first ?? last,
     last: undefined,
     before: undefined,
     after: pageInfo?.endCursor ?? undefined,

@@ -710,3 +710,61 @@ describe("useResourceNavigation", () => {
     });
   });
 });
+
+it("does not replay a completed detail result over a later list pagination update", async () => {
+  const saved = saveSearch({ first: 5, after: "old" });
+  const query = vi.fn().mockResolvedValue(neighbors("previous", "next"));
+  const detail = renderHook(() =>
+    useResourceNavigation({
+      key: resourceKey,
+      searchSchema: resourceSearchSchema,
+      query,
+    }),
+  );
+  await waitFor(() => expect(detail.result.current.loading).toBe(false));
+  expect(saved.result.current.search).toMatchObject({ after: "previous" });
+  act(() =>
+    saved.result.current.setSearch({ first: 5, after: "list-page-two" }),
+  );
+  expect(saved.result.current.search).toMatchObject({ after: "list-page-two" });
+  expect(query).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    await detail.result.current.refetch();
+  });
+  expect(saved.result.current.search).toMatchObject({ after: "previous" });
+  expect(query).toHaveBeenCalledTimes(2);
+});
+
+it("does not let two mounted detail consumers fight over the shared return position", async () => {
+  const saved = saveSearch({ first: 5 });
+  const firstRequest = deferred();
+  const secondRequest = deferred();
+  const firstQuery = vi.fn().mockReturnValue(firstRequest.promise);
+  const secondQuery = vi.fn().mockReturnValue(secondRequest.promise);
+  const first = renderHook(() =>
+    useResourceNavigation({
+      key: resourceKey,
+      searchSchema: resourceSearchSchema,
+      query: firstQuery,
+    }),
+  );
+  const second = renderHook(() =>
+    useResourceNavigation({
+      key: resourceKey,
+      searchSchema: resourceSearchSchema,
+      query: secondQuery,
+    }),
+  );
+  await act(async () => firstRequest.resolve(neighbors("first-previous")));
+  expect(first.result.current.loading).toBe(false);
+  expect(saved.result.current.search).toMatchObject({
+    after: "first-previous",
+  });
+  await act(async () => secondRequest.resolve(neighbors("second-previous")));
+  expect(second.result.current.loading).toBe(false);
+  expect(saved.result.current.search).toMatchObject({
+    after: "second-previous",
+  });
+  expect(firstQuery).toHaveBeenCalledOnce();
+  expect(secondQuery).toHaveBeenCalledOnce();
+});
