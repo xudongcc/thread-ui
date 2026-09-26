@@ -5,6 +5,6 @@
   "title": "Thread UI Default Theme",
   "description": "Thread UI light and dark colors, canvas, radius, and base styles.",
   "exports": {
-    "./default.css": "./default.css"
+    "./theme.css": "./theme.css"
   }
 }

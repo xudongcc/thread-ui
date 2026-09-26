@@ -31,11 +31,12 @@ node --test apps/docs/lib/__tests__/*.test.mjs
 ## Themes
 
 Themes live in `themes/<name>/` alongside components, hooks, and libraries.
+Each theme package uses `theme.css` as its stylesheet entry.
 The registry discovers each theme package and converts its CSS into a
 `registry:theme` item with `cssVars` and `css`. Names must be unique across all
 registry groups.
 
-The default theme's single source is `themes/default-theme/default.css`.
+The default theme's single source is `themes/default-theme/theme.css`.
 Docs and Storybook import it through the internal `@repo/default-theme`
 workspace package. Consumers install it with:
 

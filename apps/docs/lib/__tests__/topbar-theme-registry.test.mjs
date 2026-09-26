@@ -14,7 +14,7 @@ test("Topbar installs scoped existing theme variables without overriding the glo
     const item = registryItemSchema.parse(await getPackage("topbar"));
     const theme = postcss.parse(
       await readFile(
-        resolve(process.cwd(), "../../themes/default-theme/default.css"),
+        resolve(process.cwd(), "../../themes/default-theme/theme.css"),
         "utf8",
       ),
     );

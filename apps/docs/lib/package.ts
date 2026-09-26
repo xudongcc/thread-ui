@@ -65,14 +65,8 @@ const getThemePackage = async (
   packageDir: string,
   metadata: { title?: string; description?: string },
 ): Promise<RegistryItem> => {
-  const cssFiles = (await getPackageFiles(packageDir)).filter((file) =>
-    file.endsWith(".css"),
-  );
-  if (!cssFiles.length) throw new Error(`Theme has no CSS: ${packageName}`);
   const theme = postcss.parse(
-    (await Promise.all(cssFiles.map((file) => readFile(file, "utf-8")))).join(
-      "\n",
-    ),
+    await readFile(join(packageDir, "theme.css"), "utf-8"),
   );
   const cssVars = { theme: {}, light: {}, dark: {} } as {
     theme: Record<string, string>;
@@ -342,10 +336,7 @@ export const getPackage = async (packageName: string) => {
   // Export local appearance scopes from the same theme used by the preview.
   // Keep the existing variable names and leave the consumer's global theme intact.
   const theme = postcss.parse(
-    await fs.readFile(
-      join(rootDir, "themes/default-theme/default.css"),
-      "utf-8",
-    ),
+    await fs.readFile(join(rootDir, "themes/default-theme/theme.css"), "utf-8"),
   );
   theme.walkRules((rule) => {
     const selectors = rule.selectors.filter((selector) =>
