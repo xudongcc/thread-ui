@@ -122,24 +122,57 @@ const packageGroups = [
   { directory: "themes", type: "registry:theme" },
 ] as const;
 
+type PackageType = (typeof packageGroups)[number]["type"];
+
+export interface RegistryCatalogItem {
+  name: string;
+  type: PackageType;
+  title: string;
+  description?: string;
+}
+
 /** The catalog and item resolver share one public package namespace. */
-export const getPackageNames = async () => {
+const getPackageEntries = async () => {
   const rootDir = join(process.cwd(), "..", "..");
-  const names = new Set<string>();
-  for (const { directory } of packageGroups) {
+  const packages = new Map<string, { directory: string; type: PackageType }>();
+  for (const { directory, type } of packageGroups) {
     const entries = await fs.readdir(join(rootDir, directory), {
       withFileTypes: true,
     });
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      if (names.has(entry.name)) {
+      if (packages.has(entry.name)) {
         throw new Error(`Duplicate registry package: ${entry.name}`);
       }
-      names.add(entry.name);
+      packages.set(entry.name, {
+        directory: join(rootDir, directory, entry.name),
+        type,
+      });
     }
   }
-  return [...names].sort();
+  return [...packages.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, "en"))
+    .map(([name, metadata]) => ({ name, ...metadata }));
 };
+
+export const getPackageNames = async () =>
+  (await getPackageEntries()).map(({ name }) => name);
+
+/** Search only reads manifests; full source and CSS are loaded on installation. */
+export const getPackageCatalog = async (): Promise<RegistryCatalogItem[]> =>
+  Promise.all(
+    (await getPackageEntries()).map(async ({ name, directory, type }) => {
+      const manifest = JSON.parse(
+        await readFile(join(directory, "package.json"), "utf-8"),
+      ) as { title?: string; description?: string };
+      return {
+        name,
+        type,
+        title: manifest.title ?? name,
+        description: manifest.description,
+      };
+    }),
+  );
 
 export const getPackage = async (packageName: string) => {
   const rootDir = join(process.cwd(), "..", "..");

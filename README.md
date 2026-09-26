@@ -47,3 +47,26 @@ pnpm dlx shadcn@latest add @thread-ui/default-theme
 This merges the theme into the CSS file configured in `components.json`;
 consumers do not need a workspace package or an extra CSS import. The former
 `@thread-ui/theme` entry has been removed.
+
+## Registry search
+
+The `/r/registry.json` endpoint supports shadcn dynamic search across components,
+hooks, libraries, and themes. It reads package manifests and returns only
+`name`, `type`, `title`, and `description`; installation still fetches the full
+item from `/r/<name>.json`.
+
+```sh
+pnpm dlx shadcn@latest search @thread-ui --query navigation
+pnpm dlx shadcn@latest search @thread-ui --type hook,lib --limit 10
+```
+
+HTTP parameters are `q`, comma-separated `type` values such as
+`registry:hook,registry:lib`, `limit` (default 100), and `offset` (default 0).
+Search is case-insensitive across names, titles, and descriptions; all
+whitespace-separated terms must match. Results are ordered by name. Every
+response includes `pagination` with the filtered `total`, `limit`, `offset`,
+and `hasMore`. Missing filters list all items, paginated.
+
+Invalid pagination values fall back to defaults: limits must be positive safe
+integers, and offsets must be nonnegative safe integers. Valid requested limits
+are honored so combined searches across multiple registries can page correctly.

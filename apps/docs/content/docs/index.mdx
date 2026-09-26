@@ -66,6 +66,25 @@ The former `@thread-ui/theme` entry has been removed; use
 `@thread-ui/default-theme` for future installations and updates. Existing
 installed CSS remains valid.
 
+### Search the registry
+
+Search components, hooks, libraries, and themes from the CLI:
+
+```bash
+pnpm dlx shadcn@latest search @thread-ui --query navigation
+pnpm dlx shadcn@latest search @thread-ui --type theme
+pnpm dlx shadcn@latest search @thread-ui --type hook,lib --limit 10 --offset 0
+```
+
+Search runs on the server across names, titles, and descriptions. It returns
+lightweight metadata and pagination; source files are fetched when installing an
+item. The HTTP endpoint accepts `q`, comma-separated `type` values, `limit`,
+and `offset`:
+
+```text
+/r/registry.json?q=theme&type=registry:theme&limit=10&offset=0
+```
+
 ### Install a component
 
 Thread UI is a trusted registry for shadcn/ui. Add components using the CLI:
