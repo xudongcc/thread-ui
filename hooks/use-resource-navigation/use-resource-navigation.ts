@@ -73,10 +73,14 @@ function read(key: string): string | null {
 }
 
 function write(key: string, value: string | null) {
-  if (typeof window === "undefined" || read(key) === value) return;
+  if (typeof window === "undefined") return;
+  const previous = read(key);
+  // A previous storage failure can leave an older persisted value behind.
+  // Clearing must still try to remove it, even when memory is already empty.
+  if (previous === value && value !== null) return;
   const entry = getEntry(key);
   entry.value = value;
-  if (!entry.memoryOnly) {
+  if (!entry.memoryOnly || value === null) {
     try {
       if (value === null) window.sessionStorage.removeItem(key);
       else window.sessionStorage.setItem(key, value);
@@ -84,7 +88,7 @@ function write(key: string, value: string | null) {
       entry.memoryOnly = true;
     }
   }
-  entry.listeners.forEach((listener) => listener());
+  if (previous !== value) entry.listeners.forEach((listener) => listener());
 }
 
 function parse<Schema extends z.ZodType>(
@@ -239,6 +243,7 @@ export function useResourceNavigation<
 >(options: ResourceNavigationOptions<Schema>) {
   const { key, searchSchema, query } = options;
   const requestId = useRef(0);
+  const activeRequest = useRef<NavigationRequest<Schema> | null>(null);
   const [state, setState] = useState<NavigationState<Schema>>();
   const { search: savedSearch, setSearch } = useStoredResourceSearch(options);
   const clearSearch = useCallback(() => setSearch(undefined), [setSearch]);
@@ -261,7 +266,9 @@ export function useResourceNavigation<
   });
 
   async function refetch() {
-    if (!query) return undefined;
+    // Async page actions may retain a refetch from a record that has since
+    // changed or unmounted. It must not replace the active request's state.
+    if (!query || activeRequest.current !== request) return undefined;
     const id = ++requestId.current;
     setState({ request, loading: true });
     try {
@@ -283,8 +290,10 @@ export function useResourceNavigation<
   const invalidateRequest = useCallback(() => {
     // Ignore completions from an old record, scope, retry, or unmounted page.
     requestId.current++;
+    activeRequest.current = null;
   }, []);
   useEffect(() => {
+    activeRequest.current = request;
     fetchForRequest();
     return invalidateRequest;
   }, [request, invalidateRequest]);

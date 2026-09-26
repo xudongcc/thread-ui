@@ -768,3 +768,44 @@ it("does not let two mounted detail consumers fight over the shared return posit
   expect(firstQuery).toHaveBeenCalledOnce();
   expect(secondQuery).toHaveBeenCalledOnce();
 });
+
+it("ignores a retained refetch from an old record after navigation", async () => {
+  const firstQuery = vi.fn().mockResolvedValue(neighbors("first-previous"));
+  const secondQuery = vi.fn().mockResolvedValue(neighbors("second-previous"));
+  const detail = renderHook(
+    ({ query }) =>
+      useResourceNavigation({
+        key: resourceKey,
+        searchSchema: resourceSearchSchema,
+        query,
+      }),
+    { initialProps: { query: firstQuery } },
+  );
+  await waitFor(() => expect(detail.result.current.loading).toBe(false));
+  // A mutation started on the old record can finish after the route changes.
+  const oldRefetch = detail.result.current.refetch;
+  detail.rerender({ query: secondQuery });
+  await waitFor(() => expect(detail.result.current.loading).toBe(false));
+  await act(async () => {
+    await oldRefetch();
+  });
+  expect(detail.result.current.loading).toBe(false);
+  expect(detail.result.current.previousEdge?.cursor).toBe("second-previous");
+  expect(firstQuery).toHaveBeenCalledOnce();
+});
+
+it("does not launch a retained refetch after its consumer unmounts", async () => {
+  const query = vi.fn().mockResolvedValue(neighbors("previous"));
+  const detail = renderHook(() =>
+    useResourceNavigation({
+      key: resourceKey,
+      searchSchema: resourceSearchSchema,
+      query,
+    }),
+  );
+  await waitFor(() => expect(detail.result.current.loading).toBe(false));
+  const refetch = detail.result.current.refetch;
+  detail.unmount();
+  await expect(refetch()).resolves.toBeUndefined();
+  expect(query).toHaveBeenCalledOnce();
+});

@@ -89,6 +89,8 @@ Keep `query` stable with `useCallback`, including the current record and data-la
 dependencies. It runs on mount and when its identity, key, or search conditions
 change. Changes only to pagination do not trigger another neighbor query.
 Obsolete results from record switches, scope changes, or unmounts are ignored.
+A retained `refetch` from an obsolete record or unmounted consumer is a no-op;
+it resolves to `undefined` without affecting the current request.
 
 ## Return values
 
@@ -115,4 +117,6 @@ The key is `resource-navigation:${JSON.stringify(key)}`. Storage is scoped to th
 browser tab via `sessionStorage`; mounted hook instances sharing a key synchronize.
 Invalid JSON or schema-invalid saved values are removed. If browser storage is
 unavailable, state falls back to memory for the lifetime of the module.
+`clearSearch()` still attempts to remove any older persisted value in this mode;
+calling it again retries removal if storage was temporarily unavailable.
 Use a different key when different list contexts should not share navigation.
