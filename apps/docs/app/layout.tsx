@@ -2,9 +2,14 @@ import "./global.css";
 
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-
 import { Providers } from "./providers";
+import type { Metadata } from "next";
+
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://thread-ui.vercel.app"),
+};
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 

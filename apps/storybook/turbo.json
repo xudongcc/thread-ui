@@ -6,7 +6,7 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/components/**",
         "$TURBO_ROOT$/packages/shadcn-ui/**",
-        "$TURBO_ROOT$/packages/styles/**",
+        "$TURBO_ROOT$/themes/**",
         "$TURBO_ROOT$/locales/**"
       ],
       "outputs": ["storybook-static/**"]

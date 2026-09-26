@@ -8,6 +8,7 @@ import type { ChildNode } from "postcss";
 import type { RegistryItem } from "shadcn/schema";
 
 const devDependencyBlocklist = new Set([
+  "react-dom",
   "@types/react",
   "@types/react-dom",
   "typescript",
@@ -59,9 +60,13 @@ const toRegistryCss = (nodes: ChildNode[]): RegistryCss => {
   return css;
 };
 
-const getThemePackage = async (rootDir: string): Promise<RegistryItem> => {
+const getThemePackage = async (
+  packageName: string,
+  packageDir: string,
+  metadata: { title?: string; description?: string },
+): Promise<RegistryItem> => {
   const theme = postcss.parse(
-    await readFile(join(rootDir, "packages/styles/theme.css"), "utf-8"),
+    await readFile(join(packageDir, "theme.css"), "utf-8"),
   );
   const cssVars = { theme: {}, light: {}, dark: {} } as {
     theme: Record<string, string>;
@@ -98,25 +103,128 @@ const getThemePackage = async (rootDir: string): Promise<RegistryItem> => {
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry-item.json",
-    name: "theme",
+    name: packageName,
     type: "registry:theme",
-    title: "Thread UI Theme",
-    description:
-      "Thread UI light and dark colors, canvas, radius, and base styles.",
+    title: metadata.title ?? packageName,
+    description: metadata.description,
+    dependencies: [],
+    devDependencies: [],
+    registryDependencies: [],
     cssVars,
     css,
   };
 };
 
+// Keep each filesystem root explicit so Next.js traces only registry sources.
+const getPackageGroups = () =>
+  [
+    {
+      directory: (name: string) =>
+        join(process.cwd(), "../../components", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../components"), {
+          withFileTypes: true,
+        }),
+      type: "registry:ui",
+    },
+    {
+      directory: (name: string) => join(process.cwd(), "../../hooks", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../hooks"), { withFileTypes: true }),
+      type: "registry:hook",
+    },
+    {
+      directory: (name: string) => join(process.cwd(), "../../libs", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../libs"), { withFileTypes: true }),
+      type: "registry:lib",
+    },
+    {
+      directory: (name: string) => join(process.cwd(), "../../themes", name),
+      entries: () =>
+        fs.readdir(join(process.cwd(), "../../themes"), {
+          withFileTypes: true,
+        }),
+      type: "registry:theme",
+    },
+  ] as const;
+
+type PackageType = ReturnType<typeof getPackageGroups>[number]["type"];
+
+export interface RegistryCatalogItem {
+  name: string;
+  type: PackageType;
+  title: string;
+  description?: string;
+}
+
+/** The catalog and item resolver share one public package namespace. */
+const getPackageEntries = async () => {
+  const packages = new Map<string, { directory: string; type: PackageType }>();
+  for (const { directory, type, entries: readEntries } of getPackageGroups()) {
+    const entries = await readEntries();
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (packages.has(entry.name)) {
+        throw new Error(`Duplicate registry package: ${entry.name}`);
+      }
+      packages.set(entry.name, {
+        directory: directory(entry.name),
+        type,
+      });
+    }
+  }
+  return [...packages.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, "en"))
+    .map(([name, metadata]) => ({ name, ...metadata }));
+};
+
+export const getPackageNames = async () =>
+  (await getPackageEntries()).map(({ name }) => name);
+
+/** Search only reads manifests; full source and CSS are loaded on installation. */
+export const getPackageCatalog = async (): Promise<RegistryCatalogItem[]> =>
+  Promise.all(
+    (await getPackageEntries()).map(async ({ name, directory, type }) => {
+      const manifest = JSON.parse(
+        await readFile(join(directory, "package.json"), "utf-8"),
+      ) as { title?: string; description?: string };
+      return {
+        name,
+        type,
+        title: manifest.title ?? name,
+        description: manifest.description,
+      };
+    }),
+  );
+
 export const getPackage = async (packageName: string) => {
-  const rootDir = join(process.cwd(), "..", "..");
-  if (packageName === "theme") return getThemePackage(rootDir);
   const isLocalesPackage = packageName === "locales";
-  const packageDir = isLocalesPackage
-    ? join(rootDir, "locales")
-    : join(rootDir, "components", packageName);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(packageName)) {
+    throw new Error("Invalid registry package name");
+  }
+  let packageType: PackageType = "registry:ui";
+  let packageDir = join(process.cwd(), "../../locales");
+  if (!isLocalesPackage) {
+    let found = false;
+    for (const group of getPackageGroups()) {
+      const candidate = group.directory(packageName);
+      const manifest = await fs
+        .stat(join(candidate, "package.json"))
+        .catch(() => null);
+      if (!manifest?.isFile()) continue;
+      if (found) throw new Error(`Duplicate registry package: ${packageName}`);
+      found = true;
+      packageDir = candidate;
+      packageType = group.type;
+    }
+    if (!found) throw new Error(`Unknown registry package: ${packageName}`);
+  }
   const packagePath = join(packageDir, "package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf-8"));
+  if (packageType === "registry:theme") {
+    return getThemePackage(packageName, packageDir, packageJson);
+  }
   const packageDependencies = (packageJson.dependencies || {}) as Record<
     string,
     string
@@ -186,12 +294,16 @@ export const getPackage = async (packageName: string) => {
       : `~/public/${fileName}`;
 
     files.push({
-      type: isLocaleResource ? "registry:file" : "registry:ui",
+      type: isLocaleResource ? "registry:file" : packageType,
       path: fileName,
       content,
       target: isLocaleResource
         ? localeTarget
-        : `components/thread-ui/${packageName}/${fileName}`,
+        : packageType === "registry:hook"
+          ? `@hooks/${fileName}`
+          : packageType === "registry:lib"
+            ? `@lib/${fileName}`
+            : `components/thread-ui/${packageName}/${fileName}`,
     });
   }
 
@@ -280,7 +392,10 @@ export const getPackage = async (packageName: string) => {
   // Export local appearance scopes from the same theme used by the preview.
   // Keep the existing variable names and leave the consumer's global theme intact.
   const theme = postcss.parse(
-    await fs.readFile(join(rootDir, "packages/styles/theme.css"), "utf-8"),
+    await fs.readFile(
+      join(process.cwd(), "../../themes/default-theme/theme.css"),
+      "utf-8",
+    ),
   );
   theme.walkRules((rule) => {
     const selectors = rule.selectors.filter((selector) =>
@@ -296,7 +411,7 @@ export const getPackage = async (packageName: string) => {
 
   let type: RegistryItem["type"] = isLocalesPackage
     ? "registry:item"
-    : "registry:ui";
+    : packageType;
 
   if (!Object.keys(files).length && Object.keys(css).length) {
     type = "registry:style";

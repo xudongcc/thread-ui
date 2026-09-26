@@ -259,6 +259,37 @@ const pressEnter = (
 };
 
 describe("DataFilter", () => {
+  it("reconciles external values and resets without emitting a change", async () => {
+    const i18n = createI18n();
+    const onChange = vi.fn();
+    const filters: Array<DataFilterField> = [
+      { field: "name", label: "Name", type: "input", defaultOperator: "$eq" },
+    ];
+    const view = (filter: DataFilterValue["filter"]) => (
+      <AppProvider i18n={i18n}>
+        <StrictMode>
+          <DataFilter
+            filters={filters}
+            value={{ filter, query: "" }}
+            onChange={onChange}
+          />
+        </StrictMode>
+      </AppProvider>
+    );
+    const { rerender } = renderWithTestingLibrary(
+      view({ name: { $eq: "Alice" } }),
+    );
+    expect(screen.getByRole("button", { name: "Name is Alice" })).toBeTruthy();
+    rerender(view({ name: { $eq: "Bob" } }));
+    expect(screen.getByRole("button", { name: "Name is Bob" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Name is Alice" })).toBeNull();
+    rerender(view({}));
+    await userEvent.click(screen.getByRole("button", { name: "Name is" }));
+    const dialog = screen.getByRole("dialog");
+    expect((dialog.querySelector("input") as HTMLInputElement).value).toBe("");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it("uses AppProvider translations for built-in labels", async () => {
     const user = userEvent.setup();
 

@@ -3,7 +3,7 @@
 @import "shadcn/tailwind.css";
 @import "fumadocs-ui/css/shadcn.css";
 @import "fumadocs-ui/css/preset.css";
-@import "@repo/styles/theme.css";
+@import "@repo/default-theme/theme.css";
 
 @source "../../../packages/shadcn-ui/**/*.{js,jsx,ts,tsx}";
 @source "../../../components/*/**/*.{js,jsx,ts,tsx}";

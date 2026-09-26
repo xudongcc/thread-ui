@@ -7,7 +7,7 @@ interface Item {
 
 export const dataTableWithEmptyProp = (
   <DataTable<Item>
-    columns={[{ id: "name", header: "Name", accessorKey: "name" }]}
+    columns={[{ id: "name", header: "Name", field: "name" }]}
     data={[]}
     empty={<div>No custom items</div>}
   />
@@ -15,9 +15,43 @@ export const dataTableWithEmptyProp = (
 
 export const dataTableWithUnsupportedLocaleProp = (
   <DataTable<Item>
-    columns={[{ id: "name", header: "Name", accessorKey: "name" }]}
+    columns={[{ id: "name", header: "Name", field: "name" }]}
     data={[]}
     // @ts-expect-error locale is provided by AppProvider.
     locale="zh"
+  />
+);
+
+export const dataTableWithPublicContexts = (
+  <DataTable<Item, string>
+    data={[]}
+    columns={[
+      {
+        id: "name",
+        getValue: (item) => item.name,
+        header: (props, { column }) => <strong {...props}>{column.id}</strong>,
+        render: (props, { getValue, row }) => {
+          const value: string = getValue();
+          // @ts-expect-error Internal table methods are not public API.
+          row.getIsSelected();
+          return <span {...props}>{value}</span>;
+        },
+        // @ts-expect-error Engine-specific options are not public API.
+        enableSorting: true,
+      },
+    ]}
+  />
+);
+
+export const dataTableWithRemovedHeaderRender = (
+  <DataTable<Item>
+    data={[]}
+    columns={[
+      {
+        field: "name",
+        // @ts-expect-error Use header for both content and render functions.
+        headerRender: <strong />,
+      },
+    ]}
   />
 );

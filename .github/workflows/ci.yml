@@ -28,5 +28,13 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Resource utility tests
+        run: |
+          pnpm --filter @repo/use-resource-navigation test
+          pnpm --filter @repo/graphql-connection test
+          pnpm --filter @repo/use-resource-navigation check-types
+          pnpm --filter @repo/graphql-connection check-types
+          node --test apps/docs/lib/__tests__/*.test.mjs
+
       - name: Build
         run: pnpm build

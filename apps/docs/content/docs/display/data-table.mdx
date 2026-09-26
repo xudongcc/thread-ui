@@ -1,6 +1,6 @@
 ---
 title: DataTable
-description: A powerful data table component with sorting, selection, pagination, and row actions.
+description: A powerful data table component with selection, pagination, and row actions.
 ---
 
 <Preview path="data-table" />
@@ -36,12 +36,12 @@ const columns: Array<DataTableColumnProps<User>> = [
   {
     id: "name",
     header: "Name",
-    accessorKey: "name",
+    field: "name",
   },
   {
     id: "email",
     header: "Email",
-    accessorKey: "email",
+    field: "email",
   },
 ];
 
@@ -63,6 +63,15 @@ const data: Array<User> = [
 
 Enable row selection with `onRowSelectionChange` and display bulk actions when rows are selected.
 
+Selection belongs to the supplied `data`. Updating data preserves selected IDs
+that still exist and removes IDs that are no longer present; returning to an old
+page does not restore its selection. Use stable record IDs or `getRowId` when
+reordering, filtering, or paginating records.
+
+`onAllRowsSelectedChange` reports the explicit “Select all” mode. Unchecking a row,
+clearing the header checkbox, or changing data so the selection is no longer valid
+exits that mode and reports `false`. It does not load or retain records across pages.
+
 <Preview path="data-table-selection" />
 
 ### Row Actions
@@ -78,7 +87,7 @@ Add actions dropdown menu for each row using the `rowActions` prop.
 - **Column Pinning** - Pin columns to the left or right for better visibility
 - **Pagination** - Built-in pagination controls
 - **Row Click** - Handle row click events for navigation or detail views
-- **Flexible Columns** - Powered by TanStack Table with full column customization
+- **Flexible Columns** - Thread UI column definitions with custom headers, cells, and accessors
 
 ## API Reference
 
@@ -87,17 +96,17 @@ Add actions dropdown menu for each row using the `rowActions` prop.
 The root component props for the data table.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
+  path="../../components/data-table/types.ts"
   type={`Pick<DataTableProps<any>, 'columns' | 'data' | 'rowActions' | 'pagination' | 'onRowSelectionChange' | 'onAllRowsSelectedChange' | 'bulkActions' | 'empty' | 'getRowId' | 'onRowClick'>`}
 />
 
 ### DataTableColumnProps
 
-Column definition extending TanStack Table's ColumnDef.
+Thread UI owns this interface; it does not extend TanStack Table types.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
-  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'accessorKey' | 'cell' | 'pinned' | 'size'>`}
+  path="../../components/data-table/types.ts"
+  type={`Pick<DataTableColumnProps<any>, 'id' | 'header' | 'field' | 'getValue' | 'render' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
 />
 
 ### DataTableRowActionProps
@@ -105,8 +114,8 @@ Column definition extending TanStack Table's ColumnDef.
 Configuration for row action items in the dropdown menu.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
-  type={`Pick<DataTableRowActionProps<any>, 'label' | 'icon' | 'disabled' | 'onClick'>`}
+  path="../../components/data-table/types.ts"
+  type={`Pick<DataTableRowActionProps<any>, 'label' | 'icon' | 'disabled' | 'render' | 'onClick'>`}
 />
 
 ### DataTablePaginationProps
@@ -114,6 +123,88 @@ Configuration for row action items in the dropdown menu.
 Props for pagination controls.
 
 <AutoTypeTable
-  path="../../components/data-table/index.tsx"
+  path="../../components/data-table/types.ts"
   type={`Pick<DataTablePaginationProps, 'hasPreviousPage' | 'hasNextPage' | 'onPreviousPage' | 'onNextPage'>`}
 />
+
+### Custom cell and row contexts
+
+Following [Base UI composition](https://base-ui.com/react/handbook/composition),
+`render` accepts either a React element or `(props, state) => JSX`.
+`header` accepts any ReactNode (including text and JSX), or the same render-function
+signature. A header element supplies its own content: `header: <strong>Name</strong>`.
+For render functions, always forward `props` (including the ref) to your root
+element. The element form of cell/action `render` merges props automatically.
+Custom components used there must forward those props and their ref.
+
+Custom cell renders replace a content `span`. Header nodes render directly;
+header functions render a custom content element. The outer `td` / `th` stays
+owned by DataTable to preserve semantics and column pinning.
+The default cell content is the accessor value converted to text.
+
+`render` state contains `{ row, column, getValue }`; `header` callback state contains
+`{ column }`. These state objects are not forwarded to DOM attributes.
+`row`, including the row passed to `rowActions`, action callbacks, and `onRowClick`,
+contains only `{ id, index, original }`. `onRowSelectionChange` receives the original
+records. No TanStack instance or methods are exposed.
+
+```tsx
+const columns: DataTableColumnProps<User, string>[] = [
+  {
+    id: "contact",
+    getValue: (user) => `${user.name} <${user.email}>`,
+    header: "Contact",
+    render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
+  },
+];
+```
+
+`field` supports dotted object paths such as `customer.name`. If it is omitted,
+`id` is used as the field unless `getValue` is provided. Column `getValue(record, index)`
+computes the value and takes precedence over `field`; the render context’s
+`getValue()` returns that computed value. Supply an explicit `id` for computed
+columns. Column sizing and left/right pinning are supported; sorting, filtering,
+and pagination of the input records remain the application's responsibility.
+
+When migrating from the old inherited types, replace engine-specific calls such
+as `row.getValue("name")` with `row.original.name`, or use `getValue()` inside a
+cell. Custom headers no longer receive a table instance.
+
+The cell `render` element keeps the default value, while the header element supplies
+its own label:
+
+```tsx
+const columns: DataTableColumnProps<User>[] = [
+  {
+    field: "name",
+    header: <em>Name</em>,
+    render: <strong />,
+  },
+];
+```
+
+Row action `render` replaces the menu item and supports framework Link components.
+Its callback receives `(props, { row, disabled, highlighted })`. Forward `props` to
+preserve keyboard interaction, disabled state, menu semantics, and action handlers.
+
+```tsx
+<DataTable
+  columns={columns}
+  data={data}
+  rowActions={(row) => [
+    { label: "View profile", render: <Link href={`/users/${row.id}`} /> },
+  ]}
+/>
+```
+
+Replace `cell: (context) => ...` with `render: (props, context) => ...`, forwarding
+`props` to the returned element. Header callbacks use `(props, { column })`:
+
+```tsx
+header: (props, { column }) => <strong {...props}>{column.id}</strong>;
+```
+
+The separate `headerRender` option has been removed. Move it to `header`; when
+using a JSX element, include the label as its children.
+
+Rename legacy column options `accessorKey` to `field` and `accessorFn` to `getValue`.

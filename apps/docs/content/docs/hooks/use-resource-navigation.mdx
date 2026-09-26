@@ -1,0 +1,122 @@
+---
+title: useResourceNavigation
+description: Remember list search and navigate adjacent records without coupling to a router or GraphQL client.
+---
+
+## Installation
+
+```bash
+pnpm dlx shadcn@latest add @thread-ui/use-resource-navigation
+```
+
+Installs into your configured `hooks` alias. Requires React 19.2 and Zod 4;
+`lodash-es` supplies deep comparison. There is no router, authentication provider,
+or GraphQL client dependency.
+
+## List and create pages
+
+Use the same key and schema across the list, create, and detail pages. Include
+user and workspace IDs in the key yourself. The hook does not infer scope.
+
+```tsx
+import { useResourceNavigation } from "@/hooks/use-resource-navigation";
+import { resourceSearchSchema } from "@/schemas/resource-search-schema";
+
+// List: synchronize validated URL search when it changes.
+const navigation = useResourceNavigation({
+  key: [currentUser.id, workspaceId, "products"],
+  searchSchema: resourceSearchSchema,
+  search: Route.useSearch(),
+});
+
+// Create: omit search to read the last list position.
+const navigation = useResourceNavigation({
+  key: [currentUser.id, workspaceId, "products"],
+  searchSchema: resourceSearchSchema,
+});
+// Pass navigation.backSearch to your router's list link.
+```
+
+`searchSchema` must accept `{}` for defaults, accept its own normalized output,
+and produce JSON-serializable search with optional `first`, `last`, `before`,
+and `after` fields. Keep the schema outside the component. Any other fields
+(filters, ordering, `savedViewId`, etc.) remain part of the saved conditions.
+[graphql-connection](/docs/libs/graphql-connection) provides an optional schema factory.
+
+## Detail pages
+
+The required work inside `query` is application-specific: query the records
+immediately before and after the current record using the saved filters and
+ordering, then return their edges. Obtain cursors from your API or an API-specific
+helper; this hook treats them as opaque strings.
+
+```tsx
+import { useCallback } from "react";
+import { useResourceNavigation } from "@/hooks/use-resource-navigation";
+import type { ResourceNavigationQueryOptions } from "@/hooks/use-resource-navigation";
+import { resourceSearchSchema } from "@/schemas/resource-search-schema";
+
+const query = useCallback(
+  async ({
+    search,
+  }: ResourceNavigationQueryOptions<typeof resourceSearchSchema>) => {
+    // fetchAdjacentProducts is your data-layer function or lazy-query wrapper.
+    const result = await fetchAdjacentProducts({ id: productId, search });
+    return {
+      previousEdge: result.previousEdge,
+      nextEdge: result.nextEdge,
+    };
+  },
+  [productId],
+);
+
+const navigation = useResourceNavigation({
+  key: [currentUser.id, workspaceId, "products"],
+  searchSchema: resourceSearchSchema,
+  query,
+});
+
+// Previous/next destinations: navigation.previousEdge?.node.id / nextEdge?.node.id.
+// List destination: navigation.backSearch.
+// Disable navigation while loading or when the corresponding edge is absent.
+```
+
+Each edge has `{ cursor: string, node: { id: string | number } }`. Return an empty
+object when there are no neighbors. Throw on failure; `null` or `undefined` also
+counts as a failed query, not the first record.
+
+Keep `query` stable with `useCallback`, including the current record and data-layer
+dependencies. It runs on mount and when its identity, key, or search conditions
+change. Changes only to pagination do not trigger another neighbor query.
+Obsolete results from record switches, scope changes, or unmounts are ignored.
+A retained `refetch` from an obsolete record or unmounted consumer is a no-op;
+it resolves to `undefined` without affecting the current request.
+
+## Return values
+
+| Property                    | Behavior                                                                                                                                            |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `search`                    | Validated saved search, or schema defaults.                                                                                                         |
+| `setSearch(valueOrUpdater)` | Validate and store search; an updater receives the saved search or `undefined`. Passing `undefined` clears it. Does not navigate or update the URL. |
+| `clearSearch()`             | Clear this key's saved search.                                                                                                                      |
+| `backSearch`                | Search to use for the list destination.                                                                                                             |
+| `previousEdge`, `nextEdge`  | Adjacent edges; absent during loading or failure.                                                                                                   |
+| `loading`, `error`          | Neighbor request status.                                                                                                                            |
+| `refetch()`                 | Explicitly refresh neighbors; the returned promise rejects on failure.                                                                              |
+
+After a successful neighbor query, an existing saved list search is updated to
+forward pagination after `previousEdge.cursor`, so the current record becomes
+the first row when returning. No predecessor means the filtered first page.
+Each result updates storage once; later list pagination changes are not overwritten
+by an already completed detail query. Loading and failed requests retain the saved position. Direct detail entry with
+no saved list visit uses schema defaults and does not create a stored visit.
+
+## Storage
+
+The key is `resource-navigation:${JSON.stringify(key)}`. Storage is scoped to the
+browser tab via `sessionStorage`; mounted hook instances sharing a key synchronize.
+Invalid JSON or schema-invalid saved values are removed. If browser storage is
+unavailable, state falls back to memory for the lifetime of the module.
+`clearSearch()` still attempts to remove any older persisted value in this mode;
+calling it again retries removal if storage was temporarily unavailable.
+Use a different key when different list contexts should not share navigation.

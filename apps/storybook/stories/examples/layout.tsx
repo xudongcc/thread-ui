@@ -593,17 +593,21 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   {
     id: "id",
     header: "Order",
-    accessorKey: "id",
+    field: "id",
     size: 100,
-    cell: ({ row }) => <span className="font-medium">#{row.original.id}</span>,
+    render: (props, { row }) => (
+      <span {...props} className="font-medium">
+        #{row.original.id}
+      </span>
+    ),
   },
   {
     id: "customer",
     header: "Customer",
-    accessorKey: "customer",
+    field: "customer",
     size: 220,
-    cell: ({ row }) => (
-      <div className="space-y-1">
+    render: (props, { row }) => (
+      <div {...props} className="space-y-1">
         <div className="font-medium">{row.original.customer}</div>
         <div className="text-muted-foreground text-xs">
           {row.original.email}
@@ -614,10 +618,13 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   {
     id: "status",
     header: "Fulfillment",
-    accessorKey: "status",
+    field: "status",
     size: 150,
-    cell: ({ row }) => (
-      <Badge color={row.original.status === "Fulfilled" ? "green" : "amber"}>
+    render: (props, { row }) => (
+      <Badge
+        {...props}
+        color={row.original.status === "Fulfilled" ? "green" : "amber"}
+      >
         {row.original.status}
       </Badge>
     ),
@@ -625,10 +632,12 @@ const orderColumns: DataTableColumnProps<Order>[] = [
   {
     id: "total",
     header: "Total",
-    accessorKey: "total",
+    field: "total",
     size: 110,
-    cell: ({ row }) => (
-      <span className="tabular-nums">${row.original.total.toFixed(2)}</span>
+    render: (props, { row }) => (
+      <span {...props} className="tabular-nums">
+        ${row.original.total.toFixed(2)}
+      </span>
     ),
   },
 ];
@@ -666,11 +675,9 @@ function OrdersPage() {
   const pageSize = 8;
   const filtered = orders.filter((order) => {
     const status = filterValue.filter.status as
-      | DataFilterConditionValue
-      | undefined;
+      DataFilterConditionValue | undefined;
     const total = filterValue.filter.total as
-      | DataFilterConditionValue
-      | undefined;
+      DataFilterConditionValue | undefined;
     const statuses = status?.$in;
     return (
       `${order.id} ${order.customer} ${order.email}`

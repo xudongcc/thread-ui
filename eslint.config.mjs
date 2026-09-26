@@ -3,6 +3,7 @@ import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
 import { plugin as shadcn } from "@shadcn/lint";
+import nextVitals from "eslint-config-next/core-web-vitals";
 import importPlugin from "eslint-plugin-import";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -62,6 +63,7 @@ const eslintConfig = [
     ],
   },
   js.configs.recommended,
+  ...nextVitals.map((config) => ({ ...config, basePath: "apps/docs" })),
   ...tseslint.configs.recommended,
   ...compat.extends("turbo"),
   ...compat.extends("prettier"),
@@ -75,7 +77,6 @@ const eslintConfig = [
     },
     rules: {
       ...importRules,
-      "@next/next/no-html-link-for-pages": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },

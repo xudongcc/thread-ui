@@ -13,7 +13,7 @@ assert.match(packageSource, /packageName === "locales"/);
 assert.match(packageSource, /isLocalesPackage \|\| fileName\.startsWith/);
 assert.match(
   packageSource,
-  /type: isLocaleResource \? "registry:file" : "registry:ui"/,
+  /type: isLocaleResource \? "registry:file" : packageType/,
 );
 assert.ok(packageSource.includes("`~/public/locales/${fileName}`"));
 assert.ok(packageSource.includes("`~/public/${fileName}`"));

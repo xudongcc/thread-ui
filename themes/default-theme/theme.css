@@ -1,4 +1,4 @@
-/* Shared theme and source for @thread-ui/theme.
+/* Shared theme and source for @thread-ui/default-theme.
    Based on shadcn preset b1au7YYAi: Rhea, Neutral base, Blue theme and charts.
    Canvas and Topbar have independent surfaces; secondary tokens use Neutral. */
 @custom-variant dark (&:is(.dark *));

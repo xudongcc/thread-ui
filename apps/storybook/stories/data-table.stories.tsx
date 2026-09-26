@@ -62,8 +62,6 @@ export const RowSelection: Story = {
   }),
 };
 export const RowActions: Story = {
-  // TODO(a11y): empty-table-header: the actions column needs an accessible heading.
-  parameters: { a11y: { test: "todo" } },
   args: {
     rowActions,
     onRowClick: fn(),
@@ -96,4 +94,34 @@ export const Pagination: Story = {
     await expect(canvas.getByText("Charlie Brown")).toBeVisible();
     await expect(canvas.queryByText("Alice Johnson")).not.toBeInTheDocument();
   }),
+};
+
+export const CustomCells: Story = {
+  args: {
+    columns: [
+      {
+        id: "contact",
+        header: "Contact",
+        getValue: (person) => `${person.name} <${person.email}>`,
+        render: (props, { getValue }) => (
+          <strong {...props}>{String(getValue())}</strong>
+        ),
+      },
+    ],
+  },
+};
+
+export const RenderElement: Story = {
+  args: {
+    columns: [
+      {
+        field: "name",
+        header: <em>Name</em>,
+        render: <strong />,
+      },
+    ],
+    rowActions: (row) => [
+      { label: "View profile", render: <a href={`#person-${row.id}`} /> },
+    ],
+  },
 };

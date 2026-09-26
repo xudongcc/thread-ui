@@ -1,4 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { StrictMode, createRef, useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -16,7 +17,7 @@ interface User {
 
 const columns: Array<DataTableColumnProps<User>> = [
   {
-    accessorKey: "name",
+    field: "name",
     header: "Name",
     id: "name",
   },
@@ -49,7 +50,11 @@ const createI18n = () => {
 };
 
 const renderWithProvider = (ui: React.ReactNode) => {
-  return render(<AppProvider i18n={createI18n()}>{ui}</AppProvider>);
+  return render(
+    <StrictMode>
+      <AppProvider i18n={createI18n()}>{ui}</AppProvider>
+    </StrictMode>,
+  );
 };
 
 beforeAll(() => {
@@ -107,13 +112,165 @@ describe("DataTable", () => {
       }
 
       expect(onAction).toHaveBeenCalledTimes(1);
-      expect(onAction.mock.calls[0]![0].original).toEqual(data[0]);
+      expect(onAction.mock.calls[0]![0]).toEqual({
+        id: "1",
+        index: 0,
+        original: data[0],
+      });
       expect(onRowClick).not.toHaveBeenCalled();
 
       await user.click(trigger.closest("td")!);
       expect(onRowClick).not.toHaveBeenCalled();
     },
   );
+
+  it("adapts public cell contexts and pins columns without an explicit id", () => {
+    const renderCell = vi.fn((props, { getValue, row }) => (
+      <strong {...props}>{`${getValue()} / ${row.id}`}</strong>
+    ));
+    renderWithProvider(
+      <DataTable<User, string>
+        data={data}
+        columns={[
+          { field: "name", header: "Name", pinned: "left", size: 120 },
+          {
+            id: "contact",
+            getValue: (user) => user.name.toUpperCase(),
+            header: (props, { column }) => <em {...props}>{column.id}</em>,
+            render: renderCell,
+            pinned: "right",
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText("ADA / 1")).toBeTruthy();
+    expect(screen.getByText("contact")).toBeTruthy();
+    const context = renderCell.mock.calls[0]![1];
+    expect(Object.keys(context).sort()).toEqual(["column", "getValue", "row"]);
+    expect(context.row).toEqual({ id: "1", index: 0, original: data[0] });
+    expect(screen.getByText("Ada").closest("td")!.className).toContain(
+      "left-(--column-offset)",
+    );
+    expect(screen.getByText("ADA / 1").closest("td")!.className).toContain(
+      "right-(--column-offset)",
+    );
+  });
+
+  it("merges element renders and refs without leaking context to the DOM", () => {
+    const ref = createRef<HTMLElement>();
+    renderWithProvider(
+      <DataTable
+        data={[data[0]!]}
+        columns={[
+          {
+            field: "name",
+            header: <em>Name</em>,
+            render: <strong ref={ref} className="font-medium" />,
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Name").tagName).toBe("EM");
+    const cellContent = screen.getByText("Ada");
+    expect(cellContent.tagName).toBe("STRONG");
+    expect(ref.current).toBe(cellContent);
+    expect(cellContent.className).toBe("font-medium");
+    expect(cellContent.closest("td")).toBeTruthy();
+    expect(cellContent.hasAttribute("data-context")).toBe(false);
+    expect(cellContent.hasAttribute("data-row")).toBe(false);
+  });
+
+  it("preserves keyboard activation and disabled state for custom action links", async () => {
+    const user = userEvent.setup();
+    const onAction = vi.fn();
+    const onRowClick = vi.fn();
+    renderWithProvider(
+      <DataTable
+        columns={columns}
+        data={[data[0]!]}
+        rowActions={() => [
+          {
+            label: "View",
+            onClick: onAction,
+            render: (props, { row }) => (
+              <a {...props} href={`#person-${row.id}`} />
+            ),
+          },
+          {
+            label: "Disabled",
+            disabled: true,
+            onClick: onAction,
+            render: <a href="#disabled" />,
+          },
+        ]}
+        onRowClick={onRowClick}
+      />,
+    );
+    await user.click(screen.getByLabelText("打开行操作"));
+    const disabled = await screen.findByRole("menuitem", { name: "Disabled" });
+    expect(disabled.getAttribute("aria-disabled")).toBe("true");
+    await user.click(disabled);
+    expect(onAction).not.toHaveBeenCalled();
+    const view = screen.getByRole("menuitem", { name: "View" });
+    expect(view.tagName).toBe("A");
+    expect(view.getAttribute("href")).toBe("#person-1");
+    view.focus();
+    await user.keyboard("{Enter}");
+    expect(onAction).toHaveBeenCalledWith({
+      id: "1",
+      index: 0,
+      original: data[0],
+    });
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it("selects all supplied rows without implicitly paginating them", async () => {
+    const user = userEvent.setup();
+    const rows = Array.from({ length: 15 }, (_, index) => ({
+      id: String(index),
+      name: `Person ${index}`,
+    }));
+    const onSelection = vi.fn();
+    renderWithProvider(
+      <DataTable
+        columns={columns}
+        data={rows}
+        onRowSelectionChange={onSelection}
+      />,
+    );
+    expect(screen.getAllByLabelText("选择行")).toHaveLength(15);
+    await user.click(screen.getByLabelText("选择所有行"));
+    expect(onSelection).toHaveBeenLastCalledWith(rows);
+  });
+
+  it("refreshes selected records when data changes without changing its length", async () => {
+    const user = userEvent.setup();
+    const onSelection = vi.fn();
+    const i18n = createI18n();
+    const view = render(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={columns}
+          data={data}
+          onRowSelectionChange={onSelection}
+        />
+      </AppProvider>,
+    );
+    await user.click(screen.getAllByLabelText("选择行")[0]!);
+    const updated = [{ id: "1", name: "Updated Ada" }, data[1]!];
+    view.rerender(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={columns}
+          data={updated}
+          onRowSelectionChange={onSelection}
+        />
+      </AppProvider>,
+    );
+    await waitFor(() =>
+      expect(onSelection).toHaveBeenLastCalledWith([updated[0]]),
+    );
+  });
 
   it("uses AppProvider translations for the built-in empty state", () => {
     renderWithProvider(<DataTable columns={columns} data={[]} />);
@@ -160,5 +317,195 @@ describe("DataTable", () => {
     expect(await screen.findByText("选择本页全部 2 行")).toBeTruthy();
     expect(screen.getByText("选择全部")).toBeTruthy();
     expect(screen.getByText("取消全选")).toBeTruthy();
+  });
+
+  it.each(["row", "header"])(
+    "revokes all-record selection when %s selection is cleared",
+    async (source) => {
+      const user = userEvent.setup();
+      const onAll = vi.fn();
+      renderWithProvider(
+        <DataTable
+          columns={columns}
+          data={data}
+          onAllRowsSelectedChange={onAll}
+          onRowSelectionChange={vi.fn()}
+        />,
+      );
+      await user.click(screen.getAllByLabelText("选择行")[0]!);
+      await user.click(screen.getByRole("button", { name: /已选择 1 行/ }));
+      await user.click(await screen.findByText("选择全部"));
+      expect(onAll).toHaveBeenLastCalledWith(true);
+      await user.click(
+        screen.getAllByLabelText(
+          source === "row" ? "选择行" : "选择所有行",
+        )[0]!,
+      );
+      expect(onAll.mock.calls).toEqual([[true], [false]]);
+    },
+  );
+
+  it("clears obsolete selection when selected records leave the supplied data", async () => {
+    const user = userEvent.setup();
+    const onSelected = vi.fn();
+    const i18n = createI18n();
+    const view = render(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={columns}
+          data={data}
+          onRowSelectionChange={onSelected}
+        />
+      </AppProvider>,
+    );
+    await user.click(screen.getAllByLabelText("选择行")[0]!);
+    view.rerender(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={columns}
+          data={[{ id: "3", name: "Other" }]}
+          onRowSelectionChange={onSelected}
+        />
+      </AppProvider>,
+    );
+    expect(onSelected).toHaveBeenLastCalledWith([]);
+    expect(screen.queryByRole("button", { name: /已选择 1 行/ })).toBeNull();
+    view.rerender(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={columns}
+          data={data}
+          onRowSelectionChange={onSelected}
+        />
+      </AppProvider>,
+    );
+    expect(
+      screen
+        .getAllByLabelText("选择行")
+        .every((checkbox) => checkbox.getAttribute("aria-checked") === "false"),
+    ).toBe(true);
+    expect(screen.queryByRole("button", { name: /已选择 1 行/ })).toBeNull();
+  });
+
+  it("retains custom cell state when only rowActions callback identity changes", async () => {
+    function Editor() {
+      const [value, setValue] = useState("initial");
+      return (
+        <input
+          aria-label="editor"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+        />
+      );
+    }
+    const customColumns: DataTableColumnProps<User>[] = [
+      { field: "name", header: "Name", render: <Editor /> },
+    ];
+    const i18n = createI18n();
+    const stableData = [data[0]!];
+    const makeView = () => (
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={customColumns}
+          data={stableData}
+          rowActions={() => [{ label: "Edit" }]}
+        />
+      </AppProvider>
+    );
+    const view = render(makeView());
+    const user = userEvent.setup();
+    await user.clear(screen.getByLabelText("editor"));
+    await user.type(screen.getByLabelText("editor"), "edited");
+    const editor = screen.getByLabelText("editor");
+    view.rerender(makeView());
+    expect(screen.getByLabelText("editor")).toBe(editor);
+    expect(document.activeElement).toBe(editor);
+    expect((screen.getByLabelText("editor") as HTMLInputElement).value).toBe(
+      "edited",
+    );
+  });
+
+  it("updates computed values when the column computation changes", () => {
+    const i18n = createI18n();
+    const makeView = (suffix: string) => (
+      <AppProvider i18n={i18n}>
+        <DataTable
+          data={data}
+          columns={[
+            {
+              id: "name",
+              header: "Name",
+              getValue: (row) => row.name + suffix,
+            },
+          ]}
+        />
+      </AppProvider>
+    );
+    const view = render(makeView(" old"));
+    expect(screen.getByText("Ada old")).toBeTruthy();
+    view.rerender(makeView(" new"));
+    expect(screen.getByText("Ada new")).toBeTruthy();
+  });
+  it("refreshes nested field access and preserves null and falsy values", () => {
+    const i18n = createI18n();
+    const records = [
+      {
+        id: "1",
+        nested: {
+          first: "first",
+          second: "second",
+          zero: 0,
+          no: false,
+          empty: null,
+        },
+      },
+    ];
+    const makeView = (field: string) => (
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={[{ id: "value", field, header: "Value" }]}
+          data={records}
+        />
+      </AppProvider>
+    );
+    const view = render(makeView("nested.first"));
+    expect(screen.getByRole("cell").textContent).toBe("first");
+    for (const [field, text] of [
+      ["nested.second", "second"],
+      ["nested.zero", "0"],
+      ["nested.no", "false"],
+      ["nested.empty", ""],
+      ["missing.path", ""],
+    ]) {
+      view.rerender(makeView(field!));
+      expect(screen.getByRole("cell").textContent).toBe(text);
+    }
+  });
+
+  it("revokes all-record selection when replacing the current page", async () => {
+    const i18n = createI18n();
+    const onAll = vi.fn();
+    const onSelected = vi.fn();
+    const makeView = (records: User[]) => (
+      <StrictMode>
+        <AppProvider i18n={i18n}>
+          <DataTable
+            columns={columns}
+            data={records}
+            onAllRowsSelectedChange={onAll}
+            onRowSelectionChange={onSelected}
+          />
+        </AppProvider>
+      </StrictMode>
+    );
+    const view = render(makeView(data));
+    const user = userEvent.setup();
+    await user.click(screen.getAllByLabelText("选择行")[0]!);
+    await user.click(screen.getByRole("button", { name: /已选择 1 行/ }));
+    await user.click(await screen.findByText("选择全部"));
+    view.rerender(makeView([{ id: "3", name: "Other" }]));
+    expect(onAll.mock.calls).toEqual([[true], [false]]);
+    expect(onSelected).toHaveBeenLastCalledWith([]);
+    expect(screen.queryByRole("button", { name: /已全选/ })).toBeNull();
   });
 });

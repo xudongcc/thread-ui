@@ -1,13 +1,10 @@
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-
 import { track } from "@vercel/analytics/server";
 import { NextResponse } from "next/server";
-import { getPackage } from "../../../lib/package";
+import { getPackageCatalog } from "../../../lib/package";
+import { searchRegistry } from "../../../lib/registry-search";
 import type { NextRequest } from "next/server";
-import type { Registry } from "shadcn/schema";
 
-export const GET = async (_: NextRequest) => {
+export const GET = async (request: NextRequest) => {
   if (process.env.NODE_ENV === "production") {
     try {
       await track("Registry download", {
@@ -18,30 +15,7 @@ export const GET = async (_: NextRequest) => {
     }
   }
 
-  const response: Registry = {
-    name: "Thread UI",
-    homepage: "https://thread-ui.vercel.app/",
-    items: [await getPackage("theme")],
-  };
-
-  const componentsDir = join(process.cwd(), "..", "..", "components");
-  const componentDirectories = await readdir(componentsDir, {
-    withFileTypes: true,
-  });
-
-  const componentNames = componentDirectories
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
-
-  for (const name of componentNames) {
-    try {
-      const pkg = await getPackage(name);
-
-      response.items.push(pkg);
-    } catch {
-      // skip components that fail
-    }
-  }
-
-  return NextResponse.json(response);
+  return NextResponse.json(
+    searchRegistry(await getPackageCatalog(), request.nextUrl.searchParams),
+  );
 };
