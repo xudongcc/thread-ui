@@ -1,0 +1,10 @@
+{
+  "name": "@repo/default-theme",
+  "version": "0.0.0",
+  "private": true,
+  "title": "Thread UI Default Theme",
+  "description": "Thread UI light and dark colors, canvas, radius, and base styles.",
+  "exports": {
+    "./default.css": "./default.css"
+  }
+}

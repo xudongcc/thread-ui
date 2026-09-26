@@ -10,7 +10,7 @@ import { test } from "node:test";
 import tailwindcss from "@tailwindcss/postcss";
 import postcss from "postcss";
 import { registryItemSchema } from "shadcn/schema";
-import { getPackage } from "../package.ts";
+import { getPackage, getPackageNames } from "../package.ts";
 
 const docsDir = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
@@ -20,7 +20,7 @@ const install = (dir) =>
     const child = spawn(process.execPath, [
       require.resolve("shadcn"),
       "add",
-      "@thread-ui/theme",
+      "@thread-ui/default-theme",
       "--yes",
       "--cwd",
       dir,
@@ -40,8 +40,14 @@ test("theme installs via its namespace, preserves custom CSS, and compiles on re
   let server;
   process.chdir(docsDir);
   try {
-    const item = registryItemSchema.parse(await getPackage("theme"));
+    const item = registryItemSchema.parse(await getPackage("default-theme"));
+    assert.equal(item.name, "default-theme");
+    assert.equal(item.title, "Thread UI Default Theme");
     assert.equal(item.type, "registry:theme");
+    const names = await getPackageNames();
+    assert.equal(names.filter((name) => name === "default-theme").length, 1);
+    assert.ok(!names.includes("theme"));
+    await assert.rejects(() => getPackage("theme"), /Unknown registry package/);
     assert.equal(item.cssVars.light.secondary, "oklch(0.922 0 0)");
     assert.equal(item.cssVars.dark.secondary, "oklch(0.269 0 0)");
     assert.equal(item.cssVars.theme["color-canvas"], "var(--canvas)");
@@ -55,6 +61,11 @@ test("theme installs via its namespace, preserves custom CSS, and compiles on re
     server = createServer((req, res) => {
       requests.push(req.url);
       res.setHeader("Content-Type", "application/json");
+      if (req.url !== "/r/default-theme.json") {
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: "Unknown theme" }));
+        return;
+      }
       res.end(JSON.stringify(item));
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -112,7 +123,7 @@ test("theme installs via its namespace, preserves custom CSS, and compiles on re
     await install(dir);
     const installed = await readFile(join(dir, "styles.css"), "utf8");
     assert.equal(installed, first, "Reinstalling must not duplicate CSS");
-    assert(requests.includes("/r/theme.json"));
+    assert(requests.includes("/r/default-theme.json"));
     assert.match(installed, /Existing Font/);
     assert.match(installed, /--custom-color: red/);
     assert.doesNotMatch(installed, /hotpink|purple|@repo\/|font-geist/);

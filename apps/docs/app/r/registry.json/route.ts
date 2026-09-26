@@ -18,18 +18,18 @@ export const GET = async (_: NextRequest) => {
   const response: Registry = {
     name: "Thread UI",
     homepage: "https://thread-ui.vercel.app/",
-    items: [await getPackage("theme")],
+    items: [],
   };
 
-  const componentNames = await getPackageNames();
+  const packageNames = await getPackageNames();
 
-  for (const name of componentNames) {
+  for (const name of packageNames) {
     try {
       const pkg = await getPackage(name);
 
       response.items.push(pkg);
     } catch {
-      // skip components that fail
+      // Skip packages that fail to generate.
     }
   }
 

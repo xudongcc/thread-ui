@@ -40,7 +40,7 @@
     "@repo/radio-group": "workspace:*",
     "@repo/select": "workspace:*",
     "@repo/shadcn-ui": "workspace:*",
-    "@repo/styles": "workspace:*",
+    "@repo/default-theme": "workspace:*",
     "@repo/textarea": "workspace:*",
     "@repo/toast": "workspace:*",
     "@repo/topbar": "workspace:*",

@@ -4,12 +4,13 @@
     "build": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        ".env*",
         "$TURBO_ROOT$/components/**",
-        "$TURBO_ROOT$/packages/shadcn-ui/**",
+        "$TURBO_ROOT$/hooks/**",
+        "$TURBO_ROOT$/libs/**",
         "$TURBO_ROOT$/themes/**",
         "$TURBO_ROOT$/locales/**"
-      ],
-      "outputs": ["storybook-static/**"]
+      ]
     }
   }
 }

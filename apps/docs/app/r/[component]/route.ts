@@ -43,5 +43,5 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
 
 export const generateStaticParams = async () => {
   const names = await getPackageNames();
-  return [...names, "theme"].map((name) => ({ component: `${name}.json` }));
+  return names.map((name) => ({ component: `${name}.json` }));
 };

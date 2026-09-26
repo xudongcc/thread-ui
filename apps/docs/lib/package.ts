@@ -60,9 +60,19 @@ const toRegistryCss = (nodes: ChildNode[]): RegistryCss => {
   return css;
 };
 
-const getThemePackage = async (rootDir: string): Promise<RegistryItem> => {
+const getThemePackage = async (
+  packageName: string,
+  packageDir: string,
+  metadata: { title?: string; description?: string },
+): Promise<RegistryItem> => {
+  const cssFiles = (await getPackageFiles(packageDir)).filter((file) =>
+    file.endsWith(".css"),
+  );
+  if (!cssFiles.length) throw new Error(`Theme has no CSS: ${packageName}`);
   const theme = postcss.parse(
-    await readFile(join(rootDir, "packages/styles/theme.css"), "utf-8"),
+    (await Promise.all(cssFiles.map((file) => readFile(file, "utf-8")))).join(
+      "\n",
+    ),
   );
   const cssVars = { theme: {}, light: {}, dark: {} } as {
     theme: Record<string, string>;
@@ -99,11 +109,13 @@ const getThemePackage = async (rootDir: string): Promise<RegistryItem> => {
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry-item.json",
-    name: "theme",
+    name: packageName,
     type: "registry:theme",
-    title: "Thread UI Theme",
-    description:
-      "Thread UI light and dark colors, canvas, radius, and base styles.",
+    title: metadata.title ?? packageName,
+    description: metadata.description,
+    dependencies: [],
+    devDependencies: [],
+    registryDependencies: [],
     cssVars,
     css,
   };
@@ -113,6 +125,7 @@ const packageGroups = [
   { directory: "components", type: "registry:ui" },
   { directory: "hooks", type: "registry:hook" },
   { directory: "libs", type: "registry:lib" },
+  { directory: "themes", type: "registry:theme" },
 ] as const;
 
 /** The catalog and item resolver share one public package namespace. */
@@ -136,13 +149,11 @@ export const getPackageNames = async () => {
 
 export const getPackage = async (packageName: string) => {
   const rootDir = join(process.cwd(), "..", "..");
-  if (packageName === "theme") return getThemePackage(rootDir);
   const isLocalesPackage = packageName === "locales";
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(packageName)) {
     throw new Error("Invalid registry package name");
   }
-  let packageType: "registry:ui" | "registry:hook" | "registry:lib" =
-    "registry:ui";
+  let packageType: (typeof packageGroups)[number]["type"] = "registry:ui";
   let packageDir = join(rootDir, "locales");
   if (!isLocalesPackage) {
     let found = false;
@@ -161,6 +172,9 @@ export const getPackage = async (packageName: string) => {
   }
   const packagePath = join(packageDir, "package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf-8"));
+  if (packageType === "registry:theme") {
+    return getThemePackage(packageName, packageDir, packageJson);
+  }
   const packageDependencies = (packageJson.dependencies || {}) as Record<
     string,
     string
@@ -328,7 +342,10 @@ export const getPackage = async (packageName: string) => {
   // Export local appearance scopes from the same theme used by the preview.
   // Keep the existing variable names and leave the consumer's global theme intact.
   const theme = postcss.parse(
-    await fs.readFile(join(rootDir, "packages/styles/theme.css"), "utf-8"),
+    await fs.readFile(
+      join(rootDir, "themes/default-theme/default.css"),
+      "utf-8",
+    ),
   );
   theme.walkRules((rule) => {
     const selectors = rule.selectors.filter((selector) =>
