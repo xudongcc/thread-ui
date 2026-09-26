@@ -5,7 +5,6 @@ import {
   columnPinningFeature,
   columnSizingFeature,
   columnVisibilityFeature,
-  flexRender,
   rowSelectionFeature,
   tableFeatures,
   useTable,
@@ -54,6 +53,18 @@ import {
 import { cn } from "@/lib/utils";
 
 export type * from "./types";
+
+// Internal render callbacks are render functions, not component types. Keeping
+// this component stable preserves child state when column options are recreated.
+function TableContent<TContext>({
+  render,
+  context,
+}: {
+  render?: ReactNode | ((context: TContext) => ReactNode);
+  context: TContext;
+}) {
+  return typeof render === "function" ? render(context) : render;
+}
 
 // Keep table structure/pinning outside the replaceable content element.
 function RenderContent<TState extends Record<string, unknown>>({
@@ -139,6 +150,31 @@ function getCommonPinningClassNames<TData extends object>(
   );
 }
 
+function getCommonPinningStyles<TData extends object>(
+  column: Column<typeof features, TData>,
+): CSSProperties {
+  return {
+    "--column-width": `${column.getSize()}px`,
+    "--column-offset": `${column.getIsPinned() === "end" ? column.getAfter("end") : column.getStart("start")}px`,
+  } as CSSProperties;
+}
+
+function defaultGetRowId<TData extends object>(
+  row: TData,
+  index: number,
+): string {
+  return (
+    "id" in row && (typeof row.id === "string" || typeof row.id === "number")
+      ? row.id
+      : index
+  ).toString();
+}
+
+interface SelectionState {
+  rows: RowSelectionState;
+  all: boolean;
+}
+
 export function DataTable<TData extends object, TValue = unknown>({
   columns,
   data,
@@ -147,14 +183,7 @@ export function DataTable<TData extends object, TValue = unknown>({
   empty,
   onRowSelectionChange,
   onAllRowsSelectedChange,
-  getRowId = (row, index) =>
-    (typeof row === "object" &&
-    row !== null &&
-    "id" in row &&
-    (typeof row.id === "string" || typeof row.id === "number")
-      ? row.id
-      : index
-    ).toString(),
+  getRowId = defaultGetRowId,
   rowActions,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
@@ -162,7 +191,7 @@ export function DataTable<TData extends object, TValue = unknown>({
   const hasRowSelection = !!onRowSelectionChange;
   const hasRowActions = !!rowActions;
 
-  const processedColumns = useMemo(() => {
+  const tableColumns = useMemo(() => {
     return [
       ...(hasRowSelection
         ? [
@@ -205,18 +234,26 @@ export function DataTable<TData extends object, TValue = unknown>({
           ) : (
             column.header
           ),
-        cell: (context) => (
-          <RenderContent
-            render={column.render}
-            state={{
-              column,
-              row: publicRow(context.row),
-              getValue: () => context.getValue<TValue>(),
-            }}
-          >
-            {context.getValue() == null ? null : String(context.getValue())}
-          </RenderContent>
-        ),
+        cell: (context) => {
+          // Read the current accessor once. TanStack's per-row value cache is
+          // keyed by column ID and can outlive changes to field/getValue.
+          const value = context.column.accessorFn?.(
+            context.row.original,
+            context.row.index,
+          ) as TValue;
+          return (
+            <RenderContent
+              render={column.render}
+              state={{
+                column,
+                row: publicRow(context.row),
+                getValue: () => value,
+              }}
+            >
+              {value == null ? null : String(value)}
+            </RenderContent>
+          );
+        },
       })),
       ...(hasRowActions
         ? [
@@ -259,13 +296,67 @@ export function DataTable<TData extends object, TValue = unknown>({
     ];
   }, [columns, hasRowSelection, hasRowActions, rowActions, t]);
 
-  const tableColumns = processedColumns;
+  const currentRowIds = useMemo(
+    () => new Set(data.map(getRowId)),
+    [data, getRowId],
+  );
+  const [selection, setSelection] = useState<SelectionState>({
+    rows: {},
+    all: false,
+  });
+  const rowSelection = selection.rows;
+  const allRowsSelected = selection.all;
+  const selectedIds = Object.keys(rowSelection);
+  const hasMissingRows = selectedIds.some((id) => !currentRowIds.has(id));
+  const allCurrentRowsSelected =
+    currentRowIds.size > 0 &&
+    [...currentRowIds].every((id) => rowSelection[id]);
 
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [isAllPageRowsSelected, setIsAllPageRowsSelected] = useState(false);
+  // Reconcile before rendering the table so the toolbar and callbacks always
+  // describe the supplied data. Returning to an old page must not revive IDs.
+  if (
+    hasMissingRows ||
+    (allRowsSelected && !allCurrentRowsSelected) ||
+    (!hasRowSelection && selectedIds.length > 0)
+  ) {
+    setSelection({
+      rows: hasRowSelection
+        ? Object.fromEntries(
+            selectedIds
+              .filter((id) => currentRowIds.has(id))
+              .map((id) => [id, true]),
+          )
+        : {},
+      all: false,
+    });
+  }
+
+  const handleRowSelectionChange = useCallback(
+    (
+      update:
+        | RowSelectionState
+        | ((previous: RowSelectionState) => RowSelectionState),
+    ) => {
+      setSelection((current) => {
+        const next =
+          typeof update === "function" ? update(current.rows) : update;
+        const rows = Object.fromEntries(
+          Object.entries(next).filter(
+            ([id, selected]) => selected && currentRowIds.has(id),
+          ),
+        );
+        return {
+          rows,
+          all: current.all && Object.keys(current.rows).every((id) => rows[id]),
+        };
+      });
+    },
+    [currentRowIds],
+  );
+
   const onRowSelectionChangeRef = useRef(onRowSelectionChange);
   const onAllRowsSelectedChangeRef = useRef(onAllRowsSelectedChange);
-  const selectedRowCount = Object.keys(rowSelection).length;
+  const selectedRowCount = selectedIds.length;
 
   useEffect(() => {
     onRowSelectionChangeRef.current = onRowSelectionChange;
@@ -278,17 +369,17 @@ export function DataTable<TData extends object, TValue = unknown>({
     columns: tableColumns,
     state: {
       columnPinning: {
-        start: processedColumns
+        start: tableColumns
           .filter((column) => column.pinned === "left")
           .map((column) => column.id!),
-        end: processedColumns
+        end: tableColumns
           .filter((column) => column.pinned === "right")
           .map((column) => column.id!),
       },
       rowSelection,
     },
     getRowId,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: handleRowSelectionChange,
   });
 
   const lastSelectedRows = useRef<TData[] | undefined>(undefined);
@@ -305,9 +396,16 @@ export function DataTable<TData extends object, TValue = unknown>({
     }
   }, [rowSelection, data, table]);
 
-  const handleAllRowsSelectedChange = useCallback((selected: boolean) => {
-    setIsAllPageRowsSelected(selected);
-    onAllRowsSelectedChangeRef.current?.(selected);
+  const previousAllRowsSelected = useRef(false);
+  useEffect(() => {
+    if (previousAllRowsSelected.current !== allRowsSelected) {
+      previousAllRowsSelected.current = allRowsSelected;
+      onAllRowsSelectedChangeRef.current?.(allRowsSelected);
+    }
+  }, [allRowsSelected]);
+
+  const handleAllRowsSelectedChange = useCallback((all: boolean) => {
+    setSelection((current) => ({ ...current, all }));
   }, []);
 
   return (
@@ -327,7 +425,7 @@ export function DataTable<TData extends object, TValue = unknown>({
               <DropdownMenuTrigger
                 render={
                   <Button size="xs" variant="ghost">
-                    {isAllPageRowsSelected
+                    {allRowsSelected
                       ? t("dataTable.allSelected")
                       : t("dataTable.selectedRows", {
                           count: selectedRowCount,
@@ -348,7 +446,7 @@ export function DataTable<TData extends object, TValue = unknown>({
                     </DropdownMenuItem>
                   )}
 
-                  {!isAllPageRowsSelected && (
+                  {!allRowsSelected && (
                     <DropdownMenuItem
                       onClick={() => {
                         table.toggleAllPageRowsSelected(true);
@@ -385,27 +483,18 @@ export function DataTable<TData extends object, TValue = unknown>({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
+                    style={getCommonPinningStyles(header.column)}
                     className={cn(
                       "bg-card group-hover:bg-muted whitespace-normal",
                       getCommonPinningClassNames<TData>(header.column),
                     )}
-                    style={
-                      {
-                        "--column-width": `${header.column.getSize()}px`,
-                        "--column-offset": `${
-                          header.column.getIsPinned() === "end"
-                            ? header.column.getAfter("end")
-                            : header.column.getStart("start")
-                        }px`,
-                      } as CSSProperties
-                    }
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                    {header.isPlaceholder ? null : (
+                      <TableContent
+                        context={header.getContext()}
+                        render={header.column.columnDef.header}
+                      />
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -428,31 +517,22 @@ export function DataTable<TData extends object, TValue = unknown>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
+                      style={getCommonPinningStyles(cell.column)}
                       className={cn(
                         "bg-card group-hover:bg-muted whitespace-normal",
                         getCommonPinningClassNames<TData>(cell.column),
                         cell.column.id === "$actions" && "text-right",
                       )}
-                      style={
-                        {
-                          "--column-width": `${cell.column.getSize()}px`,
-                          "--column-offset": `${
-                            cell.column.getIsPinned() === "end"
-                              ? cell.column.getAfter("end")
-                              : cell.column.getStart("start")
-                          }px`,
-                        } as CSSProperties
-                      }
                       onClick={
                         cell.column.id === "$actions"
                           ? (event) => event.stopPropagation()
                           : undefined
                       }
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+                      <TableContent
+                        context={cell.getContext()}
+                        render={cell.column.columnDef.cell}
+                      />
                     </TableCell>
                   ))}
                 </TableRow>

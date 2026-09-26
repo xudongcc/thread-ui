@@ -63,6 +63,15 @@ const data: Array<User> = [
 
 Enable row selection with `onRowSelectionChange` and display bulk actions when rows are selected.
 
+Selection belongs to the supplied `data`. Updating data preserves selected IDs
+that still exist and removes IDs that are no longer present; returning to an old
+page does not restore its selection. Use stable record IDs or `getRowId` when
+reordering, filtering, or paginating records.
+
+`onAllRowsSelectedChange` reports the explicit “Select all” mode. Unchecking a row,
+clearing the header checkbox, or changing data so the selection is no longer valid
+exits that mode and reports `false`. It does not load or retain records across pages.
+
 <Preview path="data-table-selection" />
 
 ### Row Actions

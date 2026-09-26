@@ -79,7 +79,9 @@ export interface DataTableProps<TData extends object, TValue = unknown> {
     row: DataTableRow<TData>,
   ) => Array<DataTableRowActionProps<TData>>;
   pagination?: DataTablePaginationProps;
+  /** Selection is limited to supplied data; missing row IDs are removed on updates. */
   onRowSelectionChange?: (rows: Array<TData>) => void;
+  /** Reports explicit select-all mode; deselection or invalidated selection revokes it. */
   onAllRowsSelectedChange?: (selected: boolean) => void;
   bulkActions?: ReactNode;
   empty?: ReactNode;
