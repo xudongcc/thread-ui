@@ -231,7 +231,8 @@ export function DataTable<TData extends object, TValue = unknown>({
         const format = createColumnFormatter(column, locale, timeZone);
         return {
           id: column.id ?? column.field ?? `column_${index}`,
-          accessorKey: column.field ?? column.id,
+          accessorKey:
+            column.field === null ? undefined : (column.field ?? column.id),
           accessorFn: column.getValue,
           size: column.size,
           minSize: column.minSize,

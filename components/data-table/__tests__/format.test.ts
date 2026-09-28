@@ -49,6 +49,13 @@ describe("column formatting", () => {
     ).toBe("01/01/2026");
   });
 
+  it("keeps unconvertible values empty while preserving custom text conversions", () => {
+    const value = { label: "Ada", toString: "data property" };
+    expect(format({}, value)).toBeNull();
+    expect(format({ type: "number" }, value)).toBeNull();
+    expect(format({}, { toString: () => "Custom label" })).toBe("Custom label");
+  });
+
   it("keeps existing text columns and empty values unchanged", () => {
     expect(format({}, 0)).toBe("0");
     expect(format({}, false)).toBe("false");

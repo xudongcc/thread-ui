@@ -17,18 +17,9 @@ interface User {
 
 const userColumnHelper = createDataTableColumnHelper<User>();
 const columns = userColumnHelper.columns([
-  userColumnHelper.field("name", {
-    id: "name",
-    header: "Name",
-  }),
-  userColumnHelper.field("email", {
-    id: "email",
-    header: "Email",
-  }),
-  userColumnHelper.field("role", {
-    id: "role",
-    header: "Role",
-  }),
+  userColumnHelper.column("name", { header: "Name" }),
+  userColumnHelper.column("email", { header: "Email" }),
+  userColumnHelper.column("role", { header: "Role" }),
 ]);
 
 const data: Array<User> = [

@@ -64,7 +64,7 @@ const columnHelper = createDataTableColumnHelper<{
   status: string;
 }>();
 const columns = columnHelper.columns([
-  columnHelper.field("status", {
+  columnHelper.column("status", {
     header: "Status",
     render: (props, { getValue }) => <Badge {...props}>{getValue()}</Badge>,
   }),

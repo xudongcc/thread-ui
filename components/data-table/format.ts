@@ -3,8 +3,16 @@ import type {
   DataTableDurationColumnProps,
 } from "./types";
 
-const textValue = (value: unknown): string | null =>
-  value == null ? null : String(value);
+function textValue(value: unknown): string | null {
+  if (value == null) return null;
+  try {
+    return String(value);
+  } catch {
+    // Data objects may have no primitive conversion (e.g. null prototypes).
+    // An optional text fallback must not prevent a custom renderer from running.
+    return null;
+  }
+}
 
 export function getColumnAlign<TData extends object, TValue>(
   column: DataTableColumnProps<TData, TValue>,

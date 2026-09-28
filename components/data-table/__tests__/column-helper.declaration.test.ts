@@ -29,10 +29,12 @@ it("emits reusable helpers and columns that preserve inference for consumers", (
       import { createDataTableColumnHelper } from ${publicEntry};
       export interface User { name: string }
       export const userColumnHelper = createDataTableColumnHelper<User>();
-      export const { field, getValue, columns } = userColumnHelper;
-      export const nameColumn = field("name", { header: "Name" });
+      export const { column, columns } = userColumnHelper;
+      export const nameColumn = column("name", { header: "Name" });
       export const resizedNameColumn = { ...nameColumn, size: 180 };
-      export const lengthColumn = getValue(row => row.name.length, { id: "length" });
+      export const lengthColumn = column("length", { getValue: row => row.name.length });
+      export const aliasColumn = column("alias", { field: "name" });
+      export const displayColumn = column("actions", { field: null });
     `,
     );
     const options: ts.CompilerOptions = {
@@ -62,19 +64,26 @@ it("emits reusable helpers and columns that preserve inference for consumers", (
     writeFileSync(
       consumer,
       `
-      import { userColumnHelper, field, columns, resizedNameColumn, lengthColumn }
+      import { userColumnHelper, column, columns, resizedNameColumn, lengthColumn, aliasColumn, displayColumn }
         from ${JSON.stringify(declaration!.replace(/\.d\.ts$/, ""))};
       export const result = columns([
         resizedNameColumn,
         lengthColumn,
-        field("name", { render: (props, { getValue }) => {
+        aliasColumn,
+        displayColumn,
+        {
+          ...lengthColumn,
+          // @ts-expect-error Reused declarations must retain their checked numeric value.
+          render: (_props: unknown, { getValue }: { getValue: () => string }) => <span>{getValue().toUpperCase()}</span>,
+        },
+        column("name", { render: (props, { getValue }) => {
           const name: string = getValue();
           // @ts-expect-error The declaration must preserve string inference.
           const invalid: number = getValue();
           return <span {...props}>{name.toUpperCase()}</span>;
         }}),
-        userColumnHelper.getValue(row => row.name.length, {
-          id: "computed",
+        userColumnHelper.column("computed", {
+          getValue: row => row.name.length,
           render: (props, { getValue }) => {
             const length: number = getValue();
             // @ts-expect-error Computed inference must survive the module boundary.

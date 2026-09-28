@@ -9,27 +9,55 @@ import type {
 
 // Distribute over the union to preserve each formatting type's own options.
 type ColumnOptions<TColumn> = TColumn extends unknown
-  ? Omit<TColumn, "field" | "getValue"> & {
-      field?: never;
-      getValue?: never;
-    }
+  ? Omit<TColumn, "id" | "field" | "getValue"> & { id?: never }
   : never;
 
-// Only helper-built columns may erase their individual value types at the
-// table boundary. Plain objects must satisfy the public unknown-value contract.
-// A named string key keeps spread/destructured exports declaration-emittable.
-// This marker exists only in types; column objects have no extra runtime keys.
+type FieldOptions<
+  TData extends object,
+  TField extends DataTableField<TData>,
+> = ColumnOptions<
+  DataTableColumnProps<TData, NoInfer<DataTableFieldValue<TData, TField>>>
+>;
+
+type ColumnPresentation<TColumn> = TColumn extends unknown
+  ? Omit<TColumn, "field" | "getValue">
+  : never;
+
+type ColumnSource<
+  TData extends object,
+  TValue,
+  TField,
+> = TField extends undefined
+  ? {
+      readonly field?: never;
+      readonly getValue: (row: TData, index: number) => TValue;
+    }
+  : { readonly field: TField; readonly getValue?: never };
+
+// Type-only metadata preserves the checked source and value across object spreads.
+// Column objects remain plain configuration without extra runtime properties.
 export type DataTableInferredColumn<
   TData extends object,
   TValue,
-> = DataTableColumnProps<TData, TValue> & { readonly "~dataTableColumn": true };
+  TField extends DataTableField<TData> | null | undefined =
+    DataTableField<TData> | null | undefined,
+> = ColumnPresentation<DataTableColumnProps<TData, TValue>> &
+  ColumnSource<TData, TValue, TField> & {
+    readonly "~dataTableColumn": {
+      readonly value: TValue;
+      readonly field: TField;
+    };
+  };
 
 type InferredColumnInput<
   TData extends object,
   TColumn = DataTableColumnProps<TData>,
 > = TColumn extends unknown
   ? Omit<TColumn, "header" | "render"> & {
-      readonly "~dataTableColumn": true;
+      readonly "~dataTableColumn": {
+        readonly value: unknown;
+        readonly field: DataTableField<TData> | null | undefined;
+      };
       header?:
         | ReactNode
         | ((props: DataTableRenderProps, state: never) => ReactElement);
@@ -37,25 +65,54 @@ type InferredColumnInput<
     }
   : never;
 
+type ColumnInput<TData extends object> =
+  | InferredColumnInput<TData>
+  | (DataTableColumnProps<TData> & { "~dataTableColumn"?: never });
+
+type CheckedColumn<TData extends object, TColumn> = TColumn extends {
+  readonly "~dataTableColumn": {
+    readonly value: infer TValue;
+    readonly field: infer TField extends
+      DataTableField<TData> | null | undefined;
+  };
+}
+  ? DataTableInferredColumn<TData, TValue, TField>
+  : unknown;
+
 /** A reusable helper whose inferred return types can be emitted in declarations. */
 export interface DataTableColumnHelper<TData extends object> {
-  field<TField extends DataTableField<TData>>(
-    field: TField,
-    options: ColumnOptions<
-      DataTableColumnProps<TData, NoInfer<DataTableFieldValue<TData, TField>>>
-    >,
-  ): DataTableInferredColumn<TData, DataTableFieldValue<TData, TField>>;
-  getValue<TValue>(
-    getValue: (row: TData, index: number) => TValue,
+  /** Compute a value independently of the column ID. */
+  column<TValue>(
+    id: string,
     options: ColumnOptions<DataTableColumnProps<TData, NoInfer<TValue>>> & {
-      id: string;
+      getValue: (row: TData, index: number) => TValue;
+      field?: never;
     },
-  ): DataTableInferredColumn<TData, TValue>;
-  columns(
-    columns: (
-      | InferredColumnInput<TData>
-      | (DataTableColumnProps<TData> & { "~dataTableColumn"?: never })
-    )[],
+  ): DataTableInferredColumn<TData, TValue, undefined>;
+  /** Read an explicit field path using a different column ID. */
+  column<TField extends DataTableField<TData>>(
+    id: string,
+    options: FieldOptions<TData, TField> & { field: TField; getValue?: never },
+  ): DataTableInferredColumn<TData, DataTableFieldValue<TData, TField>, TField>;
+  /** Display-only columns deliberately have no accessor. */
+  column(
+    id: string,
+    options: ColumnOptions<DataTableColumnProps<TData, undefined>> & {
+      field: null;
+      getValue?: never;
+    },
+  ): DataTableInferredColumn<TData, undefined, null>;
+  /** Without an explicit source, the ID is also a checked field path. */
+  column<TField extends DataTableField<TData>>(
+    id: TField,
+    options: FieldOptions<TData, TField> & { field?: never; getValue?: never },
+  ): DataTableInferredColumn<TData, DataTableFieldValue<TData, TField>, TField>;
+  // Infer each entry first, then recheck its original source/value contract.
+  // Wrap the result in NoInfer so heterogeneous array unions still distribute.
+  columns<const TColumns extends ColumnInput<TData>[]>(
+    columns: [...TColumns] & {
+      [K in keyof TColumns]: NoInfer<CheckedColumn<TData, TColumns[K]>>;
+    },
   ): DataTableColumnProps<TData>[];
 }
 
@@ -64,18 +121,21 @@ export function createDataTableColumnHelper<
   TData extends object,
 >(): DataTableColumnHelper<TData> {
   return {
-    field(field, options) {
-      return { ...options, field } as unknown as DataTableInferredColumn<
-        TData,
-        DataTableFieldValue<TData, typeof field>
-      >;
-    },
-    getValue(getValue, options) {
-      return { ...options, getValue } as unknown as DataTableInferredColumn<
-        TData,
-        ReturnType<typeof getValue>
-      >;
-    },
+    column: (<TValue>(
+      id: string,
+      options: ColumnOptions<DataTableColumnProps<TData, TValue>> & {
+        field?: DataTableField<TData> | null;
+        getValue?: (row: TData, index: number) => TValue;
+      },
+    ) => ({
+      ...options,
+      id,
+      field: options.getValue
+        ? undefined
+        : options.field === undefined
+          ? id
+          : options.field,
+    })) as DataTableColumnHelper<TData>["column"],
     columns(columns) {
       // The helper has checked each inferred callback against its own value.
       return columns as unknown as DataTableColumnProps<TData>[];

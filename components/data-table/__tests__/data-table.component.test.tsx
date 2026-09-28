@@ -87,25 +87,25 @@ describe("DataTable", () => {
     }
     const recordDataColumnHelper = createDataTableColumnHelper<RecordData>();
     const inferredColumns = recordDataColumnHelper.columns([
-      recordDataColumnHelper.field("price", {
+      recordDataColumnHelper.column("price", {
         header: "Price",
         type: "currency",
         currency: "USD",
       }),
-      recordDataColumnHelper.field("customer.name", {
+      recordDataColumnHelper.column("customer.name", {
         header: "Customer",
         render: (props, { getValue }) => (
           <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
         ),
       }),
-      recordDataColumnHelper.field("tags.0", {
+      recordDataColumnHelper.column("tags.0", {
         header: "Tag",
         render: (props, { getValue }) => (
           <span {...props}>{getValue() ?? "No tag"}</span>
         ),
       }),
-      recordDataColumnHelper.getValue((row, index) => row.price * 2 + index, {
-        id: "computed",
+      recordDataColumnHelper.column("computed", {
+        getValue: (row, index) => row.price * 2 + index,
         header: "Computed",
         render: (props, { getValue }) => (
           <span {...props}>{getValue().toFixed(1)}</span>
@@ -130,6 +130,83 @@ describe("DataTable", () => {
     ).toBeTruthy();
   });
 
+  it("keeps column IDs separate from explicit fields and computed or display values", () => {
+    interface RecordData {
+      id: string;
+      customer: { name: string };
+      amount: number;
+      actions: string;
+    }
+    const recordDataColumnHelper = createDataTableColumnHelper<RecordData>();
+    const columns = recordDataColumnHelper.columns([
+      recordDataColumnHelper.column("customer.name", { header: "Nested" }),
+      recordDataColumnHelper.column("customerAlias", {
+        field: "customer.name",
+        header: (_props, { column }) => <span>{column.id}</span>,
+        render: (props, { getValue }) => (
+          <strong {...props}>{getValue().toUpperCase()}</strong>
+        ),
+      }),
+      recordDataColumnHelper.column("amount", {
+        getValue: (row, index) => row.amount * 2 + index,
+        header: "Computed",
+      }),
+      recordDataColumnHelper.column("actions", {
+        field: null,
+        header: "Actions",
+        render: (props, { getValue, row }) => (
+          <span {...props}>
+            {getValue() === undefined
+              ? `View ${row.original.id}`
+              : "Leaked field"}
+          </span>
+        ),
+      }),
+    ]);
+    renderWithProvider(
+      <DataTable
+        columns={columns}
+        data={[
+          {
+            id: "1",
+            customer: { name: "Ada" },
+            amount: 10,
+            actions: "Do not read",
+          },
+          {
+            id: "2",
+            customer: { name: "Grace" },
+            amount: 20,
+            actions: "Do not read",
+          },
+        ]}
+      />,
+    );
+    expect(
+      screen.getByRole("columnheader", { name: "customerAlias" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Ada ADA 20 View 1" })).toBeTruthy();
+    expect(
+      screen.getByRole("row", { name: "Grace GRACE 41 View 2" }),
+    ).toBeTruthy();
+  });
+
+  it("clears the accessor when an existing column becomes display-only", () => {
+    const i18n = createI18n();
+    const userColumnHelper = createDataTableColumnHelper<User>();
+    const makeView = <TValue,>(column: DataTableColumnProps<User, TValue>) => (
+      <AppProvider i18n={i18n}>
+        <DataTable columns={[column]} data={data.slice(0, 1)} />
+      </AppProvider>
+    );
+    const view = render(makeView(userColumnHelper.column("name", {})));
+    expect(screen.getByRole("cell").textContent).toBe("Ada");
+    view.rerender(makeView(userColumnHelper.column("name", { field: null })));
+    expect(screen.getByRole("cell").textContent).toBe("");
+    view.rerender(makeView(userColumnHelper.column("name", { field: "id" })));
+    expect(screen.getByRole("cell").textContent).toBe("1");
+  });
+
   it("renders missing dictionary values safely alongside declared properties", () => {
     interface RecordData {
       id: string;
@@ -138,19 +215,19 @@ describe("DataTable", () => {
     }
     const recordDataColumnHelper = createDataTableColumnHelper<RecordData>();
     const columns = recordDataColumnHelper.columns([
-      recordDataColumnHelper.field("amounts.total", {
+      recordDataColumnHelper.column("amounts.total", {
         header: "Total",
         render: (props, { getValue }) => (
           <span {...props}>{getValue().toFixed(2)}</span>
         ),
       }),
-      recordDataColumnHelper.field("amounts.discount", {
+      recordDataColumnHelper.column("amounts.discount", {
         header: "Discount",
         render: (props, { getValue }) => (
           <span {...props}>{getValue()?.toFixed(2) ?? "No discount"}</span>
         ),
       }),
-      recordDataColumnHelper.field("customers.primary.name", {
+      recordDataColumnHelper.column("customers.primary.name", {
         header: "Customer",
         render: (props, { getValue }) => (
           <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
@@ -297,6 +374,35 @@ describe("DataTable", () => {
         .classList.contains("text-center"),
     ).toBe(true);
   });
+
+  it.each([
+    ["null prototype", Object.setPrototypeOf({ label: "Ada" }, null)],
+    ["shadowed toString", { label: "Ada", toString: "data property" }],
+  ])(
+    "renders computed objects with %s without requiring text conversion",
+    (_name, details: { label: string }) => {
+      interface RecordData {
+        id: string;
+        details: { label: string };
+      }
+      const recordDataColumnHelper = createDataTableColumnHelper<RecordData>();
+      renderWithProvider(
+        <DataTable
+          data={[{ id: "1", details }]}
+          columns={recordDataColumnHelper.columns([
+            recordDataColumnHelper.column("details", {
+              getValue: (row) => row.details,
+              header: "Details",
+              render: (props, { getValue }) => (
+                <span {...props}>{getValue().label}</span>
+              ),
+            }),
+          ])}
+        />,
+      );
+      expect(screen.getByRole("cell", { name: "Ada" })).toBeTruthy();
+    },
+  );
 
   it("preserves raw render values and supplies formatted children to render elements", () => {
     renderWithProvider(
