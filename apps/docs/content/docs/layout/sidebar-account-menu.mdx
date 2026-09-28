@@ -20,6 +20,7 @@ to the right on desktop and above the trigger on mobile.
 
 ```tsx
 import { useState } from "react";
+import Link from "next/link";
 import {
   SidebarAccountMenu,
   SidebarAccountMenuItem,
@@ -47,8 +48,8 @@ function AccountMenu() {
         onClick: openProfile,
       }}
     >
-      <SidebarAccountMenuItem onClick={openCreateWorkspace}>
-        Create workspace
+      <SidebarAccountMenuItem render={<Link href="/workspaces" />}>
+        Workspaces
       </SidebarAccountMenuItem>
       <SidebarAccountMenuItem onClick={openHelp}>
         Help center
@@ -62,7 +63,9 @@ function AccountMenu() {
 }
 ```
 
-Define the business handlers in your application. There are no root-level
+The Workspaces entry opens the complete workspace management page; it complements
+the Recent workspaces list above. The examples use a Building2 icon. Define the
+business handlers and workspace route in your application. There are no root-level
 `onHelp`, `onSignOut`, `onProfile`, or `onCreateWorkspace` callbacks: bind `onClick`
 on an extra menu item, or on `user` for the profile row.
 

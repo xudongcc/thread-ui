@@ -1,10 +1,10 @@
 import {
+  Building2Icon,
   CircleHelpIcon,
   CreditCardIcon,
   LanguagesIcon,
   LockKeyholeIcon,
   LogOutIcon,
-  PlusIcon,
   SunMoonIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -169,15 +169,14 @@ function MenuExampleContent({
         }}
       >
         {showWorkspaces && (
-          <>
-            <SidebarAccountMenuItem
-              className="min-h-10"
-              onClick={() => setMessage("Create workspace requested")}
-            >
-              <PlusIcon aria-hidden="true" />
-              {t("sidebarAccountMenu.create")}
-            </SidebarAccountMenuItem>
-          </>
+          <SidebarAccountMenuItem
+            className="min-h-10"
+            render={<DemoLink to="#workspaces" />}
+            onClick={() => setMessage("Workspaces requested")}
+          >
+            <Building2Icon aria-hidden="true" />
+            {t("sidebarAccountMenu.workspaces")}
+          </SidebarAccountMenuItem>
         )}
         {linkItems && (
           <>

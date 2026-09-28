@@ -1,5 +1,6 @@
 import {
   BellIcon,
+  Building2Icon,
   ChartNoAxesCombinedIcon,
   CircleHelpIcon,
   CreditCardIcon,
@@ -9,7 +10,6 @@ import {
   LayoutGridIcon,
   LogOutIcon,
   PackageIcon,
-  PlusIcon,
   SettingsIcon,
   ShoppingBagIcon,
   SparklesIcon,
@@ -299,15 +299,23 @@ function ApplicationContent({
           >
             <SidebarAccountMenuItem
               className="min-h-10"
-              onClick={() =>
-                toast.add({
-                  title: "Create a workspace",
-                  description: "Start a new space for your team.",
-                })
-              }
+              render={<a href="#workspaces" />}
+              onClick={(event) => {
+                if (
+                  event.button !== 0 ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                )
+                  return;
+                event.preventDefault();
+                setPage("workspaces");
+                if (isMobile) setOpenMobile(false);
+              }}
             >
-              <PlusIcon aria-hidden="true" />
-              {t("sidebarAccountMenu.create")}
+              <Building2Icon aria-hidden="true" />
+              {t("sidebarAccountMenu.workspaces")}
             </SidebarAccountMenuItem>
             <SidebarAccountMenuItem
               onClick={() =>
@@ -412,7 +420,36 @@ function ApplicationContent({
         </SidebarFooter>
       </LayoutSidebar>
       <LayoutContent>
-        {page === "profile" ? (
+        {page === "workspaces" ? (
+          <Page title={t("sidebarAccountMenu.workspaces")} variant="compact">
+            <PageLayout>
+              <PageLayoutSection>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("sidebarAccountMenu.workspaces")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col gap-2">
+                      {workspaces.map((item) => (
+                        <Button
+                          key={item.id}
+                          variant="ghost"
+                          onClick={() => {
+                            setWorkspace(item.id);
+                            setPage(initialPage);
+                          }}
+                        >
+                          <Building2Icon aria-hidden="true" />
+                          {item.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </PageLayoutSection>
+            </PageLayout>
+          </Page>
+        ) : page === "profile" ? (
           <Page className="max-w-3xl" variant="full">
             <PageLayout>
               <PageLayoutSection className="flex flex-col">

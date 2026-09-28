@@ -47,7 +47,7 @@ export const Default: Story = {
     docs: {
       description: {
         story:
-          "Complete workspace and account menu: switch or create a workspace, open the personal center, change language/theme, get help, and sign out. The current workspace is supplied separately from recent tenants and appears first among at most three entries. Use Controls for user, loading and disabled. Each business action is explicitly composed as a menu item with its own handler.",
+          "Complete workspace and account menu: switch workspaces or open workspace management, open the personal center, change language/theme, get help, and sign out. The current workspace is supplied separately from recent tenants and appears first among at most three entries. Use Controls for user, loading and disabled. Each business action is explicitly composed as a menu item with its own handler.",
       },
     },
   },
@@ -149,7 +149,7 @@ export const Default: Story = {
         }),
       ).toHaveFocus();
     });
-    await step("Create workspace", async () => {
+    await step("Workspaces", async () => {
       await userEvent.click(
         canvas.getByRole("button", {
           name: "Workspace and account: Night Market",
@@ -157,11 +157,14 @@ export const Default: Story = {
       );
       await userEvent.click(
         await within(canvasElement.ownerDocument.body).findByRole("menuitem", {
-          name: "Create workspace",
+          name: "Workspaces",
         }),
       );
       await expect(canvas.getByRole("status")).toHaveTextContent(
-        "Create workspace requested",
+        "Workspaces requested",
+      );
+      await expect(canvasElement.ownerDocument.defaultView!.location.hash).toBe(
+        "#workspaces",
       );
       await waitFor(() =>
         expect(
@@ -234,11 +237,9 @@ export const Empty: Story = {
     await waitFor(() => expect(body.getByRole("menu")).toBeVisible());
     await expect(body.queryByRole("menuitemradio")).not.toBeInTheDocument();
     await expect(body.queryByText("Recent workspaces")).not.toBeInTheDocument();
-    await userEvent.click(
-      body.getByRole("menuitem", { name: "Create workspace" }),
-    );
+    await userEvent.click(body.getByRole("menuitem", { name: "Workspaces" }));
     await expect(canvas.getByRole("status")).toHaveTextContent(
-      "Create workspace requested",
+      "Workspaces requested",
     );
     await waitFor(() =>
       expect(body.queryByRole("menu")).not.toBeInTheDocument(),
@@ -281,7 +282,7 @@ export const UserOnly: Story = {
       body.queryByText("No workspaces available"),
     ).not.toBeInTheDocument();
     await expect(
-      body.queryByRole("menuitem", { name: "Create workspace" }),
+      body.queryByRole("menuitem", { name: "Workspaces" }),
     ).not.toBeInTheDocument();
     for (const name of ["Language", "Theme", "Help center", "Sign out"]) {
       await expect(body.getByRole("menuitem", { name })).toBeVisible();

@@ -253,7 +253,7 @@
     "choose": "Choose workspace",
     "switch": "Switch workspace: {{name}}",
     "recentWorkspaces": "Recent workspaces",
-    "create": "Create workspace",
+    "workspaces": "Workspaces",
     "userMenu": "Account: {{name}}",
     "accountMenu": "Workspace and account: {{name}}",
     "profile": "Open profile: {{name}}",
