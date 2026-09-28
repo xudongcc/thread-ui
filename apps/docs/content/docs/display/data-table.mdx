@@ -243,8 +243,21 @@ The base properties are shared by all column types:
 
 <AutoTypeTable
   path="../../components/data-table/types.ts"
-  type={`Pick<DataTableBaseColumnProps<any>, 'id' | 'header' | 'field' | 'getValue' | 'render' | 'align' | 'pinned' | 'size' | 'minSize' | 'maxSize'>`}
+  type={`Pick<DataTableBaseColumnProps<any>, 'id' | 'header' | 'field' | 'getValue' | 'render' | 'align' | 'pinned' | 'hidden' | 'size' | 'minSize' | 'maxSize'>`}
 />
+
+### Hidden columns
+
+Set `hidden: true` to hide a column's header and cells. Omit it or use `false`
+to show the column. This works with all column types and the column helper:
+
+```tsx
+userColumnHelper.column("email", { header: "Email", hidden: true });
+```
+
+Update the column definitions to change visibility. Hidden columns do not occupy
+space or contribute to pinned column offsets. Row selection and row actions
+remain available. Hiding a column does not remove its data from the supplied rows.
 
 ### Inferred column values
 

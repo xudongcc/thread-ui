@@ -133,7 +133,7 @@ const features = tableFeatures({
 });
 
 type InternalColumn<TData extends object> = ColumnDef<typeof features, TData> &
-  Pick<DataTableColumnProps<TData>, "pinned" | "align">;
+  Pick<DataTableColumnProps<TData>, "pinned" | "align" | "hidden">;
 
 function publicRow<TData extends object>(
   row: Row<typeof features, TData>,
@@ -238,6 +238,7 @@ export function DataTable<TData extends object, TValue = unknown>({
           minSize: column.minSize,
           maxSize: column.maxSize,
           pinned: column.pinned,
+          hidden: column.hidden,
           align: getColumnAlign(column),
           header: () =>
             typeof column.header === "function" ? (
@@ -389,6 +390,9 @@ export function DataTable<TData extends object, TValue = unknown>({
     data,
     columns: tableColumns,
     state: {
+      columnVisibility: Object.fromEntries(
+        tableColumns.map((column) => [column.id!, !column.hidden]),
+      ),
       columnPinning: {
         start: tableColumns
           .filter((column) => column.pinned === "left")
@@ -561,7 +565,7 @@ export function DataTable<TData extends object, TValue = unknown>({
               <TableRow>
                 <TableCell
                   className="bg-card h-24 text-center"
-                  colSpan={tableColumns.length}
+                  colSpan={Math.max(1, table.getVisibleLeafColumns().length)}
                 >
                   {empty ?? (
                     <Empty

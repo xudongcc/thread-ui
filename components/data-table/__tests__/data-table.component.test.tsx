@@ -513,6 +513,114 @@ describe("DataTable", () => {
     );
   });
 
+  it("updates column visibility without losing selection or leaving pinned gaps", async () => {
+    const user = userEvent.setup();
+    const i18n = createI18n();
+    const userColumnHelper = createDataTableColumnHelper<User>();
+    const hiddenValue = vi.fn((row: User) => row.id);
+    const hiddenHeader = vi.fn(() => <span>Identifier</span>);
+    const onSelection = vi.fn();
+    const makeView = (hidden: boolean) => (
+      <AppProvider i18n={i18n}>
+        <DataTable
+          data={data}
+          rowActions={() => [{ label: "Edit" }]}
+          columns={userColumnHelper.columns([
+            userColumnHelper.column("identifier", {
+              getValue: hiddenValue,
+              header: hiddenHeader,
+              hidden,
+              pinned: "left",
+              size: 80,
+            }),
+            userColumnHelper.column("name", { header: "Name", pinned: "left" }),
+            userColumnHelper.column("trailing", {
+              field: "id",
+              header: "Trailing",
+              hidden,
+              pinned: "right",
+              size: 90,
+            }),
+          ])}
+          onRowSelectionChange={onSelection}
+        />
+      </AppProvider>
+    );
+    const view = render(makeView(true));
+    expect(screen.getAllByRole("columnheader")).toHaveLength(3);
+    expect(hiddenValue).not.toHaveBeenCalled();
+    expect(hiddenHeader).not.toHaveBeenCalled();
+    expect(screen.queryByRole("columnheader", { name: "Trailing" })).toBeNull();
+    expect(
+      screen
+        .getByText("Ada")
+        .closest("td")!
+        .style.getPropertyValue("--column-offset"),
+    ).toBe("32px");
+
+    await user.click(screen.getAllByRole("checkbox")[1]!);
+    await waitFor(() =>
+      expect(onSelection).toHaveBeenLastCalledWith([data[0]]),
+    );
+    view.rerender(makeView(false));
+    expect(screen.getAllByRole("columnheader")).toHaveLength(5);
+    expect(
+      screen.getByRole("columnheader", { name: "Identifier" }),
+    ).toBeTruthy();
+    expect(hiddenValue).toHaveBeenCalled();
+    expect(
+      screen.getByText("Ada").closest("tr")!.getAttribute("data-state"),
+    ).toBe("selected");
+    expect(
+      screen
+        .getByText("Ada")
+        .closest("td")!
+        .style.getPropertyValue("--column-offset"),
+    ).toBe("112px");
+    expect(
+      screen
+        .getByRole("columnheader", { name: "Trailing" })
+        .style.getPropertyValue("--column-offset"),
+    ).toBe("60px");
+
+    view.rerender(makeView(true));
+    expect(screen.getAllByRole("columnheader")).toHaveLength(3);
+    expect(
+      screen
+        .getByText("Ada")
+        .closest("td")!
+        .style.getPropertyValue("--column-offset"),
+    ).toBe("32px");
+    expect(
+      screen.getByText("Ada").closest("tr")!.getAttribute("data-state"),
+    ).toBe("selected");
+  });
+
+  it("spans only visible columns in the empty state, including selection and actions", () => {
+    const i18n = createI18n();
+    const hiddenColumns: DataTableColumnProps<User>[] = [
+      { field: "id", hidden: true },
+      { field: "name", hidden: true },
+    ];
+    const view = render(
+      <AppProvider i18n={i18n}>
+        <DataTable
+          columns={hiddenColumns}
+          data={[]}
+          rowActions={() => []}
+          onRowSelectionChange={() => {}}
+        />
+      </AppProvider>,
+    );
+    expect(screen.getByRole("cell").getAttribute("colspan")).toBe("2");
+    view.rerender(
+      <AppProvider i18n={i18n}>
+        <DataTable columns={hiddenColumns} data={[]} />
+      </AppProvider>,
+    );
+    expect(screen.getByRole("cell").getAttribute("colspan")).toBe("1");
+  });
+
   it("merges element renders and refs without leaking context to the DOM", () => {
     const ref = createRef<HTMLElement>();
     renderWithProvider(

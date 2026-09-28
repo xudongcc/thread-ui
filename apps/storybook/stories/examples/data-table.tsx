@@ -28,6 +28,12 @@ export const columns = userColumnHelper.columns([
   userColumnHelper.column("role", { header: "Role" }),
 ]);
 
+export const hiddenColumns = userColumnHelper.columns([
+  userColumnHelper.column("name", { header: "Name" }),
+  userColumnHelper.column("email", { header: "Email", hidden: true }),
+  userColumnHelper.column("role", { header: "Role" }),
+]);
+
 export function RowSelectionDataTableExample(
   args: ComponentProps<typeof DataTable<User>>,
 ) {

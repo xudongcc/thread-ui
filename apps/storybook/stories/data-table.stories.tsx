@@ -12,6 +12,7 @@ import {
   customEmpty,
   data,
   getRowId,
+  hiddenColumns,
   pinnedColumns,
   profileRowActions,
   renderElementColumns,
@@ -32,6 +33,7 @@ const exampleParameters = withExampleParameters(
   {
     columns,
     alignedColumns,
+    hiddenColumns,
     customCellColumns,
     renderElementColumns,
     pinnedColumns,
@@ -131,6 +133,21 @@ export const RenderElement: Story = {
     columns: renderElementColumns,
     rowActions: profileRowActions,
   },
+};
+
+export const HiddenColumns: Story = {
+  args: { columns: hiddenColumns },
+  play: testOnly(async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("columnheader", { name: "Name" }),
+    ).toBeVisible();
+    await expect(
+      canvas.queryByRole("columnheader", { name: "Email" }),
+    ).not.toBeInTheDocument();
+    await expect(
+      canvas.queryByText("alice@example.com"),
+    ).not.toBeInTheDocument();
+  }),
 };
 
 export const ColumnAlignment: Story = {
