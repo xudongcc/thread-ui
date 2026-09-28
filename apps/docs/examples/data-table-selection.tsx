@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 
-import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
-import { DataTable } from "@/components/thread-ui/data-table";
+import {
+  DataTable,
+  createDataTableColumnHelper,
+} from "@/components/thread-ui/data-table";
 import { Button } from "@/components/ui/button";
 
 interface User {
@@ -13,23 +15,21 @@ interface User {
   role: string;
 }
 
-const columns: Array<DataTableColumnProps<User>> = [
-  {
+const userColumnHelper = createDataTableColumnHelper<User>();
+const columns = userColumnHelper.columns([
+  userColumnHelper.field("name", {
     id: "name",
     header: "Name",
-    field: "name",
-  },
-  {
+  }),
+  userColumnHelper.field("email", {
     id: "email",
     header: "Email",
-    field: "email",
-  },
-  {
+  }),
+  userColumnHelper.field("role", {
     id: "role",
     header: "Role",
-    field: "role",
-  },
-];
+  }),
+]);
 
 const data: Array<User> = [
   { id: "1", name: "Alice Johnson", email: "alice@example.com", role: "Admin" },

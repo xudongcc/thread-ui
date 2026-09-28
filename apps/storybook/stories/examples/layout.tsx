@@ -21,7 +21,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import type { LayoutProps } from "@/components/thread-ui/layout";
-import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
 import type {
   DataFilterConditionValue,
   DataFilterField,
@@ -59,7 +58,10 @@ import {
   PageSecondaryAction,
   PageTitle,
 } from "@/components/thread-ui/page";
-import { DataTable } from "@/components/thread-ui/data-table";
+import {
+  DataTable,
+  createDataTableColumnHelper,
+} from "@/components/thread-ui/data-table";
 import { DataFilter } from "@/components/thread-ui/data-filter";
 import { Input } from "@/components/thread-ui/input";
 import { FormLayout, FormLayoutItem } from "@/components/thread-ui/form-layout";
@@ -589,58 +591,52 @@ const initialOrders: Order[] = Array.from({ length: 24 }, (_, index) => ({
   total: 48 + index * 12.5,
 }));
 
-const orderColumns: DataTableColumnProps<Order>[] = [
-  {
+const orderColumnHelper = createDataTableColumnHelper<Order>();
+const orderColumns = orderColumnHelper.columns([
+  orderColumnHelper.field("id", {
     id: "id",
     header: "Order",
-    field: "id",
     size: 100,
-    render: (props, { row }) => (
+    render: (props, { getValue }) => (
       <span {...props} className="font-medium">
-        #{row.original.id}
+        #{getValue()}
       </span>
     ),
-  },
-  {
+  }),
+  orderColumnHelper.field("customer", {
     id: "customer",
     header: "Customer",
-    field: "customer",
     size: 220,
-    render: (props, { row }) => (
+    render: (props, { getValue, row }) => (
       <div {...props} className="space-y-1">
-        <div className="font-medium">{row.original.customer}</div>
+        <div className="font-medium">{getValue()}</div>
         <div className="text-muted-foreground text-xs">
           {row.original.email}
         </div>
       </div>
     ),
-  },
-  {
+  }),
+  orderColumnHelper.field("status", {
     id: "status",
     header: "Fulfillment",
-    field: "status",
     size: 150,
-    render: (props, { row }) => (
-      <Badge
-        {...props}
-        color={row.original.status === "Fulfilled" ? "green" : "amber"}
-      >
-        {row.original.status}
+    render: (props, { getValue }) => (
+      <Badge {...props} color={getValue() === "Fulfilled" ? "green" : "amber"}>
+        {getValue()}
       </Badge>
     ),
-  },
-  {
+  }),
+  orderColumnHelper.field("total", {
     id: "total",
     header: "Total",
-    field: "total",
     size: 110,
-    render: (props, { row }) => (
+    render: (props, { getValue }) => (
       <span {...props} className="tabular-nums">
-        ${row.original.total.toFixed(2)}
+        ${getValue().toFixed(2)}
       </span>
     ),
-  },
-];
+  }),
+]);
 
 const orderFilters: DataFilterField[] = [
   {
