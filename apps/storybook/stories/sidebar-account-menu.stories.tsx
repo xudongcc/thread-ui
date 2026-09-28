@@ -1,15 +1,28 @@
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
-import {
-  SidebarAccountMenuEmptyExample,
-  SidebarAccountMenuExample,
-  SidebarAccountMenuLinksExample,
-  SidebarAccountMenuUserOnlyExample,
-} from "./examples/sidebar-account-menu";
+import { SidebarAccountMenuExample } from "./examples/sidebar-account-menu";
+import { SidebarAccountMenuEmptyExample } from "./examples/sidebar-account-menu-empty";
+import { SidebarAccountMenuUserOnlyExample } from "./examples/sidebar-account-menu-user-only";
+import { SidebarAccountMenuLinksExample } from "./examples/sidebar-account-menu-links";
 import implementation from "./examples/sidebar-account-menu.tsx?raw";
+import emptyImplementation from "./examples/sidebar-account-menu-empty.tsx?raw";
+import userOnlyImplementation from "./examples/sidebar-account-menu-user-only.tsx?raw";
+import linksImplementation from "./examples/sidebar-account-menu-links.tsx?raw";
+import sharedImplementation from "./examples/sidebar-account-menu-shared.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SidebarAccountMenu } from "@/components/thread-ui/sidebar-account-menu";
+
+// Include only this scenario and its shared utilities, keeping copied code standalone.
+function accountMenuSource(source: string) {
+  const standalone = source.replace(
+    /import\s+(?:type\s+)?\{[^}]*\}\s+from\s+["']\.\/sidebar-account-menu-shared["'];?\s*/g,
+    "",
+  );
+  return withExampleSource(
+    `${standalone}\n// Shared example helpers (not component API).\n${sharedImplementation}`,
+  );
+}
 
 const meta = {
   id: "components-sidebaraccountmenu",
@@ -30,7 +43,7 @@ const meta = {
   parameters: {
     controls: { include: ["user", "loading", "disabled"] },
     docs: {
-      source: withExampleSource(implementation),
+      source: accountMenuSource(implementation),
       description: {
         component:
           "Workspace and user identity use props. The trigger, popup and identity rows are built in; children compose additional menu items. Use workspace, workspaces and onWorkspaceChange for controlled switching; user.onClick/render configures the profile row. Help, sign-out and other actions use onClick/render on SidebarAccountMenuItem. Controls expose user, loading and disabled while demo data and handlers stay local.",
@@ -227,6 +240,7 @@ export const Default: Story = {
 };
 
 export const Empty: Story = {
+  parameters: { docs: { source: accountMenuSource(emptyImplementation) } },
   render: (args) => <SidebarAccountMenuEmptyExample {...args} />,
   globals: { locale: "en" },
   play: testOnly(async ({ canvas, canvasElement }) => {
@@ -256,6 +270,7 @@ export const UserOnly: Story = {
   globals: { locale: "en" },
   parameters: {
     docs: {
+      source: accountMenuSource(userOnlyImplementation),
       description: {
         story:
           "Account menu without workspaces. The trigger shows the user's avatar and name; the menu includes the profile, language, theme, help, and sign-out actions.",
@@ -301,6 +316,7 @@ export const UserOnly: Story = {
 };
 
 export const Links: Story = {
+  parameters: { docs: { source: accountMenuSource(linksImplementation) } },
   name: "Framework links",
   render: (args) => <SidebarAccountMenuLinksExample {...args} />,
   globals: { locale: "en" },

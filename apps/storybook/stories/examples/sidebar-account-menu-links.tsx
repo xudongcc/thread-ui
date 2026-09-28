@@ -1,4 +1,10 @@
-import { CircleHelpIcon, LayoutGridIcon, LogOutIcon } from "lucide-react";
+import {
+  CircleHelpIcon,
+  CreditCardIcon,
+  LayoutGridIcon,
+  LockKeyholeIcon,
+  LogOutIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -25,18 +31,18 @@ const workspaces: readonly Workspace[] = [
   },
 ];
 
-export function SidebarAccountMenuExample(
+export function SidebarAccountMenuLinksExample(
   props: SidebarAccountMenuExampleProps,
 ) {
   return (
     <AccountMenuExampleProvider>
-      <SidebarAccountMenuExampleContent {...props} />
+      <SidebarAccountMenuLinksExampleContent {...props} />
     </AccountMenuExampleProvider>
   );
 }
-SidebarAccountMenuExample.displayName = "SidebarAccountMenuExample";
+SidebarAccountMenuLinksExample.displayName = "SidebarAccountMenuLinksExample";
 
-function SidebarAccountMenuExampleContent({
+function SidebarAccountMenuLinksExampleContent({
   user,
   loading,
   disabled,
@@ -50,13 +56,23 @@ function SidebarAccountMenuExampleContent({
         disabled={disabled}
         loading={loading}
         workspace={workspaces.find((item) => item.id === workspaceId)}
-        workspaces={workspaces}
         user={
           user && {
             ...user,
+            render: <DemoLink to="#profile" />,
             onClick: () => setMessage("Profile requested"),
           }
         }
+        workspaces={workspaces.map((workspace) => ({
+          ...workspace,
+          render: (props, state) => (
+            <DemoLink
+              {...props}
+              data-selected={state.checked || undefined}
+              to={`#workspace-${workspace.id}`}
+            />
+          ),
+        }))}
         onWorkspaceChange={setWorkspaceId}
       >
         <SidebarAccountMenuItem
@@ -67,9 +83,26 @@ function SidebarAccountMenuExampleContent({
           <LayoutGridIcon aria-hidden="true" />
           {t("sidebarAccountMenu.workspaces")}
         </SidebarAccountMenuItem>
+        <SidebarAccountMenuItem
+          className="min-h-10"
+          render={(props) => <DemoLink {...props} to="#billing" />}
+          onClick={() => setMessage("Billing requested")}
+        >
+          <CreditCardIcon aria-hidden="true" />
+          Billing
+        </SidebarAccountMenuItem>
+        <SidebarAccountMenuItem
+          disabled
+          className="min-h-10"
+          render={<DemoLink to="#audit" />}
+        >
+          <LockKeyholeIcon aria-hidden="true" />
+          Audit log
+        </SidebarAccountMenuItem>
         <AccountMenuPreferences />
         <SidebarAccountMenuItem
           className="min-h-10"
+          render={<DemoLink to="#help" />}
           onClick={() => setMessage("Help requested")}
         >
           <CircleHelpIcon aria-hidden="true" />

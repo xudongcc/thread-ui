@@ -1,12 +1,10 @@
-import { CircleHelpIcon, LayoutGridIcon, LogOutIcon } from "lucide-react";
+import { CircleHelpIcon, LogOutIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AccountMenuExampleProvider,
   AccountMenuPreferences,
-  DemoLink,
 } from "./sidebar-account-menu-shared";
-import type { Workspace } from "@/components/thread-ui/sidebar-account-menu";
 import type { SidebarAccountMenuExampleProps } from "./sidebar-account-menu-shared";
 import {
   SidebarAccountMenu,
@@ -14,59 +12,37 @@ import {
   SidebarAccountMenuSeparator,
 } from "@/components/thread-ui/sidebar-account-menu";
 
-const workspaces: readonly Workspace[] = [
-  { id: "north", name: "North Studio", description: "Production workspace" },
-  { id: "market", name: "Night Market", description: "Commerce workspace" },
-  {
-    id: "archive",
-    name: "Archived Studio",
-    description: "Access suspended",
-    disabled: true,
-  },
-];
-
-export function SidebarAccountMenuExample(
+export function SidebarAccountMenuUserOnlyExample(
   props: SidebarAccountMenuExampleProps,
 ) {
   return (
     <AccountMenuExampleProvider>
-      <SidebarAccountMenuExampleContent {...props} />
+      <SidebarAccountMenuUserOnlyExampleContent {...props} />
     </AccountMenuExampleProvider>
   );
 }
-SidebarAccountMenuExample.displayName = "SidebarAccountMenuExample";
+SidebarAccountMenuUserOnlyExample.displayName =
+  "SidebarAccountMenuUserOnlyExample";
 
-function SidebarAccountMenuExampleContent({
+function SidebarAccountMenuUserOnlyExampleContent({
   user,
   loading,
   disabled,
 }: SidebarAccountMenuExampleProps) {
   const { t } = useTranslation("thread-ui");
   const [message, setMessage] = useState("");
-  const [workspaceId, setWorkspaceId] = useState("north");
   return (
     <div className="w-64 max-w-full space-y-4">
       <SidebarAccountMenu
         disabled={disabled}
         loading={loading}
-        workspace={workspaces.find((item) => item.id === workspaceId)}
-        workspaces={workspaces}
         user={
           user && {
             ...user,
             onClick: () => setMessage("Profile requested"),
           }
         }
-        onWorkspaceChange={setWorkspaceId}
       >
-        <SidebarAccountMenuItem
-          className="min-h-10"
-          render={<DemoLink to="#workspaces" />}
-          onClick={() => setMessage("Workspaces requested")}
-        >
-          <LayoutGridIcon aria-hidden="true" />
-          {t("sidebarAccountMenu.workspaces")}
-        </SidebarAccountMenuItem>
         <AccountMenuPreferences />
         <SidebarAccountMenuItem
           className="min-h-10"

@@ -182,5 +182,7 @@ and do not need to be composed separately.
 
 Applications own preference persistence. The Storybook examples keep sample data
 and business handlers locally and expose `user`, `loading`, and `disabled` in
-Controls. The root props above are the public API; example scenario options are
-not component props.
+Controls. Each Story shows its own implementation in the Code panel. The framework
+links example supplies `render` directly; there are no scenario flags such as
+`linkItems` to pass to the component. Shared preference and demo-link helpers are
+included after the example so the copied module is complete.
