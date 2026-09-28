@@ -1,24 +1,32 @@
+import { useState } from "react";
 import type { ComponentProps } from "react";
+import { Button } from "@/components/thread-ui/button";
 import {
   CodeBlock,
   CodeBlockBody,
   CodeBlockContent,
   CodeBlockCopyButton,
-  CodeBlockFilename,
   CodeBlockFiles,
   CodeBlockHeader,
   CodeBlockItem,
 } from "@/components/thread-ui/code-block";
 
-export function CodeBlockExample(args: ComponentProps<typeof CodeBlock>) {
+export function FilesCodeBlockExample(args: ComponentProps<typeof CodeBlock>) {
+  const [value, setValue] = useState("typescript");
   return (
-    <CodeBlock {...args}>
+    <CodeBlock {...args} value={value} onValueChange={setValue}>
       <CodeBlockHeader>
         <CodeBlockFiles>
           {(item) => (
-            <CodeBlockFilename key={item.language} value={item.language}>
+            <Button
+              key={item.language}
+              aria-pressed={value === item.language}
+              size="sm"
+              variant={value === item.language ? "secondary" : "ghost"}
+              onClick={() => setValue(item.language)}
+            >
               {item.filename}
-            </CodeBlockFilename>
+            </Button>
           )}
         </CodeBlockFiles>
         <CodeBlockCopyButton />
@@ -38,4 +46,4 @@ export function CodeBlockExample(args: ComponentProps<typeof CodeBlock>) {
   );
 }
 
-CodeBlockExample.displayName = "CodeBlockExample";
+FilesCodeBlockExample.displayName = "FilesCodeBlockExample";

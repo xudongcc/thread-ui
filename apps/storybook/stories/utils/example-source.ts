@@ -1,10 +1,46 @@
+/** Inline explicitly supplied example modules so copied snippets stand alone. */
+function inlineExampleSources(
+  implementation: string,
+  dependencies: Record<string, string>,
+) {
+  // Dependencies are supplied in initialization order (fixtures before examples).
+  const sources = [...Object.values(dependencies), implementation].join("\n\n");
+  const imports = new Map<string, Set<string>>();
+  const body = sources.replace(
+    /^import\s+(type\s+)?\{([^}]+)\}\s+from\s+["']([^"']+)["'];?\s*/gm,
+    (_statement, type: string | undefined, names: string, module: string) => {
+      if (Object.hasOwn(dependencies, module)) return "";
+      const key = `${type ? "type " : ""}{IMPORTS} from "${module}"`;
+      const specifiers = imports.get(key) ?? new Set<string>();
+      for (const name of names.split(",")) {
+        if (name.trim()) specifiers.add(name.trim().replace(/\s+/g, " "));
+      }
+      imports.set(key, specifiers);
+      return "";
+    },
+  );
+  return [
+    ...[...imports].map(
+      ([key, names]) =>
+        `import ${key.replace("{IMPORTS}", `{ ${[...names].join(", ")} }`)};`,
+    ),
+    body.trim(),
+  ].join("\n\n");
+}
+
 /** Keep hooks and handlers from the rendered example alongside its live args. */
-export function withExampleSource(implementation: string) {
+export function withExampleSource(
+  implementation: string,
+  dependencies: Record<string, string> = {},
+) {
+  const source = Object.keys(dependencies).length
+    ? inlineExampleSources(implementation, dependencies)
+    : implementation.trim();
   return {
     type: "dynamic" as const,
     language: "tsx",
     transform: (invocation: string) =>
-      `${implementation.trim()}\n\nexport default function Example() {\n  return (\n${invocation
+      `${source}\n\nexport default function Example() {\n  return (\n${invocation
         .split("\n")
         .map((line) => `    ${line}`)
         .join("\n")}\n  );\n}\n`,
@@ -24,11 +60,12 @@ export function withExampleParameters(
   implementation: string,
   references: Record<string, unknown>,
   referenceProps: string[],
+  dependencies: Record<string, string> = {},
 ) {
   const names = new Map(
     Object.entries(references).map(([name, value]) => [value, name]),
   );
-  const source = withExampleSource(implementation);
+  const source = withExampleSource(implementation, dependencies);
   return {
     jsx: {
       // Storybook clones prop objects before serialization; filter by prop name.

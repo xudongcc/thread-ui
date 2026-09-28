@@ -30,6 +30,91 @@ function hasCompleteExample(id) {
   );
 }
 
+// Compiling alone does not catch an unrelated demo bundled into a Code panel.
+function checkScenarioSource(id, source) {
+  const [, component, story] = /^components-(.+)--(.+)$/.exec(id);
+  const scenarios = {
+    calendar: {
+      default: "SingleCalendar",
+      range: "RangeCalendar",
+      multiple: "MultipleCalendar",
+    },
+    codeblock: {
+      default: "CodeBlockExample",
+      files: "FilesCodeBlockExample",
+      "language-selector": "LanguageSelectorCodeBlockExample",
+      "without-highlighting": "WithoutHighlightingCodeBlockExample",
+    },
+    datafilter: {
+      default: "FilterExample",
+      "standalone-item": "FilterItemExample",
+      "custom-item": "CustomFilterItemExample",
+    },
+    datatable: {
+      default: "DataTableExample",
+      "row-selection": "RowSelectionDataTableExample",
+      pagination: "PaginationDataTableExample",
+      "column-types": "TypedColumnsDataTableExample",
+      "inferred-values": "InferredValuesDataTableExample",
+    },
+    layout: {
+      default: "LayoutExample",
+      "split-page": "LayoutSplitPageExample",
+      "page-and-data-table": "LayoutOrdersExample",
+      "without-sidebar": "LayoutWithoutSidebarExample",
+    },
+    select: {
+      controlled: "ControlledSelectExample",
+      multiple: "MultipleSelectExample",
+    },
+    fileupload: {
+      "automatic-upload": "AutomaticUploadExample",
+      "manual-upload": "ManualUploadExample",
+      "retry-failure": "RetryFailureExample",
+    },
+  };
+  const variants = scenarios[component];
+  if (!variants) return;
+  const current = variants[story] ?? variants.default;
+  const ast = ts.createSourceFile(
+    id + ".tsx",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const declarations = new Set(
+    ast.statements
+      .filter(ts.isFunctionDeclaration)
+      .map((node) => node.name?.text),
+  );
+  assert(
+    declarations.has(current),
+    `${id}: missing the current example ${current}`,
+  );
+  for (const other of Object.values(variants)) {
+    // These helpers are deliberately shared by the corresponding scenarios.
+    if (component === "datatable" && other === "DataTableExample") continue;
+    if (
+      component === "layout" &&
+      other === "LayoutExample" &&
+      story !== "without-sidebar"
+    )
+      continue;
+    if (other !== current)
+      assert(
+        !declarations.has(other),
+        `${id}: includes unrelated example ${other}`,
+      );
+  }
+  for (const node of ast.statements.filter(ts.isImportDeclaration)) {
+    assert(
+      !node.moduleSpecifier.text.startsWith("."),
+      `${id}: unresolved local example import ${node.moduleSpecifier.text}`,
+    );
+  }
+}
+
 try {
   // Test the minified build: development alone cannot catch renamed JSX tags.
   server = await preview({
@@ -77,6 +162,7 @@ try {
       })
       .innerText();
     const file = `${scratch}/${id}.tsx`;
+    checkScenarioSource(id, source);
     await writeFile(file, source);
     files.push(file);
     console.log(`Captured ${id}`);

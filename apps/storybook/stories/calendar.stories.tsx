@@ -1,10 +1,10 @@
 import { expect } from "storybook/test";
 import { testOnly } from "./utils/test-only";
-import {
-  MultipleCalendar,
-  RangeCalendar,
-  SingleCalendar,
-} from "./examples/calendar";
+import { SingleCalendar } from "./examples/calendar";
+import { RangeCalendar } from "./examples/calendar-range";
+import { MultipleCalendar } from "./examples/calendar-multiple";
+import rangeSource from "./examples/calendar-range.tsx?raw";
+import multipleSource from "./examples/calendar-multiple.tsx?raw";
 import implementation from "./examples/calendar.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -54,8 +54,10 @@ export const DropdownCaption: Story = {
   },
 };
 export const Range: Story = {
+  parameters: { docs: { source: withExampleSource(rangeSource) } },
   render: (args) => <RangeCalendar {...args} />,
 };
 export const Multiple: Story = {
+  parameters: { docs: { source: withExampleSource(multipleSource) } },
   render: (args) => <MultipleCalendar {...args} />,
 };

@@ -1,14 +1,18 @@
 import { expect, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
-import {
-  CustomFilterItemExample,
-  FilterExample,
-  FilterItemExample,
-  asyncFilters,
-  customFilters,
-  filters,
-  noFilters,
-} from "./examples/data-filter";
+import { FilterExample } from "./examples/data-filter-shared";
+import { filters } from "./examples/data-filter";
+import { noFilters } from "./examples/data-filter-search";
+import { asyncFilters } from "./examples/data-filter-async";
+import { customFilters } from "./examples/data-filter-custom-value";
+import { FilterItemExample } from "./examples/data-filter-item";
+import { CustomFilterItemExample } from "./examples/data-filter-custom-item";
+import sharedSource from "./examples/data-filter-shared.tsx?raw";
+import searchSource from "./examples/data-filter-search.tsx?raw";
+import asyncSource from "./examples/data-filter-async.tsx?raw";
+import customValueSource from "./examples/data-filter-custom-value.tsx?raw";
+import itemSource from "./examples/data-filter-item.tsx?raw";
+import customItemSource from "./examples/data-filter-custom-item.tsx?raw";
 import implementation from "./examples/data-filter.tsx?raw";
 import {
   withExampleParameters,
@@ -17,11 +21,15 @@ import {
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { DataFilter } from "@/components/thread-ui/data-filter";
 
-const exampleParameters = withExampleParameters(
-  implementation,
-  { filters, asyncFilters, customFilters, noFilters },
-  ["filters"],
-);
+function filterParameters(source: string) {
+  return withExampleParameters(
+    source,
+    { filters, asyncFilters, customFilters, noFilters },
+    ["filters"],
+    { "./data-filter-shared": sharedSource },
+  );
+}
+const exampleParameters = filterParameters(implementation);
 
 const meta = {
   id: "components-datafilter",
@@ -65,6 +73,7 @@ export const Populated: Story = {
   },
 };
 export const Search: Story = {
+  parameters: filterParameters(searchSource),
   args: { filters: noFilters },
   play: testOnly(async ({ canvas, userEvent }) => {
     await userEvent.type(
@@ -99,12 +108,14 @@ export const Sort: Story = {
 export const Loading: Story = { args: { loading: true } };
 export const FiltersOnly: Story = { args: { search: false } };
 export const AsyncOptions: Story = {
+  parameters: filterParameters(asyncSource),
   args: {
     filters: asyncFilters,
     value: { query: "", filter: { status: { $in: ["active"] } } },
   },
 };
 export const CustomValue: Story = {
+  parameters: filterParameters(customValueSource),
   args: {
     filters: customFilters,
     value: { query: "", filter: { name: { $eq: "Thread UI" } } },
@@ -118,7 +129,7 @@ export const CustomValue: Story = {
 };
 
 export const StandaloneItem: Story = {
-  parameters: { docs: { source: withExampleSource(implementation) } },
+  parameters: { docs: { source: withExampleSource(itemSource) } },
   render: () => <FilterItemExample />,
   play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     const body = within(canvasElement.ownerDocument.body);
@@ -145,6 +156,6 @@ export const StandaloneItem: Story = {
 };
 
 export const CustomItem: Story = {
-  parameters: { docs: { source: withExampleSource(implementation) } },
+  parameters: { docs: { source: withExampleSource(customItemSource) } },
   render: () => <CustomFilterItemExample />,
 };

@@ -1,11 +1,12 @@
 import { expect, waitFor } from "storybook/test";
 import { testOnly } from "./utils/test-only";
 import { withExampleSource } from "./utils/example-source";
-import {
-  AutomaticUploadExample,
-  ManualUploadExample,
-  RetryFailureExample,
-} from "./examples/upload-workflow";
+import { AutomaticUploadExample } from "./examples/upload-automatic";
+import { ManualUploadExample } from "./examples/upload-manual";
+import { RetryFailureExample } from "./examples/upload-retry";
+import automaticSource from "./examples/upload-automatic.tsx?raw";
+import manualSource from "./examples/upload-manual.tsx?raw";
+import retrySource from "./examples/upload-retry.tsx?raw";
 import workflowSource from "./examples/upload-workflow.tsx?raw";
 import statesSource from "./examples/upload-states.tsx?raw";
 import UploadStates from "./examples/upload-states";
@@ -78,13 +79,21 @@ export const SelectAndRemove: Story = {
   }),
 };
 export const AutomaticUpload: Story = {
-  parameters: { docs: { source: withExampleSource(workflowSource) } },
+  parameters: {
+    docs: {
+      source: withExampleSource(automaticSource, {
+        "./upload-workflow": workflowSource,
+      }),
+    },
+  },
   render: (args) => <AutomaticUploadExample {...args} />,
 };
 export const ManualUpload: Story = {
   parameters: {
     docs: {
-      source: withExampleSource(workflowSource),
+      source: withExampleSource(manualSource, {
+        "./upload-workflow": workflowSource,
+      }),
       description: {
         story:
           "Keep the Props API layout and call `ref.current?.upload()` from an external button. The ref belongs to this FileUpload instance.",
@@ -110,7 +119,13 @@ export const ManualUpload: Story = {
   }),
 };
 export const RetryFailure: Story = {
-  parameters: { docs: { source: withExampleSource(workflowSource) } },
+  parameters: {
+    docs: {
+      source: withExampleSource(retrySource, {
+        "./upload-workflow": workflowSource,
+      }),
+    },
+  },
   globals: { locale: "en" },
   render: (args) => <RetryFailureExample {...args} />,
   play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
