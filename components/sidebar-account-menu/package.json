@@ -1,5 +1,5 @@
 {
-  "name": "@repo/sidebar-user-menu",
+  "name": "@repo/sidebar-account-menu",
   "description": "Composable workspace and account menu for the sidebar footer.",
   "version": "0.0.0",
   "private": true,

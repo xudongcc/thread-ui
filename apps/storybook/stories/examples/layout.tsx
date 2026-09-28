@@ -32,20 +32,20 @@ import {
   LayoutSidebar,
 } from "@/components/thread-ui/layout";
 import {
-  SidebarUserMenu,
-  SidebarUserMenuContent,
-  SidebarUserMenuItem,
-  SidebarUserMenuRadioGroup,
-  SidebarUserMenuRadioItem,
-  SidebarUserMenuSeparator,
-  SidebarUserMenuSub,
-  SidebarUserMenuSubContent,
-  SidebarUserMenuSubTrigger,
-  SidebarUserMenuTrigger,
-  SidebarUserMenuUser,
-  SidebarUserMenuWorkspaceGroup,
-  SidebarUserMenuWorkspaceItem,
-} from "@/components/thread-ui/sidebar-user-menu";
+  SidebarAccountMenu,
+  SidebarAccountMenuContent,
+  SidebarAccountMenuItem,
+  SidebarAccountMenuRadioGroup,
+  SidebarAccountMenuRadioItem,
+  SidebarAccountMenuSeparator,
+  SidebarAccountMenuSub,
+  SidebarAccountMenuSubContent,
+  SidebarAccountMenuSubTrigger,
+  SidebarAccountMenuTrigger,
+  SidebarAccountMenuUser,
+  SidebarAccountMenuWorkspaceGroup,
+  SidebarAccountMenuWorkspaceItem,
+} from "@/components/thread-ui/sidebar-account-menu";
 import { Button } from "@/components/thread-ui/button";
 import {
   Page,
@@ -285,13 +285,13 @@ function ApplicationContent({
           </nav>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarUserMenu
+          <SidebarAccountMenu
             currentWorkspace={current}
             user={{ name: "Alex Morgan", email: "alex@example.com" }}
           >
-            <SidebarUserMenuTrigger />
-            <SidebarUserMenuContent>
-              <SidebarUserMenuWorkspaceGroup
+            <SidebarAccountMenuTrigger />
+            <SidebarAccountMenuContent>
+              <SidebarAccountMenuWorkspaceGroup
                 value={workspace}
                 onValueChange={(next: string) => {
                   setWorkspace(next);
@@ -304,15 +304,15 @@ function ApplicationContent({
                 ]
                   .slice(0, 3)
                   .map((item) => (
-                    <SidebarUserMenuWorkspaceItem
+                    <SidebarAccountMenuWorkspaceItem
                       key={item.id}
                       workspace={item}
                     />
                   ))}
-              </SidebarUserMenuWorkspaceGroup>
+              </SidebarAccountMenuWorkspaceGroup>
 
-              <SidebarUserMenuSeparator />
-              <SidebarUserMenuItem
+              <SidebarAccountMenuSeparator />
+              <SidebarAccountMenuItem
                 className="min-h-10"
                 onClick={() =>
                   toast.add({
@@ -322,9 +322,9 @@ function ApplicationContent({
                 }
               >
                 <PlusIcon aria-hidden="true" />
-                {t("sidebarUserMenu.create")}
-              </SidebarUserMenuItem>
-              <SidebarUserMenuItem
+                {t("sidebarAccountMenu.create")}
+              </SidebarAccountMenuItem>
+              <SidebarAccountMenuItem
                 onClick={() =>
                   toast.add({
                     title: "You're all caught up",
@@ -334,51 +334,51 @@ function ApplicationContent({
               >
                 <BellIcon aria-hidden="true" />
                 Notifications
-              </SidebarUserMenuItem>
-              <SidebarUserMenuSeparator />
-              <SidebarUserMenuUser
+              </SidebarAccountMenuItem>
+              <SidebarAccountMenuSeparator />
+              <SidebarAccountMenuUser
                 onClick={() => {
                   setPage("profile");
                   if (isMobile) setOpenMobile(false);
                 }}
               />
-              <SidebarUserMenuSeparator />
-              <SidebarUserMenuSub>
-                <SidebarUserMenuSubTrigger className="min-h-10">
+              <SidebarAccountMenuSeparator />
+              <SidebarAccountMenuSub>
+                <SidebarAccountMenuSubTrigger className="min-h-10">
                   <LanguagesIcon aria-hidden="true" />
-                  {t("sidebarUserMenu.language")}
-                </SidebarUserMenuSubTrigger>
-                <SidebarUserMenuSubContent>
-                  <SidebarUserMenuRadioGroup
+                  {t("sidebarAccountMenu.language")}
+                </SidebarAccountMenuSubTrigger>
+                <SidebarAccountMenuSubContent>
+                  <SidebarAccountMenuRadioGroup
                     value={i18n.resolvedLanguage ?? "en"}
                     onValueChange={(next: string) => {
                       void i18n.changeLanguage(next);
                     }}
                   >
-                    <SidebarUserMenuRadioItem
+                    <SidebarAccountMenuRadioItem
                       closeOnClick
                       className="min-h-10"
                       value="en"
                     >
                       English
-                    </SidebarUserMenuRadioItem>
-                    <SidebarUserMenuRadioItem
+                    </SidebarAccountMenuRadioItem>
+                    <SidebarAccountMenuRadioItem
                       closeOnClick
                       className="min-h-10"
                       value="zh"
                     >
                       中文
-                    </SidebarUserMenuRadioItem>
-                  </SidebarUserMenuRadioGroup>
-                </SidebarUserMenuSubContent>
-              </SidebarUserMenuSub>
-              <SidebarUserMenuSub>
-                <SidebarUserMenuSubTrigger className="min-h-10">
+                    </SidebarAccountMenuRadioItem>
+                  </SidebarAccountMenuRadioGroup>
+                </SidebarAccountMenuSubContent>
+              </SidebarAccountMenuSub>
+              <SidebarAccountMenuSub>
+                <SidebarAccountMenuSubTrigger className="min-h-10">
                   <SunMoonIcon aria-hidden="true" />
-                  {t("sidebarUserMenu.theme")}
-                </SidebarUserMenuSubTrigger>
-                <SidebarUserMenuSubContent>
-                  <SidebarUserMenuRadioGroup
+                  {t("sidebarAccountMenu.theme")}
+                </SidebarAccountMenuSubTrigger>
+                <SidebarAccountMenuSubContent>
+                  <SidebarAccountMenuRadioGroup
                     value={theme}
                     onValueChange={(next: string) =>
                       document.documentElement.classList.toggle(
@@ -387,24 +387,24 @@ function ApplicationContent({
                       )
                     }
                   >
-                    <SidebarUserMenuRadioItem
+                    <SidebarAccountMenuRadioItem
                       closeOnClick
                       className="min-h-10"
                       value="light"
                     >
                       {i18n.language === "zh" ? "浅色" : "Light"}
-                    </SidebarUserMenuRadioItem>
-                    <SidebarUserMenuRadioItem
+                    </SidebarAccountMenuRadioItem>
+                    <SidebarAccountMenuRadioItem
                       closeOnClick
                       className="min-h-10"
                       value="dark"
                     >
                       {i18n.language === "zh" ? "深色" : "Dark"}
-                    </SidebarUserMenuRadioItem>
-                  </SidebarUserMenuRadioGroup>
-                </SidebarUserMenuSubContent>
-              </SidebarUserMenuSub>
-              <SidebarUserMenuItem
+                    </SidebarAccountMenuRadioItem>
+                  </SidebarAccountMenuRadioGroup>
+                </SidebarAccountMenuSubContent>
+              </SidebarAccountMenuSub>
+              <SidebarAccountMenuItem
                 className="min-h-10"
                 onClick={() =>
                   toast.add({
@@ -414,10 +414,10 @@ function ApplicationContent({
                 }
               >
                 <CircleHelpIcon aria-hidden="true" />
-                {t("sidebarUserMenu.help")}
-              </SidebarUserMenuItem>
-              <SidebarUserMenuSeparator />
-              <SidebarUserMenuItem
+                {t("sidebarAccountMenu.help")}
+              </SidebarAccountMenuItem>
+              <SidebarAccountMenuSeparator />
+              <SidebarAccountMenuItem
                 className="min-h-10"
                 onClick={() =>
                   toast.add({
@@ -428,10 +428,10 @@ function ApplicationContent({
                 }
               >
                 <LogOutIcon aria-hidden="true" />
-                {t("sidebarUserMenu.signOut")}
-              </SidebarUserMenuItem>
-            </SidebarUserMenuContent>
-          </SidebarUserMenu>
+                {t("sidebarAccountMenu.signOut")}
+              </SidebarAccountMenuItem>
+            </SidebarAccountMenuContent>
+          </SidebarAccountMenu>
         </SidebarFooter>
       </LayoutSidebar>
       <LayoutContent>

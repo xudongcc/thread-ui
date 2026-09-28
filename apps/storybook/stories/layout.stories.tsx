@@ -24,7 +24,7 @@ const meta = {
       story: { inline: false, height: "720px" },
       description: {
         component:
-          "Two-column application layout with full-height sidebar navigation and independently scrolling content. The sidebar collapses to an icon rail on desktop and opens as a drawer on mobile. Compose LayoutSidebar, SidebarUserMenu, and LayoutContent directly. The default sidebar variant keeps content flush with the viewport. LayoutSidebar automatically enables floating mobile navigation and safe-area spacing.",
+          "Two-column application layout with full-height sidebar navigation and independently scrolling content. The sidebar collapses to an icon rail on desktop and opens as a drawer on mobile. Compose LayoutSidebar, SidebarAccountMenu, and LayoutContent directly. The default sidebar variant keeps content flush with the viewport. LayoutSidebar automatically enables floating mobile navigation and safe-area spacing.",
       },
     },
   },

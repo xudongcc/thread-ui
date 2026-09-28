@@ -37,7 +37,7 @@ examples are shown separately where supported. Existing story URLs remain stable
       <td>Props API first; Composition API for custom layout</td>
     </tr>
     <tr>
-      <td>Page, PageLayout, CodeBlock, Dialog, Layout, SidebarUserMenu</td>
+      <td>Page, PageLayout, CodeBlock, Dialog, Layout, SidebarAccountMenu</td>
       <td>Composition API</td>
     </tr>
     <tr>
@@ -141,31 +141,31 @@ its columns on mobile.
 `Layout` supplies the application shell; `Page` and `PageLayout` organize its
 content. It supplies SidebarProvider with a viewport-height layout. Compose LayoutSidebar
 with its default variant and LayoutContent directly; LayoutContent uses
-SidebarInset with an independent ScrollArea. Place SidebarUserMenu in SidebarFooter.
+SidebarInset with an independent ScrollArea. Place SidebarAccountMenu in SidebarFooter.
 LayoutContent provides the independently scrolling main landmark. Omitting Sidebar
 allows content to fill the width. LayoutSidebar automatically enables floating
 mobile navigation, safe-area spacing, and inner
 content bottom padding. Omit LayoutSidebar to omit the button and padding; there
 is no separate switch. Desktop navigation can collapse to an icon rail using
 `collapsible="icon"`. Layout and
-SidebarUserMenu support **Composition API only**.
+SidebarAccountMenu support **Composition API only**.
 
-`SidebarUserMenu` supports **Composition API only** and works outside Layout.
-Use `SidebarUserMenuTrigger`, `SidebarUserMenuContent`, `SidebarUserMenuWorkspaceGroup`,
-`SidebarUserMenuWorkspaceLabel`, `SidebarUserMenuWorkspaceItem`, and `SidebarUserMenuUser`.
+`SidebarAccountMenu` supports **Composition API only** and works outside Layout.
+Use `SidebarAccountMenuTrigger`, `SidebarAccountMenuContent`, `SidebarAccountMenuWorkspaceGroup`,
+`SidebarAccountMenuWorkspaceLabel`, `SidebarAccountMenuWorkspaceItem`, and `SidebarAccountMenuUser`.
 The workspace group exposes shadcn radio-group `value`/`onValueChange`;
 workspace items, user items, and ordinary shadcn items accept Base UI `render`
-elements/functions for framework links. Use `SidebarUserMenuItem` (a direct shadcn alias) for
+elements/functions for framework links. Use `SidebarAccountMenuItem` (a direct shadcn alias) for
 additional account actions.
 The root supplies `currentWorkspace`/`user` context and loading/disabled state.
 It does not generate actions or search UI. The examples show at most three recent
 tenants including the current one; the application owns this data and updates
-selection after switching succeeds. Compose language/theme submenus with the `SidebarUserMenuSub`,
-`SidebarUserMenuSubTrigger`, `SidebarUserMenuSubContent`, `SidebarUserMenuRadioGroup`, and
-`SidebarUserMenuRadioItem` aliases. SidebarUserMenu and Layout demonstrate working
+selection after switching succeeds. Compose language/theme submenus with the `SidebarAccountMenuSub`,
+`SidebarAccountMenuSubTrigger`, `SidebarAccountMenuSubContent`, `SidebarAccountMenuRadioGroup`, and
+`SidebarAccountMenuRadioItem` aliases. SidebarAccountMenu and Layout demonstrate working
 preference changes; Layout also includes a profile page.
 These components have no global function API.
 
 See [Layout](?path=/docs/components-layout--docs),
-[SidebarUserMenu](?path=/docs/components-sidebarusermenu--docs). Use the
+[SidebarAccountMenu](?path=/docs/components-sidebaraccountmenu--docs). Use the
 viewport toolbar for mobile; there are no separate mobile-only stories.

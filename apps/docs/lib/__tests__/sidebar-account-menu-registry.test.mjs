@@ -10,7 +10,7 @@ test("standalone sidebar user menu installs its mobile hook and menu dependencie
   process.chdir(resolve(import.meta.dirname, "../.."));
   try {
     const item = registryItemSchema.parse(
-      await getPackage("sidebar-user-menu"),
+      await getPackage("sidebar-account-menu"),
     );
     for (const dependency of [
       "button",

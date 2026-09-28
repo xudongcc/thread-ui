@@ -249,7 +249,7 @@
     "expandNavigation": "Expand navigation",
     "collapseNavigation": "Collapse navigation"
   },
-  "sidebarUserMenu": {
+  "sidebarAccountMenu": {
     "choose": "Choose workspace",
     "switch": "Switch workspace: {{name}}",
     "recentWorkspaces": "Recent workspaces",

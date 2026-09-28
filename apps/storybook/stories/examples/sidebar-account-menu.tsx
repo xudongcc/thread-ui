@@ -11,25 +11,25 @@ import { useEffect, useMemo, useState } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import type { ComponentProps } from "react";
 import type {
-  SidebarUserMenuProps,
+  SidebarAccountMenuProps,
   Workspace,
-} from "@/components/thread-ui/sidebar-user-menu";
+} from "@/components/thread-ui/sidebar-account-menu";
 import {
-  SidebarUserMenu,
-  SidebarUserMenuContent,
-  SidebarUserMenuItem,
-  SidebarUserMenuRadioGroup,
-  SidebarUserMenuRadioItem,
-  SidebarUserMenuSeparator,
-  SidebarUserMenuSub,
-  SidebarUserMenuSubContent,
-  SidebarUserMenuSubTrigger,
-  SidebarUserMenuTrigger,
-  SidebarUserMenuUser,
-  SidebarUserMenuWorkspaceGroup,
-  SidebarUserMenuWorkspaceItem,
-  SidebarUserMenuWorkspaceLabel,
-} from "@/components/thread-ui/sidebar-user-menu";
+  SidebarAccountMenu,
+  SidebarAccountMenuContent,
+  SidebarAccountMenuItem,
+  SidebarAccountMenuRadioGroup,
+  SidebarAccountMenuRadioItem,
+  SidebarAccountMenuSeparator,
+  SidebarAccountMenuSub,
+  SidebarAccountMenuSubContent,
+  SidebarAccountMenuSubTrigger,
+  SidebarAccountMenuTrigger,
+  SidebarAccountMenuUser,
+  SidebarAccountMenuWorkspaceGroup,
+  SidebarAccountMenuWorkspaceItem,
+  SidebarAccountMenuWorkspaceLabel,
+} from "@/components/thread-ui/sidebar-account-menu";
 
 export const workspaces = [
   { id: "north", name: "North Studio", description: "Production workspace" },
@@ -45,8 +45,8 @@ export const workspaces = [
   { id: "west", name: "West Studio", description: "west.example.com" },
 ];
 
-export type SidebarUserMenuExampleProps = Omit<
-  SidebarUserMenuProps,
+export type SidebarAccountMenuExampleProps = Omit<
+  SidebarAccountMenuProps,
   "children"
 > & {
   workspaces?: readonly Workspace[];
@@ -90,7 +90,9 @@ function DemoLink({
 }
 
 /** Language changes stay local to this example, including portaled submenus. */
-export function SidebarUserMenuExample(args: SidebarUserMenuExampleProps) {
+export function SidebarAccountMenuExample(
+  args: SidebarAccountMenuExampleProps,
+) {
   const { i18n } = useTranslation();
   const instance = useMemo(() => i18n.cloneInstance(), [i18n]);
   return (
@@ -112,7 +114,7 @@ function MenuExampleContent({
   onSignOut,
   linkItems = false,
   ...args
-}: SidebarUserMenuExampleProps) {
+}: SidebarAccountMenuExampleProps) {
   const { t, i18n } = useTranslation("thread-ui");
   const [theme, setTheme] = useState("light");
   useEffect(() => {
@@ -149,11 +151,11 @@ function MenuExampleContent({
   };
   return (
     <div className="w-64 max-w-full space-y-4">
-      <SidebarUserMenu {...args} currentWorkspace={selected}>
-        <SidebarUserMenuTrigger />
-        <SidebarUserMenuContent>
+      <SidebarAccountMenu {...args} currentWorkspace={selected}>
+        <SidebarAccountMenuTrigger />
+        <SidebarAccountMenuContent>
           {recent.length > 0 && (
-            <SidebarUserMenuWorkspaceGroup
+            <SidebarAccountMenuWorkspaceGroup
               value={value ?? ""}
               onValueChange={(next: string) => {
                 if (next !== value) {
@@ -162,9 +164,9 @@ function MenuExampleContent({
                 }
               }}
             >
-              <SidebarUserMenuWorkspaceLabel />
+              <SidebarAccountMenuWorkspaceLabel />
               {recent.map((workspace) => (
-                <SidebarUserMenuWorkspaceItem
+                <SidebarAccountMenuWorkspaceItem
                   key={workspace.id}
                   workspace={workspace}
                   render={
@@ -180,26 +182,26 @@ function MenuExampleContent({
                   }
                 />
               ))}
-            </SidebarUserMenuWorkspaceGroup>
+            </SidebarAccountMenuWorkspaceGroup>
           )}
           {onCreateWorkspace && (
             <>
-              {recent.length > 0 && <SidebarUserMenuSeparator />}
-              <SidebarUserMenuItem
+              {recent.length > 0 && <SidebarAccountMenuSeparator />}
+              <SidebarAccountMenuItem
                 className="min-h-10"
                 onClick={() =>
                   action("Create workspace requested", onCreateWorkspace)
                 }
               >
                 <PlusIcon aria-hidden="true" />
-                {t("sidebarUserMenu.create")}
-              </SidebarUserMenuItem>
+                {t("sidebarAccountMenu.create")}
+              </SidebarAccountMenuItem>
             </>
           )}
           {args.user && (
             <>
-              {hasWorkspaceSection && <SidebarUserMenuSeparator />}
-              <SidebarUserMenuUser
+              {hasWorkspaceSection && <SidebarAccountMenuSeparator />}
+              <SidebarAccountMenuUser
                 render={linkItems ? <DemoLink to="#profile" /> : undefined}
                 onClick={
                   onProfile
@@ -207,67 +209,67 @@ function MenuExampleContent({
                     : undefined
                 }
               />
-              <SidebarUserMenuSeparator />
+              <SidebarAccountMenuSeparator />
             </>
           )}
           {linkItems && (
             <>
-              {!args.user && <SidebarUserMenuSeparator />}
-              <SidebarUserMenuItem
+              {!args.user && <SidebarAccountMenuSeparator />}
+              <SidebarAccountMenuItem
                 className="min-h-10"
                 render={(props) => <DemoLink {...props} to="#billing" />}
                 onClick={() => action("Billing requested")}
               >
                 <CreditCardIcon aria-hidden="true" />
                 Billing
-              </SidebarUserMenuItem>
-              <SidebarUserMenuItem
+              </SidebarAccountMenuItem>
+              <SidebarAccountMenuItem
                 disabled
                 className="min-h-10"
                 render={<DemoLink to="#audit" />}
               >
                 <LockKeyholeIcon aria-hidden="true" />
                 Audit log
-              </SidebarUserMenuItem>
+              </SidebarAccountMenuItem>
             </>
           )}
-          {!args.user && !linkItems && <SidebarUserMenuSeparator />}
-          <SidebarUserMenuSub>
-            <SidebarUserMenuSubTrigger className="min-h-10">
+          {!args.user && !linkItems && <SidebarAccountMenuSeparator />}
+          <SidebarAccountMenuSub>
+            <SidebarAccountMenuSubTrigger className="min-h-10">
               <LanguagesIcon aria-hidden="true" />
-              {t("sidebarUserMenu.language")}
-            </SidebarUserMenuSubTrigger>
-            <SidebarUserMenuSubContent>
-              <SidebarUserMenuRadioGroup
+              {t("sidebarAccountMenu.language")}
+            </SidebarAccountMenuSubTrigger>
+            <SidebarAccountMenuSubContent>
+              <SidebarAccountMenuRadioGroup
                 value={i18n.resolvedLanguage ?? "en"}
                 onValueChange={(next: string) => {
                   void i18n.changeLanguage(next);
                 }}
               >
-                <SidebarUserMenuRadioItem
+                <SidebarAccountMenuRadioItem
                   closeOnClick
                   className="min-h-10"
                   value="en"
                 >
                   English
-                </SidebarUserMenuRadioItem>
-                <SidebarUserMenuRadioItem
+                </SidebarAccountMenuRadioItem>
+                <SidebarAccountMenuRadioItem
                   closeOnClick
                   className="min-h-10"
                   value="zh"
                 >
                   中文
-                </SidebarUserMenuRadioItem>
-              </SidebarUserMenuRadioGroup>
-            </SidebarUserMenuSubContent>
-          </SidebarUserMenuSub>
-          <SidebarUserMenuSub>
-            <SidebarUserMenuSubTrigger className="min-h-10">
+                </SidebarAccountMenuRadioItem>
+              </SidebarAccountMenuRadioGroup>
+            </SidebarAccountMenuSubContent>
+          </SidebarAccountMenuSub>
+          <SidebarAccountMenuSub>
+            <SidebarAccountMenuSubTrigger className="min-h-10">
               <SunMoonIcon aria-hidden="true" />
-              {t("sidebarUserMenu.theme")}
-            </SidebarUserMenuSubTrigger>
-            <SidebarUserMenuSubContent>
-              <SidebarUserMenuRadioGroup
+              {t("sidebarAccountMenu.theme")}
+            </SidebarAccountMenuSubTrigger>
+            <SidebarAccountMenuSubContent>
+              <SidebarAccountMenuRadioGroup
                 value={theme}
                 onValueChange={(next: string) =>
                   document.documentElement.classList.toggle(
@@ -276,51 +278,53 @@ function MenuExampleContent({
                   )
                 }
               >
-                <SidebarUserMenuRadioItem
+                <SidebarAccountMenuRadioItem
                   closeOnClick
                   className="min-h-10"
                   value="light"
                 >
                   {i18n.language === "zh" ? "浅色" : "Light"}
-                </SidebarUserMenuRadioItem>
-                <SidebarUserMenuRadioItem
+                </SidebarAccountMenuRadioItem>
+                <SidebarAccountMenuRadioItem
                   closeOnClick
                   className="min-h-10"
                   value="dark"
                 >
                   {i18n.language === "zh" ? "深色" : "Dark"}
-                </SidebarUserMenuRadioItem>
-              </SidebarUserMenuRadioGroup>
-            </SidebarUserMenuSubContent>
-          </SidebarUserMenuSub>
+                </SidebarAccountMenuRadioItem>
+              </SidebarAccountMenuRadioGroup>
+            </SidebarAccountMenuSubContent>
+          </SidebarAccountMenuSub>
           {onHelp && (
-            <SidebarUserMenuItem
+            <SidebarAccountMenuItem
               className="min-h-10"
               render={linkItems ? <DemoLink to="#help" /> : undefined}
               onClick={onHelp}
             >
               <CircleHelpIcon aria-hidden="true" />
-              {t("sidebarUserMenu.help")}
-            </SidebarUserMenuItem>
+              {t("sidebarAccountMenu.help")}
+            </SidebarAccountMenuItem>
           )}
           {onSignOut && (
             <>
-              <SidebarUserMenuSeparator />
-              <SidebarUserMenuItem className="min-h-10" onClick={onSignOut}>
+              <SidebarAccountMenuSeparator />
+              <SidebarAccountMenuItem className="min-h-10" onClick={onSignOut}>
                 <LogOutIcon aria-hidden="true" />
-                {t("sidebarUserMenu.signOut")}
-              </SidebarUserMenuItem>
+                {t("sidebarAccountMenu.signOut")}
+              </SidebarAccountMenuItem>
             </>
           )}
-        </SidebarUserMenuContent>
-      </SidebarUserMenu>
+        </SidebarAccountMenuContent>
+      </SidebarAccountMenu>
       {message && <p role="status">{message}</p>}
     </div>
   );
 }
-SidebarUserMenuExample.displayName = "SidebarUserMenuExample";
+SidebarAccountMenuExample.displayName = "SidebarAccountMenuExample";
 
-export function SidebarUserMenuLinksExample(args: SidebarUserMenuExampleProps) {
-  return <SidebarUserMenuExample {...args} linkItems />;
+export function SidebarAccountMenuLinksExample(
+  args: SidebarAccountMenuExampleProps,
+) {
+  return <SidebarAccountMenuExample {...args} linkItems />;
 }
-SidebarUserMenuLinksExample.displayName = "SidebarUserMenuLinksExample";
+SidebarAccountMenuLinksExample.displayName = "SidebarAccountMenuLinksExample";

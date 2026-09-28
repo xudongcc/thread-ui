@@ -7,7 +7,7 @@ description: Two-column application shell with sidebar navigation and independen
 
 ```bash
 pnpm dlx shadcn@latest add @thread-ui/default-theme
-pnpm dlx shadcn@latest add @thread-ui/layout @thread-ui/sidebar-user-menu
+pnpm dlx shadcn@latest add @thread-ui/layout @thread-ui/sidebar-account-menu
 ```
 
 ## Composition API
@@ -15,7 +15,7 @@ pnpm dlx shadcn@latest add @thread-ui/layout @thread-ui/sidebar-user-menu
 `Layout` provides `SidebarProvider` with a fixed viewport height. Compose
 `LayoutSidebar` and `LayoutContent` directly, including through fragments or custom
 components. Place branding in `SidebarHeader`, existing navigation in
-`SidebarContent`, and `SidebarUserMenu` in `SidebarFooter`.
+`SidebarContent`, and `SidebarAccountMenu` in `SidebarFooter`.
 
 ```tsx
 import { ShoppingBagIcon } from "lucide-react";
@@ -26,11 +26,11 @@ import {
 } from "@/components/thread-ui/layout";
 import { Page } from "@/components/thread-ui/page";
 import {
-  SidebarUserMenu,
-  SidebarUserMenuTrigger,
-  SidebarUserMenuContent,
-  SidebarUserMenuUser,
-} from "@/components/thread-ui/sidebar-user-menu";
+  SidebarAccountMenu,
+  SidebarAccountMenuTrigger,
+  SidebarAccountMenuContent,
+  SidebarAccountMenuUser,
+} from "@/components/thread-ui/sidebar-account-menu";
 import {
   SidebarHeader,
   SidebarContent,
@@ -96,14 +96,14 @@ function Navigation() {
         </nav>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarUserMenu
+        <SidebarAccountMenu
           user={{ name: "Alex Morgan", email: "alex@example.com" }}
         >
-          <SidebarUserMenuTrigger />
-          <SidebarUserMenuContent>
-            <SidebarUserMenuUser render={<a href="/profile" />} />
-          </SidebarUserMenuContent>
-        </SidebarUserMenu>
+          <SidebarAccountMenuTrigger />
+          <SidebarAccountMenuContent>
+            <SidebarAccountMenuUser render={<a href="/profile" />} />
+          </SidebarAccountMenuContent>
+        </SidebarAccountMenu>
       </SidebarFooter>
     </LayoutSidebar>
   );
@@ -155,7 +155,7 @@ visible on desktop, including the collapsed rail. Set `aria-label` and tooltip
 text to the same translated action label. The example uses `layout.expandNavigation`
 and `layout.collapseNavigation` from the locale dictionary.
 Add `tooltip` and `aria-label` to icon-only navigation buttons, and hide custom
-text with `group-data-[collapsible=icon]:hidden`. SidebarUserMenu automatically
+text with `group-data-[collapsible=icon]:hidden`. SidebarAccountMenu automatically
 reduces its default trigger to the avatar.
 
 Below 768px, Sidebar opens as the existing shadcn Sheet with Escape/outside-click

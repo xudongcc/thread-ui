@@ -234,9 +234,9 @@ importers:
       '@repo/shadcn-ui':
         specifier: workspace:*
         version: link:../../packages/shadcn-ui
-      '@repo/sidebar-user-menu':
+      '@repo/sidebar-account-menu':
         specifier: workspace:*
-        version: link:../../components/sidebar-user-menu
+        version: link:../../components/sidebar-account-menu
       '@repo/textarea':
         specifier: workspace:*
         version: link:../../components/textarea
@@ -1114,7 +1114,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  components/sidebar-user-menu:
+  components/sidebar-account-menu:
     dependencies:
       '@repo/locales':
         specifier: workspace:*

@@ -13,7 +13,7 @@ const registryPackages = [
     repoDependencies: ["@repo/locales"],
   },
   {
-    name: "sidebar-user-menu",
+    name: "sidebar-account-menu",
     dependencies: ["react-i18next"],
     repoDependencies: ["@repo/locales"],
   },

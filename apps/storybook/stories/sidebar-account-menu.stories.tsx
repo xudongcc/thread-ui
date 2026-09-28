@@ -1,14 +1,14 @@
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
 import {
-  SidebarUserMenuExample,
-  SidebarUserMenuLinksExample,
+  SidebarAccountMenuExample,
+  SidebarAccountMenuLinksExample,
   workspaces,
-} from "./examples/sidebar-user-menu";
-import implementation from "./examples/sidebar-user-menu.tsx?raw";
+} from "./examples/sidebar-account-menu";
+import implementation from "./examples/sidebar-account-menu.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { SidebarUserMenuExampleProps } from "./examples/sidebar-user-menu";
+import type { SidebarAccountMenuExampleProps } from "./examples/sidebar-account-menu";
 
 const accountArgs = {
   user: { name: "Alex Morgan", email: "alex@example.com" },
@@ -18,9 +18,9 @@ const accountArgs = {
 };
 
 const meta = {
-  id: "components-sidebarusermenu",
-  title: "Layout/SidebarUserMenu",
-  component: SidebarUserMenuExample,
+  id: "components-sidebaraccountmenu",
+  title: "Layout/SidebarAccountMenu",
+  component: SidebarAccountMenuExample,
   args: {
     ...accountArgs,
     workspaces,
@@ -35,17 +35,17 @@ const meta = {
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
   },
-  render: (args) => <SidebarUserMenuExample {...args} />,
+  render: (args) => <SidebarAccountMenuExample {...args} />,
   parameters: {
     docs: {
       source: withExampleSource(implementation),
       description: {
         component:
-          "Composition-only workspace/account menu. Compose SidebarUserMenuTrigger, SidebarUserMenuContent, SidebarUserMenuWorkspaceGroup and SidebarUserMenuUser with shadcn radio items, menu items and separators. This demo shows at most three recent tenants including the current tenant. No search or generated menu content.",
+          "Composition-only workspace/account menu. Compose SidebarAccountMenuTrigger, SidebarAccountMenuContent, SidebarAccountMenuWorkspaceGroup and SidebarAccountMenuUser with shadcn radio items, menu items and separators. This demo shows at most three recent tenants including the current tenant. No search or generated menu content.",
       },
     },
   },
-} satisfies Meta<SidebarUserMenuExampleProps>;
+} satisfies Meta<SidebarAccountMenuExampleProps>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
@@ -288,7 +288,7 @@ export const UserOnly: Story = {
 
 export const Links: Story = {
   name: "Framework links",
-  render: (args) => <SidebarUserMenuLinksExample {...args} />,
+  render: (args) => <SidebarAccountMenuLinksExample {...args} />,
   globals: { locale: "en" },
   play: testOnly(async ({ args, canvas, canvasElement }) => {
     const body = within(canvasElement.ownerDocument.body);

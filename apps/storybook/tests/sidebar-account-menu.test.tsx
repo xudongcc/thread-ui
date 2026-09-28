@@ -7,15 +7,15 @@ import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
 import type { ReactNode } from "react";
 import type { Root } from "react-dom/client";
-import type { SidebarUserMenuTriggerProps } from "@/components/thread-ui/sidebar-user-menu";
+import type { SidebarAccountMenuTriggerProps } from "@/components/thread-ui/sidebar-account-menu";
 import {
-  SidebarUserMenu,
-  SidebarUserMenuContent,
-  SidebarUserMenuTrigger,
-  SidebarUserMenuUser,
-  SidebarUserMenuWorkspaceGroup,
-  SidebarUserMenuWorkspaceItem,
-} from "@/components/thread-ui/sidebar-user-menu";
+  SidebarAccountMenu,
+  SidebarAccountMenuContent,
+  SidebarAccountMenuTrigger,
+  SidebarAccountMenuUser,
+  SidebarAccountMenuWorkspaceGroup,
+  SidebarAccountMenuWorkspaceItem,
+} from "@/components/thread-ui/sidebar-account-menu";
 import { AvatarImage } from "@/components/ui/avatar";
 import "../styles.css";
 
@@ -39,15 +39,18 @@ function mount(children: ReactNode) {
     root!.render(<I18nextProvider i18n={i18n}>{children}</I18nextProvider>),
   );
 }
-function menu(triggerProps: SidebarUserMenuTriggerProps = {}, loading = false) {
+function menu(
+  triggerProps: SidebarAccountMenuTriggerProps = {},
+  loading = false,
+) {
   return (
     <div className="w-64">
-      <SidebarUserMenu loading={loading} user={{ name: "Alex Morgan" }}>
-        <SidebarUserMenuTrigger {...triggerProps} />
-        <SidebarUserMenuContent>
-          <SidebarUserMenuUser onClick={() => {}} />
-        </SidebarUserMenuContent>
-      </SidebarUserMenu>
+      <SidebarAccountMenu loading={loading} user={{ name: "Alex Morgan" }}>
+        <SidebarAccountMenuTrigger {...triggerProps} />
+        <SidebarAccountMenuContent>
+          <SidebarAccountMenuUser onClick={() => {}} />
+        </SidebarAccountMenuContent>
+      </SidebarAccountMenu>
     </div>
   );
 }
@@ -58,7 +61,7 @@ for (const width of [375, 1280]) {
       await page.viewport(width, 800);
       const ref = createRef<HTMLButtonElement>();
       const onClick = vi.fn();
-      const render: SidebarUserMenuTriggerProps["render"] =
+      const render: SidebarAccountMenuTriggerProps["render"] =
         mode === "element" ? (
           <button />
         ) : (
@@ -146,7 +149,7 @@ for (const kind of ["user", "workspace"] as const) {
         );
       const workspace = { id: "north", name: "North Studio", icon: visual };
       mount(
-        <SidebarUserMenu
+        <SidebarAccountMenu
           currentWorkspace={kind === "workspace" ? workspace : undefined}
           user={
             kind === "user"
@@ -154,17 +157,17 @@ for (const kind of ["user", "workspace"] as const) {
               : undefined
           }
         >
-          <SidebarUserMenuTrigger />
-          <SidebarUserMenuContent>
+          <SidebarAccountMenuTrigger />
+          <SidebarAccountMenuContent>
             {kind === "user" ? (
-              <SidebarUserMenuUser onClick={() => {}} />
+              <SidebarAccountMenuUser onClick={() => {}} />
             ) : (
-              <SidebarUserMenuWorkspaceGroup value="north">
-                <SidebarUserMenuWorkspaceItem workspace={workspace} />
-              </SidebarUserMenuWorkspaceGroup>
+              <SidebarAccountMenuWorkspaceGroup value="north">
+                <SidebarAccountMenuWorkspaceItem workspace={workspace} />
+              </SidebarAccountMenuWorkspaceGroup>
             )}
-          </SidebarUserMenuContent>
-        </SidebarUserMenu>,
+          </SidebarAccountMenuContent>
+        </SidebarAccountMenu>,
       );
       await page.getByRole("button").click();
       await expect.element(page.getByRole("menu")).toBeVisible();
@@ -207,12 +210,12 @@ for (const styleMode of ["object", "callback"] as const) {
     const style = { letterSpacing: "1px" };
     const getStyle = vi.fn(() => style);
     mount(
-      <SidebarUserMenu
+      <SidebarAccountMenu
         user={{ name: "Alex Morgan", email: "alex@example.com" }}
       >
-        <SidebarUserMenuTrigger />
-        <SidebarUserMenuContent>
-          <SidebarUserMenuUser
+        <SidebarAccountMenuTrigger />
+        <SidebarAccountMenuContent>
+          <SidebarAccountMenuUser
             ref={ref}
             disabled
             aria-label="Current account"
@@ -226,8 +229,8 @@ for (const styleMode of ["object", "callback"] as const) {
             variant="destructive"
             onMouseEnter={onMouseEnter}
           />
-        </SidebarUserMenuContent>
-      </SidebarUserMenu>,
+        </SidebarAccountMenuContent>
+      </SidebarAccountMenu>,
     );
     await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
     const row = page.getByTestId("informational-user");
@@ -264,10 +267,10 @@ for (const mode of ["action", "link"] as const) {
     const ref = createRef<HTMLDivElement>();
     const onClick = vi.fn((event) => event.preventDefault());
     mount(
-      <SidebarUserMenu user={{ name: "Alex Morgan" }}>
-        <SidebarUserMenuTrigger />
-        <SidebarUserMenuContent>
-          <SidebarUserMenuUser
+      <SidebarAccountMenu user={{ name: "Alex Morgan" }}>
+        <SidebarAccountMenuTrigger />
+        <SidebarAccountMenuContent>
+          <SidebarAccountMenuUser
             ref={ref}
             aria-label="Manage my account"
             closeOnClick={false}
@@ -276,8 +279,8 @@ for (const mode of ["action", "link"] as const) {
             title="Profile"
             onClick={onClick}
           />
-        </SidebarUserMenuContent>
-      </SidebarUserMenu>,
+        </SidebarAccountMenuContent>
+      </SidebarAccountMenu>,
     );
     await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
     const row = page.getByRole("menuitem", { name: "Manage my account" });

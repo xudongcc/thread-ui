@@ -262,7 +262,7 @@
     "expandNavigation": "展开导航",
     "collapseNavigation": "收起导航"
   },
-  "sidebarUserMenu": {
+  "sidebarAccountMenu": {
     "choose": "选择工作空间",
     "switch": "切换工作空间：{{name}}",
     "recentWorkspaces": "最近的工作空间",
