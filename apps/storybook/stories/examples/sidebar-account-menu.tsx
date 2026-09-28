@@ -1,8 +1,8 @@
 import {
-  Building2Icon,
   CircleHelpIcon,
   CreditCardIcon,
   LanguagesIcon,
+  LayoutGridIcon,
   LockKeyholeIcon,
   LogOutIcon,
   SunMoonIcon,
@@ -174,7 +174,7 @@ function MenuExampleContent({
             render={<DemoLink to="#workspaces" />}
             onClick={() => setMessage("Workspaces requested")}
           >
-            <Building2Icon aria-hidden="true" />
+            <LayoutGridIcon aria-hidden="true" />
             {t("sidebarAccountMenu.workspaces")}
           </SidebarAccountMenuItem>
         )}

@@ -1,6 +1,5 @@
 import {
   BellIcon,
-  Building2Icon,
   ChartNoAxesCombinedIcon,
   CircleHelpIcon,
   CreditCardIcon,
@@ -314,7 +313,7 @@ function ApplicationContent({
                 if (isMobile) setOpenMobile(false);
               }}
             >
-              <Building2Icon aria-hidden="true" />
+              <LayoutGridIcon aria-hidden="true" />
               {t("sidebarAccountMenu.workspaces")}
             </SidebarAccountMenuItem>
             <SidebarAccountMenuItem
@@ -439,7 +438,7 @@ function ApplicationContent({
                             setPage(initialPage);
                           }}
                         >
-                          <Building2Icon aria-hidden="true" />
+                          <LayoutGridIcon aria-hidden="true" />
                           {item.name}
                         </Button>
                       ))}
