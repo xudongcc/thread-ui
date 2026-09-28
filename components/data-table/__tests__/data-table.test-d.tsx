@@ -1,5 +1,10 @@
 import { DataTable, createDataTableColumnHelper } from "../index";
-import type { DataTableColumnProps, DataTableField } from "../index";
+import type {
+  DataTableCellContext,
+  DataTableColumnProps,
+  DataTableField,
+  DataTableHeaderContext,
+} from "../index";
 
 interface Item {
   id: string;
@@ -124,7 +129,7 @@ interface Product {
 }
 
 const productColumn = createDataTableColumnHelper<Product>();
-const nameColumn = productColumn.accessor("customer.name", {
+const nameColumn = productColumn.field("customer.name", {
   header: "Customer",
   render: (props, { getValue, row }) => {
     const value: string | undefined = getValue();
@@ -136,7 +141,7 @@ const nameColumn = productColumn.accessor("customer.name", {
     return <span {...props}>{value ?? product.id}</span>;
   },
 });
-const priceColumn = productColumn.accessor("price", {
+const priceColumn = productColumn.field("price", {
   type: "currency",
   currency: "USD",
   render: (props, { getValue }) => {
@@ -146,7 +151,7 @@ const priceColumn = productColumn.accessor("price", {
     return <span {...props}>{value.toFixed(2)}</span>;
   },
 });
-const computedColumn = productColumn.accessor(
+const computedColumn = productColumn.getValue(
   (product, index) => `${index}: ${product.id}`,
   {
     id: "summary",
@@ -162,13 +167,13 @@ export const inferredColumns = productColumn.columns([
   nameColumn,
   priceColumn,
   computedColumn,
-  productColumn.accessor("customer.address.city", {
+  productColumn.field("customer.address.city", {
     render: (props, { getValue }) => {
       const value: string | undefined = getValue();
       return <span {...props}>{value}</span>;
     },
   }),
-  productColumn.accessor("tags.0", {
+  productColumn.field("tags.0", {
     render: (props, { getValue }) => {
       const value: string | undefined = getValue();
       // @ts-expect-error An array may have no entry at the requested index.
@@ -176,14 +181,14 @@ export const inferredColumns = productColumn.columns([
       return <span {...props}>{value}</span>;
     },
   }),
-  productColumn.accessor("pair.1", {
+  productColumn.field("pair.1", {
     render: (props, { getValue }) => {
       const value: number = getValue();
       return <span {...props}>{value}</span>;
     },
   }),
-  productColumn.accessor("parent.parent.price", {}),
-  productColumn.accessor("createdAt", { type: "datetime" }),
+  productColumn.field("parent.parent.price", {}),
+  productColumn.field("createdAt", { type: "datetime" }),
   { id: "label", header: "Label" },
 ]);
 export const inferredTable = (
@@ -196,26 +201,26 @@ export const typedAccessor:
   ((row: Product, index: number) => number) | undefined = priceColumn.getValue;
 
 // @ts-expect-error Misspelled nested field paths are rejected.
-productColumn.accessor("customer.nmae", {});
+productColumn.field("customer.nmae", {});
 // @ts-expect-error Tuple positions are checked.
-productColumn.accessor("pair.2", {});
+productColumn.field("pair.2", {});
 // @ts-expect-error Dates are leaf values, not nested object paths.
-productColumn.accessor("createdAt.toISOString", {});
+productColumn.field("createdAt.toISOString", {});
 // @ts-expect-error Arrays use numeric indices, not implicit property projection.
-productColumn.accessor("tags.name", {});
+productColumn.field("tags.name", {});
 // @ts-expect-error Decimal array paths would be split into separate path segments.
-productColumn.accessor("tags.1.5", {});
+productColumn.field("tags.1.5", {});
 // @ts-expect-error Currency requirements remain intact in helper options.
-productColumn.accessor("price", { type: "currency" });
+productColumn.field("price", { type: "currency" });
 // @ts-expect-error Formatting options remain exclusive to their column type.
-productColumn.accessor("price", { type: "number", timeZone: "UTC" });
+productColumn.field("price", { type: "number", timeZone: "UTC" });
 // @ts-expect-error A computed column needs an explicit stable ID.
-productColumn.accessor((product) => product.price * 2, {});
+productColumn.getValue((product) => product.price * 2, {});
 // @ts-expect-error The options cannot replace the inferred accessor.
-productColumn.accessor("price", { getValue: (product: Product) => product.id });
+productColumn.field("price", { getValue: (product: Product) => product.id });
 // @ts-expect-error The options cannot replace the inferred field.
-productColumn.accessor("price", { field: "id" });
-productColumn.accessor("price", {
+productColumn.field("price", { field: "id" });
+productColumn.field("price", {
   // @ts-expect-error Callback annotations must not alter inference from the accessor.
   render: (_props, { getValue }: { getValue: () => string }) => (
     <span>{getValue()}</span>
@@ -234,7 +239,7 @@ export const dynamicField: DataTableField<Record<string, unknown>> =
 productColumn.columns([{ type: "currency" }]);
 
 const dynamicColumn = createDataTableColumnHelper<{ payload: unknown }>();
-dynamicColumn.accessor("payload.value", {
+dynamicColumn.field("payload.value", {
   render: (props, { getValue }) => {
     // @ts-expect-error Dynamic data stays unknown rather than becoming any or undefined.
     const _value: string | undefined = getValue();
@@ -249,3 +254,82 @@ export const invalidInlineField = (
     data={[]}
   />
 );
+
+interface DictionaryRow {
+  id: string;
+  amounts: Record<string, number>;
+  numericAmounts: Record<number, number>;
+  customers: Record<string, { name: string }>;
+  knownAmounts: { total: number; [key: string]: number };
+  price: number;
+}
+const dictionaryColumn = createDataTableColumnHelper<DictionaryRow>();
+export const dictionaryColumns = dictionaryColumn.columns([
+  dictionaryColumn.field("amounts.missing", {
+    render: (props, { getValue }) => {
+      const value: number | undefined = getValue();
+      // @ts-expect-error An index signature does not guarantee that the key exists.
+      const _required: number = getValue();
+      return <span {...props}>{value?.toFixed(2) ?? "—"}</span>;
+    },
+  }),
+  dictionaryColumn.field("numericAmounts.123", {
+    render: (props, { getValue }) => {
+      const value: number | undefined = getValue();
+      // @ts-expect-error Numeric index signatures can also have missing entries.
+      const _required: number = getValue();
+      return <span {...props}>{value?.toFixed(2)}</span>;
+    },
+  }),
+  dictionaryColumn.field("customers.missing.name", {
+    render: (props, { getValue }) => {
+      const value: string | undefined = getValue();
+      // @ts-expect-error A missing dictionary parent makes nested values optional.
+      const _required: string = getValue();
+      return <span {...props}>{value?.toUpperCase()}</span>;
+    },
+  }),
+  dictionaryColumn.field("knownAmounts.total", {
+    render: (props, { getValue }) => {
+      const value: number = getValue();
+      return <span {...props}>{value.toFixed(2)}</span>;
+    },
+  }),
+  {
+    field: "price",
+    render: (props, { getValue, row }) => {
+      const value: unknown = getValue();
+      const id: string = row.original.id;
+      // @ts-expect-error Plain columns keep their unknown value contract.
+      const _required: number = getValue();
+      return (
+        <span {...props}>
+          {id}: {String(value)}
+        </span>
+      );
+    },
+  },
+]);
+
+const stringCell = (
+  _props: unknown,
+  { getValue }: DataTableCellContext<DictionaryRow, string>,
+) => <span>{getValue().toUpperCase()}</span>;
+const stringHeader = (
+  _props: unknown,
+  { column }: DataTableHeaderContext<DictionaryRow, string>,
+) => <span>{column.id}</span>;
+// @ts-expect-error A plain numeric column cannot bypass checking via columns().
+dictionaryColumn.columns([{ field: "price", render: stringCell }]);
+// @ts-expect-error The same guarantee applies to header callbacks.
+dictionaryColumn.columns([{ field: "price", header: stringHeader }]);
+
+// @ts-expect-error The old combined accessor API has been removed.
+productColumn.accessor("price", {});
+productColumn.getValue((row) => row.price, {
+  id: "computed",
+  // @ts-expect-error Computed callback annotations must not change the inferred return type.
+  render: (_props, { getValue }: { getValue: () => string }) => (
+    <span>{getValue()}</span>
+  ),
+});

@@ -34,8 +34,8 @@ interface User {
 
 const column = createDataTableColumnHelper<User>();
 const columns = column.columns([
-  column.accessor("name", { header: "Name" }),
-  column.accessor("email", { header: "Email" }),
+  column.field("name", { header: "Name" }),
+  column.field("email", { header: "Email" }),
 ]);
 
 const data: Array<User> = [
@@ -94,24 +94,24 @@ interface Order {
 
 const orderColumn = createDataTableColumnHelper<Order>();
 const columns = orderColumn.columns([
-  orderColumn.accessor("name", { header: "Name" }),
-  orderColumn.accessor("total", {
+  orderColumn.field("name", { header: "Name" }),
+  orderColumn.field("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  orderColumn.accessor("rate", {
+  orderColumn.field("rate", {
     header: "Rate",
     type: "percent",
     precision: 1,
   }),
-  orderColumn.accessor("elapsed", {
+  orderColumn.field("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
     style: "digital",
   }),
-  orderColumn.accessor("createdAt", {
+  orderColumn.field("createdAt", {
     header: "Created",
     type: "datetime",
     locale: "zh-CN",
@@ -191,9 +191,9 @@ An explicit `align` overrides the type default.
 ```tsx
 const column = createDataTableColumnHelper<User>();
 const columns = column.columns([
-  column.accessor("name", { header: "Name" }),
-  column.accessor("email", { header: "Email", align: "center" }),
-  column.accessor("id", { header: "ID", align: "right" }),
+  column.field("name", { header: "Name" }),
+  column.field("email", { header: "Email", align: "center" }),
+  column.field("id", { header: "ID", align: "right" }),
 ]);
 ```
 
@@ -248,9 +248,9 @@ The base properties are shared by all column types:
 
 ### Inferred column values
 
-`createDataTableColumnHelper<TData>()` follows the accessor-helper pattern: pass a
-field path or a function to `accessor`, and its raw value type is inferred in
-`render` and `header`. The helper uses Thread UI's own types, not TanStack types.
+`createDataTableColumnHelper<TData>()` provides `field(path, options)` for object
+fields and `getValue(fn, options)` for computed values. Both infer the raw value
+type in `render` and `header`. The helper uses Thread UI's own types, not TanStack types.
 
 ```tsx
 import {
@@ -266,18 +266,18 @@ interface Product {
 
 const column = createDataTableColumnHelper<Product>();
 const columns = column.columns([
-  column.accessor("price", {
+  column.field("price", {
     type: "currency",
     currency: "USD",
     header: "Price",
   }),
-  column.accessor("customer.name", {
+  column.field("customer.name", {
     header: "Customer",
     render: (props, { getValue }) => (
       <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
     ), // getValue(): string | undefined
   }),
-  column.accessor((product) => product.price * 2, {
+  column.getValue((product) => product.price * 2, {
     id: "doublePrice",
     header: "Double price",
     render: (props, { getValue }) => (
@@ -290,17 +290,22 @@ const products: Product[] = [{ id: "1", price: 12.5 }];
 <DataTable columns={columns} data={products} />;
 ```
 
-`accessor` requires an options object (use `{}` for a field with defaults).
-Computed accessors require `id`; `field` and `getValue` cannot be replaced in the
-options. Use `column.columns([...])` to combine columns with different value types.
-It keeps the same array at runtime and normalizes its type to
-`DataTableColumnProps<TData>[]` for the table; each callback is type-checked at its
-`accessor` call. Existing plain objects and explicit `TValue` remain supported.
+Both methods require an options object (use `{}` for a field with defaults).
+`getValue` requires `id`; `field` and `getValue` cannot be replaced in the options.
+Use `column.columns([...])` to combine columns with different value types. It keeps
+the same array at runtime and normalizes its type to `DataTableColumnProps<TData>[]`
+for the table. Each helper-created callback is checked at its `field` or `getValue`
+call. Plain objects passed to `columns` retain the public `unknown` value contract;
+use the helper when a renderer needs a specific value type. Existing plain objects
+and explicit `TValue` remain supported when passed directly to `DataTable`.
+
+The combined `accessor` method has been replaced by `field` and `getValue`.
 
 Field paths are checked in both the helper and plain column definitions. Nested
 objects, numeric array indices (`items.0.name`), and tuple positions are supported.
-Optional parents and potentially missing array entries infer `undefined`; nullable
-leaf values retain `null`. Paths are limited to six segments to support recursive
+Optional parents, potentially missing array entries, and dictionary index signatures
+infer `undefined`; explicitly declared required properties keep their exact types,
+and nullable leaf values retain `null`. Paths are limited to six segments to support recursive
 row models without unbounded type expansion. Use a computed accessor for deeper
 paths or dynamic access. Exported `DataTableField<TData>` and
 `DataTableFieldValue<TData, TField>` are available for reusable field selectors.
@@ -368,7 +373,7 @@ records. No TanStack instance or methods are exposed.
 ```tsx
 const column = createDataTableColumnHelper<User>();
 const columns = column.columns([
-  column.accessor((user) => `${user.name} <${user.email}>`, {
+  column.getValue((user) => `${user.name} <${user.email}>`, {
     id: "contact",
     header: "Contact",
     render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
@@ -393,7 +398,7 @@ its own label:
 ```tsx
 const column = createDataTableColumnHelper<User>();
 const columns = column.columns([
-  column.accessor("name", {
+  column.field("name", {
     header: <em>Name</em>,
     render: <strong />,
   }),

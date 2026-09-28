@@ -23,9 +23,9 @@ export const data: User[] = [
 ];
 const userColumn = createDataTableColumnHelper<User>();
 export const columns = userColumn.columns([
-  userColumn.accessor("name", { id: "name", header: "Name" }),
-  userColumn.accessor("email", { id: "email", header: "Email" }),
-  userColumn.accessor("role", { id: "role", header: "Role" }),
+  userColumn.field("name", { id: "name", header: "Name" }),
+  userColumn.field("email", { id: "email", header: "Email" }),
+  userColumn.field("role", { id: "role", header: "Role" }),
 ]);
 
 export function RowSelectionDataTableExample(
@@ -102,38 +102,38 @@ interface Order {
 
 const orderColumn = createDataTableColumnHelper<Order>();
 const typedColumns = orderColumn.columns([
-  orderColumn.accessor("id", { header: "Order" }),
-  orderColumn.accessor("quantity", {
+  orderColumn.field("id", { header: "Order" }),
+  orderColumn.field("quantity", {
     header: "Quantity",
     type: "number",
     precision: 0,
   }),
-  orderColumn.accessor("total", {
+  orderColumn.field("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  orderColumn.accessor("rate", {
+  orderColumn.field("rate", {
     header: "Rate",
     type: "percent",
     precision: 1,
   }),
-  orderColumn.accessor("elapsed", {
+  orderColumn.field("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
   }),
-  orderColumn.accessor("date", {
+  orderColumn.field("date", {
     header: "Date",
     type: "date",
     locale: "en-GB",
   }),
-  orderColumn.accessor("createdAt", {
+  orderColumn.field("createdAt", {
     header: "Created (Shanghai)",
     type: "datetime",
     locale: "zh-CN",
   }),
-  orderColumn.accessor("createdAt", {
+  orderColumn.field("createdAt", {
     id: "createdAtNewYork",
     header: "Time (New York)",
     type: "time",
@@ -177,18 +177,18 @@ export function TypedColumnsDataTableExample() {
 TypedColumnsDataTableExample.displayName = "TypedColumnsDataTableExample";
 
 const inferredColumns = userColumn.columns([
-  userColumn.accessor("name", {
+  userColumn.field("name", {
     header: "Name",
     render: (props, { getValue }) => (
       <strong {...props}>{getValue().toUpperCase()}</strong>
     ),
   }),
-  userColumn.accessor((user) => `${user.name} <${user.email}>`, {
+  userColumn.getValue((user) => `${user.name} <${user.email}>`, {
     id: "contact",
     header: "Contact",
     render: (props, { getValue }) => <span {...props}>{getValue()}</span>,
   }),
-  userColumn.accessor((user) => user.name.length, {
+  userColumn.getValue((user) => user.name.length, {
     id: "nameLength",
     header: "Name length",
     type: "number",
@@ -205,19 +205,19 @@ export function InferredValuesDataTableExample() {
 InferredValuesDataTableExample.displayName = "InferredValuesDataTableExample";
 
 export const customCellColumns = userColumn.columns([
-  userColumn.accessor((person) => `${person.name} <${person.email}>`, {
+  userColumn.getValue((person) => `${person.name} <${person.email}>`, {
     id: "contact",
     header: "Contact",
     render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
   }),
 ]);
 export const renderElementColumns = userColumn.columns([
-  userColumn.accessor("name", { header: <em>Name</em>, render: <strong /> }),
+  userColumn.field("name", { header: <em>Name</em>, render: <strong /> }),
 ]);
 export const alignedColumns = userColumn.columns([
-  userColumn.accessor("name", { header: "Name" }),
-  userColumn.accessor("role", { header: "Role", align: "center" }),
-  userColumn.accessor("id", { header: "ID", align: "right" }),
+  userColumn.field("name", { header: "Name" }),
+  userColumn.field("role", { header: "Role", align: "center" }),
+  userColumn.field("id", { header: "ID", align: "right" }),
 ]);
 export const pinnedColumns = columns.map((column, index) => ({
   ...column,

@@ -593,7 +593,7 @@ const initialOrders: Order[] = Array.from({ length: 24 }, (_, index) => ({
 
 const orderColumn = createDataTableColumnHelper<Order>();
 const orderColumns = orderColumn.columns([
-  orderColumn.accessor("id", {
+  orderColumn.field("id", {
     id: "id",
     header: "Order",
     size: 100,
@@ -603,7 +603,7 @@ const orderColumns = orderColumn.columns([
       </span>
     ),
   }),
-  orderColumn.accessor("customer", {
+  orderColumn.field("customer", {
     id: "customer",
     header: "Customer",
     size: 220,
@@ -616,7 +616,7 @@ const orderColumns = orderColumn.columns([
       </div>
     ),
   }),
-  orderColumn.accessor("status", {
+  orderColumn.field("status", {
     id: "status",
     header: "Fulfillment",
     size: 150,
@@ -626,7 +626,7 @@ const orderColumns = orderColumn.columns([
       </Badge>
     ),
   }),
-  orderColumn.accessor("total", {
+  orderColumn.field("total", {
     id: "total",
     header: "Total",
     size: 110,

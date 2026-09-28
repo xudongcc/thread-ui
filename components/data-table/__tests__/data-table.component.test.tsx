@@ -87,24 +87,24 @@ describe("DataTable", () => {
     }
     const helper = createDataTableColumnHelper<RecordData>();
     const inferredColumns = helper.columns([
-      helper.accessor("price", {
+      helper.field("price", {
         header: "Price",
         type: "currency",
         currency: "USD",
       }),
-      helper.accessor("customer.name", {
+      helper.field("customer.name", {
         header: "Customer",
         render: (props, { getValue }) => (
           <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
         ),
       }),
-      helper.accessor("tags.0", {
+      helper.field("tags.0", {
         header: "Tag",
         render: (props, { getValue }) => (
           <span {...props}>{getValue() ?? "No tag"}</span>
         ),
       }),
-      helper.accessor((row, index) => row.price * 2 + index, {
+      helper.getValue((row, index) => row.price * 2 + index, {
         id: "computed",
         header: "Computed",
         render: (props, { getValue }) => (
@@ -128,6 +128,52 @@ describe("DataTable", () => {
     expect(
       screen.getByRole("row", { name: "$20.00 Guest No tag 41.0" }),
     ).toBeTruthy();
+  });
+
+  it("renders missing dictionary values safely alongside declared properties", () => {
+    interface RecordData {
+      id: string;
+      amounts: { total: number; [key: string]: number };
+      customers: Record<string, { name: string }>;
+    }
+    const helper = createDataTableColumnHelper<RecordData>();
+    const columns = helper.columns([
+      helper.field("amounts.total", {
+        header: "Total",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue().toFixed(2)}</span>
+        ),
+      }),
+      helper.field("amounts.discount", {
+        header: "Discount",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue()?.toFixed(2) ?? "No discount"}</span>
+        ),
+      }),
+      helper.field("customers.primary.name", {
+        header: "Customer",
+        render: (props, { getValue }) => (
+          <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
+        ),
+      }),
+    ]);
+    renderWithProvider(
+      <DataTable
+        columns={columns}
+        data={[
+          { id: "1", amounts: { total: 12.5 }, customers: {} },
+          {
+            id: "2",
+            amounts: { total: 20, discount: 2 },
+            customers: { primary: { name: "Ada" } },
+          },
+        ]}
+      />,
+    );
+    expect(
+      screen.getByRole("row", { name: "12.50 No discount Guest" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("row", { name: "20.00 2.00 ADA" })).toBeTruthy();
   });
 
   it("uses column, table, and runtime formatting locales without translating UI labels", async () => {

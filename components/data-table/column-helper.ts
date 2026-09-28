@@ -7,32 +7,29 @@ import type {
   DataTableRenderProps,
 } from "./types";
 
-type Accessor<TData extends object> =
-  DataTableField<TData> | ((row: TData, index: number) => unknown);
-
-type AccessorValue<TData extends object, TAccessor> = TAccessor extends (
-  ...args: never[]
-) => infer TValue
-  ? TValue
-  : TAccessor extends string
-    ? DataTableFieldValue<TData, TAccessor>
-    : never;
-
 // Distribute over the union to preserve each formatting type's own options.
-type AccessorOptions<TColumn> = TColumn extends unknown
+type ColumnOptions<TColumn> = TColumn extends unknown
   ? Omit<TColumn, "field" | "getValue"> & {
       field?: never;
       getValue?: never;
     }
   : never;
 
-// A heterogeneous list has no single TValue. Only validate the column shape
-// here; each accessor call has already checked its render callback's value.
-type ColumnInput<
+// Only helper-built columns may erase their individual value types at the
+// table boundary. Plain objects must satisfy the public unknown-value contract.
+// Type-only marker: column objects remain plain, serializable configuration.
+declare const inferredColumn: unique symbol;
+type InferredColumn<TData extends object, TValue> = DataTableColumnProps<
+  TData,
+  TValue
+> & { readonly [inferredColumn]: true };
+
+type InferredColumnInput<
   TData extends object,
   TColumn = DataTableColumnProps<TData>,
 > = TColumn extends unknown
   ? Omit<TColumn, "header" | "render"> & {
+      readonly [inferredColumn]: true;
       header?:
         | ReactNode
         | ((props: DataTableRenderProps, state: never) => ReactElement);
@@ -40,26 +37,38 @@ type ColumnInput<
     }
   : never;
 
-/** Infer cell values from field paths or computed accessors without exposing the table engine. */
+/** Infer cell values from field paths or computed values without exposing the table engine. */
 export function createDataTableColumnHelper<TData extends object>() {
   return {
-    accessor<TAccessor extends Accessor<TData>>(
-      accessor: TAccessor,
-      options: AccessorOptions<
-        DataTableColumnProps<TData, NoInfer<AccessorValue<TData, TAccessor>>>
-      > &
-        (TAccessor extends string ? { id?: string } : { id: string }),
-    ): DataTableColumnProps<TData, AccessorValue<TData, TAccessor>> {
-      return {
-        ...options,
-        ...(typeof accessor === "function"
-          ? { getValue: accessor }
-          : { field: accessor }),
-      } as DataTableColumnProps<TData, AccessorValue<TData, TAccessor>>;
+    field<TField extends DataTableField<TData>>(
+      field: TField,
+      options: ColumnOptions<
+        DataTableColumnProps<TData, NoInfer<DataTableFieldValue<TData, TField>>>
+      >,
+    ): InferredColumn<TData, DataTableFieldValue<TData, TField>> {
+      return { ...options, field } as unknown as InferredColumn<
+        TData,
+        DataTableFieldValue<TData, TField>
+      >;
     },
-    columns(columns: ColumnInput<TData>[]): DataTableColumnProps<TData>[] {
-      // Erase individual value types only at the table boundary. The table
-      // supplies each callback with the value from that same column's accessor.
+    getValue<TValue>(
+      getValue: (row: TData, index: number) => TValue,
+      options: ColumnOptions<DataTableColumnProps<TData, NoInfer<TValue>>> & {
+        id: string;
+      },
+    ): InferredColumn<TData, TValue> {
+      return { ...options, getValue } as unknown as InferredColumn<
+        TData,
+        TValue
+      >;
+    },
+    columns(
+      columns: (
+        | InferredColumnInput<TData>
+        | (DataTableColumnProps<TData> & { [inferredColumn]?: never })
+      )[],
+    ): DataTableColumnProps<TData>[] {
+      // The helper has checked each inferred callback against its own value.
       return columns as unknown as DataTableColumnProps<TData>[];
     },
   };

@@ -17,30 +17,30 @@ interface Order {
 
 const column = createDataTableColumnHelper<Order>();
 const columns = column.columns([
-  column.accessor("id", { header: "Order" }),
-  column.accessor("quantity", {
+  column.field("id", { header: "Order" }),
+  column.field("quantity", {
     header: "Quantity",
     type: "number",
     precision: 0,
   }),
-  column.accessor("total", {
+  column.field("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  column.accessor("rate", { header: "Rate", type: "percent", precision: 1 }),
-  column.accessor("elapsed", {
+  column.field("rate", { header: "Rate", type: "percent", precision: 1 }),
+  column.field("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
   }),
-  column.accessor("date", { header: "Date", type: "date", locale: "en-GB" }),
-  column.accessor("createdAt", {
+  column.field("date", { header: "Date", type: "date", locale: "en-GB" }),
+  column.field("createdAt", {
     header: "Created (Shanghai)",
     type: "datetime",
     locale: "zh-CN",
   }),
-  column.accessor("createdAt", {
+  column.field("createdAt", {
     id: "createdAtNewYork",
     header: "Time (New York)",
     type: "time",

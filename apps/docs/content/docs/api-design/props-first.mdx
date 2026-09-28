@@ -61,7 +61,7 @@ customization points:
 ```tsx
 const column = createDataTableColumnHelper<{ id: string; status: string }>();
 const columns = column.columns([
-  column.accessor("status", {
+  column.field("status", {
     header: "Status",
     render: (props, { getValue }) => <Badge {...props}>{getValue()}</Badge>,
   }),

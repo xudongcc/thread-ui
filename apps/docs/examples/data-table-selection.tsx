@@ -17,15 +17,15 @@ interface User {
 
 const column = createDataTableColumnHelper<User>();
 const columns = column.columns([
-  column.accessor("name", {
+  column.field("name", {
     id: "name",
     header: "Name",
   }),
-  column.accessor("email", {
+  column.field("email", {
     id: "email",
     header: "Email",
   }),
-  column.accessor("role", {
+  column.field("role", {
     id: "role",
     header: "Role",
   }),
