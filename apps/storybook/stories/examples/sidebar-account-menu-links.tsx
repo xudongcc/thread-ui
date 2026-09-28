@@ -76,7 +76,6 @@ function SidebarAccountMenuLinksExampleContent({
         onWorkspaceChange={setWorkspaceId}
       >
         <SidebarAccountMenuItem
-          className="min-h-10"
           render={<DemoLink to="#workspaces" />}
           onClick={() => setMessage("Workspaces requested")}
         >
@@ -84,24 +83,18 @@ function SidebarAccountMenuLinksExampleContent({
           {t("sidebarAccountMenu.workspaces")}
         </SidebarAccountMenuItem>
         <SidebarAccountMenuItem
-          className="min-h-10"
           render={(props) => <DemoLink {...props} to="#billing" />}
           onClick={() => setMessage("Billing requested")}
         >
           <CreditCardIcon aria-hidden="true" />
           Billing
         </SidebarAccountMenuItem>
-        <SidebarAccountMenuItem
-          disabled
-          className="min-h-10"
-          render={<DemoLink to="#audit" />}
-        >
+        <SidebarAccountMenuItem disabled render={<DemoLink to="#audit" />}>
           <LockKeyholeIcon aria-hidden="true" />
           Audit log
         </SidebarAccountMenuItem>
         <AccountMenuPreferences />
         <SidebarAccountMenuItem
-          className="min-h-10"
           render={<DemoLink to="#help" />}
           onClick={() => setMessage("Help requested")}
         >
@@ -110,7 +103,6 @@ function SidebarAccountMenuLinksExampleContent({
         </SidebarAccountMenuItem>
         <SidebarAccountMenuSeparator />
         <SidebarAccountMenuItem
-          className="min-h-10"
           onClick={() => setMessage("Sign out requested")}
         >
           <LogOutIcon aria-hidden="true" />

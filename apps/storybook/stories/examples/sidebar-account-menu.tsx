@@ -60,7 +60,6 @@ function SidebarAccountMenuExampleContent({
         onWorkspaceChange={setWorkspaceId}
       >
         <SidebarAccountMenuItem
-          className="min-h-10"
           render={<DemoLink to="#workspaces" />}
           onClick={() => setMessage("Workspaces requested")}
         >
@@ -68,16 +67,12 @@ function SidebarAccountMenuExampleContent({
           {t("sidebarAccountMenu.workspaces")}
         </SidebarAccountMenuItem>
         <AccountMenuPreferences />
-        <SidebarAccountMenuItem
-          className="min-h-10"
-          onClick={() => setMessage("Help requested")}
-        >
+        <SidebarAccountMenuItem onClick={() => setMessage("Help requested")}>
           <CircleHelpIcon aria-hidden="true" />
           {t("sidebarAccountMenu.help")}
         </SidebarAccountMenuItem>
         <SidebarAccountMenuSeparator />
         <SidebarAccountMenuItem
-          className="min-h-10"
           onClick={() => setMessage("Sign out requested")}
         >
           <LogOutIcon aria-hidden="true" />

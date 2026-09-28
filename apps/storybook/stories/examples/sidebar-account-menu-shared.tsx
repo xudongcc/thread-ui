@@ -85,7 +85,7 @@ export function AccountMenuPreferences() {
   return (
     <>
       <SidebarAccountMenuSub>
-        <SidebarAccountMenuSubTrigger className="min-h-10">
+        <SidebarAccountMenuSubTrigger>
           <LanguagesIcon aria-hidden="true" />
           {t("sidebarAccountMenu.language")}
         </SidebarAccountMenuSubTrigger>
@@ -96,25 +96,17 @@ export function AccountMenuPreferences() {
               void i18n.changeLanguage(next);
             }}
           >
-            <SidebarAccountMenuRadioItem
-              closeOnClick
-              className="min-h-10"
-              value="en"
-            >
+            <SidebarAccountMenuRadioItem closeOnClick value="en">
               English
             </SidebarAccountMenuRadioItem>
-            <SidebarAccountMenuRadioItem
-              closeOnClick
-              className="min-h-10"
-              value="zh"
-            >
+            <SidebarAccountMenuRadioItem closeOnClick value="zh">
               中文
             </SidebarAccountMenuRadioItem>
           </SidebarAccountMenuRadioGroup>
         </SidebarAccountMenuSubContent>
       </SidebarAccountMenuSub>
       <SidebarAccountMenuSub>
-        <SidebarAccountMenuSubTrigger className="min-h-10">
+        <SidebarAccountMenuSubTrigger>
           <SunMoonIcon aria-hidden="true" />
           {t("sidebarAccountMenu.theme")}
         </SidebarAccountMenuSubTrigger>
@@ -125,18 +117,10 @@ export function AccountMenuPreferences() {
               document.documentElement.classList.toggle("dark", next === "dark")
             }
           >
-            <SidebarAccountMenuRadioItem
-              closeOnClick
-              className="min-h-10"
-              value="light"
-            >
+            <SidebarAccountMenuRadioItem closeOnClick value="light">
               {i18n.language === "zh" ? "浅色" : "Light"}
             </SidebarAccountMenuRadioItem>
-            <SidebarAccountMenuRadioItem
-              closeOnClick
-              className="min-h-10"
-              value="dark"
-            >
+            <SidebarAccountMenuRadioItem closeOnClick value="dark">
               {i18n.language === "zh" ? "深色" : "Dark"}
             </SidebarAccountMenuRadioItem>
           </SidebarAccountMenuRadioGroup>

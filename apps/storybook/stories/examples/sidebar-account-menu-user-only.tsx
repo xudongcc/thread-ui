@@ -44,16 +44,12 @@ function SidebarAccountMenuUserOnlyExampleContent({
         }
       >
         <AccountMenuPreferences />
-        <SidebarAccountMenuItem
-          className="min-h-10"
-          onClick={() => setMessage("Help requested")}
-        >
+        <SidebarAccountMenuItem onClick={() => setMessage("Help requested")}>
           <CircleHelpIcon aria-hidden="true" />
           {t("sidebarAccountMenu.help")}
         </SidebarAccountMenuItem>
         <SidebarAccountMenuSeparator />
         <SidebarAccountMenuItem
-          className="min-h-10"
           onClick={() => setMessage("Sign out requested")}
         >
           <LogOutIcon aria-hidden="true" />
