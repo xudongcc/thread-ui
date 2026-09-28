@@ -15,32 +15,40 @@ interface Order {
   elapsed: number;
 }
 
-const column = createDataTableColumnHelper<Order>();
-const columns = column.columns([
-  column.field("id", { header: "Order" }),
-  column.field("quantity", {
+const orderColumnHelper = createDataTableColumnHelper<Order>();
+const columns = orderColumnHelper.columns([
+  orderColumnHelper.field("id", { header: "Order" }),
+  orderColumnHelper.field("quantity", {
     header: "Quantity",
     type: "number",
     precision: 0,
   }),
-  column.field("total", {
+  orderColumnHelper.field("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  column.field("rate", { header: "Rate", type: "percent", precision: 1 }),
-  column.field("elapsed", {
+  orderColumnHelper.field("rate", {
+    header: "Rate",
+    type: "percent",
+    precision: 1,
+  }),
+  orderColumnHelper.field("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
   }),
-  column.field("date", { header: "Date", type: "date", locale: "en-GB" }),
-  column.field("createdAt", {
+  orderColumnHelper.field("date", {
+    header: "Date",
+    type: "date",
+    locale: "en-GB",
+  }),
+  orderColumnHelper.field("createdAt", {
     header: "Created (Shanghai)",
     type: "datetime",
     locale: "zh-CN",
   }),
-  column.field("createdAt", {
+  orderColumnHelper.field("createdAt", {
     id: "createdAtNewYork",
     header: "Time (New York)",
     type: "time",

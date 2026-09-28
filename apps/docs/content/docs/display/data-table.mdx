@@ -32,10 +32,10 @@ interface User {
   email: string;
 }
 
-const column = createDataTableColumnHelper<User>();
-const columns = column.columns([
-  column.field("name", { header: "Name" }),
-  column.field("email", { header: "Email" }),
+const userColumnHelper = createDataTableColumnHelper<User>();
+const columns = userColumnHelper.columns([
+  userColumnHelper.field("name", { header: "Name" }),
+  userColumnHelper.field("email", { header: "Email" }),
 ]);
 
 const data: Array<User> = [
@@ -92,26 +92,26 @@ interface Order {
   createdAt: string;
 }
 
-const orderColumn = createDataTableColumnHelper<Order>();
-const columns = orderColumn.columns([
-  orderColumn.field("name", { header: "Name" }),
-  orderColumn.field("total", {
+const orderColumnHelper = createDataTableColumnHelper<Order>();
+const columns = orderColumnHelper.columns([
+  orderColumnHelper.field("name", { header: "Name" }),
+  orderColumnHelper.field("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  orderColumn.field("rate", {
+  orderColumnHelper.field("rate", {
     header: "Rate",
     type: "percent",
     precision: 1,
   }),
-  orderColumn.field("elapsed", {
+  orderColumnHelper.field("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
     style: "digital",
   }),
-  orderColumn.field("createdAt", {
+  orderColumnHelper.field("createdAt", {
     header: "Created",
     type: "datetime",
     locale: "zh-CN",
@@ -189,11 +189,11 @@ cells. Numeric and duration types default to `"right"`; other types default to `
 An explicit `align` overrides the type default.
 
 ```tsx
-const column = createDataTableColumnHelper<User>();
-const columns = column.columns([
-  column.field("name", { header: "Name" }),
-  column.field("email", { header: "Email", align: "center" }),
-  column.field("id", { header: "ID", align: "right" }),
+const userColumnHelper = createDataTableColumnHelper<User>();
+const columns = userColumnHelper.columns([
+  userColumnHelper.field("name", { header: "Name" }),
+  userColumnHelper.field("email", { header: "Email", align: "center" }),
+  userColumnHelper.field("id", { header: "ID", align: "right" }),
 ]);
 ```
 
@@ -264,20 +264,20 @@ interface Product {
   customer?: { name: string };
 }
 
-const column = createDataTableColumnHelper<Product>();
-const columns = column.columns([
-  column.field("price", {
+const productColumnHelper = createDataTableColumnHelper<Product>();
+const columns = productColumnHelper.columns([
+  productColumnHelper.field("price", {
     type: "currency",
     currency: "USD",
     header: "Price",
   }),
-  column.field("customer.name", {
+  productColumnHelper.field("customer.name", {
     header: "Customer",
     render: (props, { getValue }) => (
       <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
     ), // getValue(): string | undefined
   }),
-  column.getValue((product) => product.price * 2, {
+  productColumnHelper.getValue((product) => product.price * 2, {
     id: "doublePrice",
     header: "Double price",
     render: (props, { getValue }) => (
@@ -292,7 +292,7 @@ const products: Product[] = [{ id: "1", price: 12.5 }];
 
 Both methods require an options object (use `{}` for a field with defaults).
 `getValue` requires `id`; `field` and `getValue` cannot be replaced in the options.
-Use `column.columns([...])` to combine columns with different value types. It keeps
+Use `productColumnHelper.columns([...])` to combine columns with different value types. It keeps
 the same array at runtime and normalizes its type to `DataTableColumnProps<TData>[]`
 for the table. Each helper-created callback is checked at its `field` or `getValue`
 call. Plain objects passed to `columns` retain the public `unknown` value contract;
@@ -371,9 +371,9 @@ contains only `{ id, index, original }`. `onRowSelectionChange` receives the ori
 records. No TanStack instance or methods are exposed.
 
 ```tsx
-const column = createDataTableColumnHelper<User>();
-const columns = column.columns([
-  column.getValue((user) => `${user.name} <${user.email}>`, {
+const userColumnHelper = createDataTableColumnHelper<User>();
+const columns = userColumnHelper.columns([
+  userColumnHelper.getValue((user) => `${user.name} <${user.email}>`, {
     id: "contact",
     header: "Contact",
     render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
@@ -396,9 +396,9 @@ The cell `render` element keeps the default value, while the header element supp
 its own label:
 
 ```tsx
-const column = createDataTableColumnHelper<User>();
-const columns = column.columns([
-  column.field("name", {
+const userColumnHelper = createDataTableColumnHelper<User>();
+const columns = userColumnHelper.columns([
+  userColumnHelper.field("name", {
     header: <em>Name</em>,
     render: <strong />,
   }),

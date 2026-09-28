@@ -12,17 +12,17 @@ interface User {
   role: string;
 }
 
-const column = createDataTableColumnHelper<User>();
-const columns = column.columns([
-  column.field("name", {
+const userColumnHelper = createDataTableColumnHelper<User>();
+const columns = userColumnHelper.columns([
+  userColumnHelper.field("name", {
     id: "name",
     header: "Name",
   }),
-  column.field("email", {
+  userColumnHelper.field("email", {
     id: "email",
     header: "Email",
   }),
-  column.field("role", {
+  userColumnHelper.field("role", {
     id: "role",
     header: "Role",
   }),

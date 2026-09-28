@@ -591,9 +591,9 @@ const initialOrders: Order[] = Array.from({ length: 24 }, (_, index) => ({
   total: 48 + index * 12.5,
 }));
 
-const orderColumn = createDataTableColumnHelper<Order>();
-const orderColumns = orderColumn.columns([
-  orderColumn.field("id", {
+const orderColumnHelper = createDataTableColumnHelper<Order>();
+const orderColumns = orderColumnHelper.columns([
+  orderColumnHelper.field("id", {
     id: "id",
     header: "Order",
     size: 100,
@@ -603,7 +603,7 @@ const orderColumns = orderColumn.columns([
       </span>
     ),
   }),
-  orderColumn.field("customer", {
+  orderColumnHelper.field("customer", {
     id: "customer",
     header: "Customer",
     size: 220,
@@ -616,7 +616,7 @@ const orderColumns = orderColumn.columns([
       </div>
     ),
   }),
-  orderColumn.field("status", {
+  orderColumnHelper.field("status", {
     id: "status",
     header: "Fulfillment",
     size: 150,
@@ -626,7 +626,7 @@ const orderColumns = orderColumn.columns([
       </Badge>
     ),
   }),
-  orderColumn.field("total", {
+  orderColumnHelper.field("total", {
     id: "total",
     header: "Total",
     size: 110,

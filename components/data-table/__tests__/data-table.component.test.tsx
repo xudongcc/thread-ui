@@ -85,26 +85,26 @@ describe("DataTable", () => {
       customer?: { name: string };
       tags: string[];
     }
-    const helper = createDataTableColumnHelper<RecordData>();
-    const inferredColumns = helper.columns([
-      helper.field("price", {
+    const recordDataColumnHelper = createDataTableColumnHelper<RecordData>();
+    const inferredColumns = recordDataColumnHelper.columns([
+      recordDataColumnHelper.field("price", {
         header: "Price",
         type: "currency",
         currency: "USD",
       }),
-      helper.field("customer.name", {
+      recordDataColumnHelper.field("customer.name", {
         header: "Customer",
         render: (props, { getValue }) => (
           <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
         ),
       }),
-      helper.field("tags.0", {
+      recordDataColumnHelper.field("tags.0", {
         header: "Tag",
         render: (props, { getValue }) => (
           <span {...props}>{getValue() ?? "No tag"}</span>
         ),
       }),
-      helper.getValue((row, index) => row.price * 2 + index, {
+      recordDataColumnHelper.getValue((row, index) => row.price * 2 + index, {
         id: "computed",
         header: "Computed",
         render: (props, { getValue }) => (
@@ -136,21 +136,21 @@ describe("DataTable", () => {
       amounts: { total: number; [key: string]: number };
       customers: Record<string, { name: string }>;
     }
-    const helper = createDataTableColumnHelper<RecordData>();
-    const columns = helper.columns([
-      helper.field("amounts.total", {
+    const recordDataColumnHelper = createDataTableColumnHelper<RecordData>();
+    const columns = recordDataColumnHelper.columns([
+      recordDataColumnHelper.field("amounts.total", {
         header: "Total",
         render: (props, { getValue }) => (
           <span {...props}>{getValue().toFixed(2)}</span>
         ),
       }),
-      helper.field("amounts.discount", {
+      recordDataColumnHelper.field("amounts.discount", {
         header: "Discount",
         render: (props, { getValue }) => (
           <span {...props}>{getValue()?.toFixed(2) ?? "No discount"}</span>
         ),
       }),
-      helper.field("customers.primary.name", {
+      recordDataColumnHelper.field("customers.primary.name", {
         header: "Customer",
         render: (props, { getValue }) => (
           <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
