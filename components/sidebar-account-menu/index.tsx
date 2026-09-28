@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2Icon, ChevronsUpDownIcon } from "lucide-react";
-import { createContext, useContext } from "react";
+import { Children } from "react";
 import { useTranslation } from "react-i18next";
 import type { ComponentProps, ReactNode } from "react";
 import { buttonVariants } from "@/components/ui/button";
@@ -24,21 +24,42 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export type Workspace = {
+export type Workspace = Pick<
+  ComponentProps<typeof DropdownMenuRadioItem>,
+  "render" | "onClick" | "disabled"
+> & {
   id: string;
   name: string;
   description?: string;
   icon?: ReactNode;
-  disabled?: boolean;
+};
+
+export type SidebarAccountMenuUserConfig = Omit<
+  ComponentProps<typeof DropdownMenuItem>,
+  "children" | "className"
+> & {
+  name: string;
+  email?: string;
+  avatar?: ReactNode;
+  className?: string;
 };
 
 export type SidebarAccountMenuProps = Pick<
   ComponentProps<typeof DropdownMenu>,
   "open" | "defaultOpen" | "onOpenChange" | "onOpenChangeComplete"
 > & {
-  children: ReactNode;
-  currentWorkspace?: Workspace;
-  user?: { name: string; email?: string; avatar?: ReactNode };
+  /** Additional menu items, rendered after workspaces and user identity. */
+  children?: ReactNode;
+  workspace?: Workspace;
+  workspaces?: readonly Workspace[];
+  onWorkspaceChange?: ComponentProps<
+    typeof DropdownMenuRadioGroup
+  >["onValueChange"];
+  /** Defaults to the translated Recent workspaces label; null hides it. */
+  workspaceLabel?: ReactNode;
+  user?: SidebarAccountMenuUserConfig;
+  /** Customize the trigger element using the Base UI render contract. */
+  render?: ComponentProps<typeof DropdownMenuTrigger>["render"];
   disabled?: boolean;
   loading?: boolean;
 };
@@ -108,48 +129,33 @@ function UserAvatar({
   );
 }
 
-type MenuContextValue = {
-  props: SidebarAccountMenuProps;
-  selected?: Workspace;
-};
-const MenuContext = createContext<MenuContextValue | null>(null);
-function useSidebarAccountMenu() {
-  const context = useContext(MenuContext);
-  if (!context)
-    throw new Error(
-      "SidebarAccountMenu parts must be inside SidebarAccountMenu.",
-    );
-  return context;
-}
-
-/** Composition only: children explicitly declare the trigger and menu. */
+/** Identity uses props; children compose additional menu actions. */
 export function SidebarAccountMenu(props: SidebarAccountMenuProps) {
-  const selected = props.currentWorkspace;
   return (
-    <MenuContext.Provider value={{ props, selected }}>
-      <DropdownMenu
-        defaultOpen={props.defaultOpen}
-        open={props.open}
-        onOpenChange={props.onOpenChange}
-        onOpenChangeComplete={props.onOpenChangeComplete}
-      >
-        {props.children}
-      </DropdownMenu>
-    </MenuContext.Provider>
+    <DropdownMenu
+      defaultOpen={props.defaultOpen}
+      open={props.open}
+      onOpenChange={props.onOpenChange}
+      onOpenChangeComplete={props.onOpenChangeComplete}
+    >
+      <AccountMenuTrigger config={props} render={props.render} />
+      <AccountMenuContent config={props}>{props.children}</AccountMenuContent>
+    </DropdownMenu>
   );
 }
 
-export type SidebarAccountMenuTriggerProps = Omit<
+type AccountMenuTriggerProps = Omit<
   ComponentProps<typeof DropdownMenuTrigger>,
   "className"
 > & { className?: string };
-export function SidebarAccountMenuTrigger({
+function AccountMenuTrigger({
+  config,
   children,
   className,
   ...props
-}: SidebarAccountMenuTriggerProps) {
+}: AccountMenuTriggerProps & { config: SidebarAccountMenuProps }) {
   const { t } = useTranslation("thread-ui");
-  const { props: config, selected } = useSidebarAccountMenu();
+  const selected = config.workspace;
   const user = config.user;
   const label =
     selected?.name ??
@@ -218,14 +224,34 @@ export function SidebarAccountMenuTrigger({
   );
 }
 
-export type SidebarAccountMenuContentProps = ComponentProps<
-  typeof DropdownMenuContent
->;
-export function SidebarAccountMenuContent({
+type AccountMenuContentProps = ComponentProps<typeof DropdownMenuContent>;
+function AccountMenuContent({
+  config,
+  children,
   className,
   ...props
-}: SidebarAccountMenuContentProps) {
+}: AccountMenuContentProps & { config: SidebarAccountMenuProps }) {
   const isMobile = useIsMobile();
+  const selected = config.workspace;
+  const workspaces = [
+    ...new Map(
+      [...(config.workspaces ?? [])].map((workspace) => [
+        workspace.id,
+        workspace,
+      ]),
+    ).values(),
+  ];
+  const visibleWorkspaces = selected
+    ? [
+        {
+          ...workspaces.find((workspace) => workspace.id === selected.id),
+          ...selected,
+        },
+        ...workspaces.filter((workspace) => workspace.id !== selected.id),
+      ]
+    : workspaces;
+  const hasWorkspaces = visibleWorkspaces.length > 0;
+  const hasChildren = Children.toArray(children).length > 0;
   return (
     <DropdownMenuContent
       align={isMobile ? "start" : "end"}
@@ -236,17 +262,31 @@ export function SidebarAccountMenuContent({
         "w-72 max-w-[calc(100vw-2rem)] overflow-x-hidden overflow-y-auto overscroll-contain",
         className,
       )}
-    />
+    >
+      {hasWorkspaces && (
+        <WorkspaceGroup
+          value={selected?.id ?? ""}
+          onValueChange={config.onWorkspaceChange}
+        >
+          <WorkspaceLabel>{config.workspaceLabel}</WorkspaceLabel>
+          {visibleWorkspaces.map((workspace) => (
+            <WorkspaceItem key={workspace.id} workspace={workspace} />
+          ))}
+        </WorkspaceGroup>
+      )}
+      {hasWorkspaces && config.user && <DropdownMenuSeparator />}
+      {config.user && <UserRow {...config.user} />}
+      {(hasWorkspaces || config.user) && hasChildren && (
+        <DropdownMenuSeparator />
+      )}
+      {children}
+    </DropdownMenuContent>
   );
 }
 
 /** Workspace choices use native shadcn radio items as children. */
-export type SidebarAccountMenuWorkspaceGroupProps = ComponentProps<
-  typeof DropdownMenuRadioGroup
->;
-export function SidebarAccountMenuWorkspaceGroup(
-  props: SidebarAccountMenuWorkspaceGroupProps,
-) {
+type WorkspaceGroupProps = ComponentProps<typeof DropdownMenuRadioGroup>;
+function WorkspaceGroup(props: WorkspaceGroupProps) {
   const { t } = useTranslation("thread-ui");
   return (
     <DropdownMenuGroup>
@@ -261,14 +301,10 @@ export function SidebarAccountMenuWorkspaceGroup(
   );
 }
 
-export type SidebarAccountMenuWorkspaceLabelProps = ComponentProps<
-  typeof DropdownMenuLabel
->;
-export function SidebarAccountMenuWorkspaceLabel({
-  children,
-  ...props
-}: SidebarAccountMenuWorkspaceLabelProps) {
+type WorkspaceLabelProps = ComponentProps<typeof DropdownMenuLabel>;
+function WorkspaceLabel({ children, ...props }: WorkspaceLabelProps) {
   const { t } = useTranslation("thread-ui");
+  if (children === null || children === false) return null;
   return (
     <DropdownMenuLabel {...props}>
       {children === undefined
@@ -278,23 +314,25 @@ export function SidebarAccountMenuWorkspaceLabel({
   );
 }
 
-export type SidebarAccountMenuWorkspaceItemProps = Omit<
+type WorkspaceItemProps = Omit<
   ComponentProps<typeof DropdownMenuRadioItem>,
   "value"
 > & {
   workspace: Workspace;
 };
-export function SidebarAccountMenuWorkspaceItem({
+function WorkspaceItem({
   workspace,
   children,
   className,
   disabled,
   ...props
-}: SidebarAccountMenuWorkspaceItemProps) {
+}: WorkspaceItemProps) {
   return (
     <DropdownMenuRadioItem
       closeOnClick
       aria-label={workspace.name}
+      render={workspace.render}
+      onClick={workspace.onClick}
       {...props}
       disabled={workspace.disabled || disabled}
       value={workspace.id}
@@ -320,27 +358,17 @@ export function SidebarAccountMenuWorkspaceItem({
   );
 }
 
-export type SidebarAccountMenuUserProps = Omit<
-  ComponentProps<typeof DropdownMenuItem>,
-  "children" | "className"
-> & {
-  user?: SidebarAccountMenuProps["user"];
-  className?: string;
-};
-export function SidebarAccountMenuUser({
-  user: suppliedUser,
+function UserRow({
+  name,
+  email,
+  avatar,
   className,
   render,
   onClick,
   "aria-label": ariaLabel,
   ...props
-}: SidebarAccountMenuUserProps) {
+}: SidebarAccountMenuUserConfig) {
   const { t } = useTranslation("thread-ui");
-  const {
-    props: { user: contextUser },
-  } = useSidebarAccountMenu();
-  const user = suppliedUser ?? contextUser;
-  if (!user) return null;
   const interactive = Boolean(onClick || render);
   const rowClassName = cn(
     "text-foreground flex min-h-12 items-center gap-2 px-2 py-1.5",
@@ -348,12 +376,12 @@ export function SidebarAccountMenuUser({
   );
   const content = (
     <>
-      <UserAvatar user={user} />
+      <UserAvatar user={{ name, email, avatar }} />
       <span className="min-w-0">
-        <span className="block truncate text-sm font-medium">{user.name}</span>
-        {user.email && (
+        <span className="block truncate text-sm font-medium">{name}</span>
+        {email && (
           <span className="text-muted-foreground block truncate text-xs font-normal">
-            {user.email}
+            {email}
           </span>
         )}
       </span>
@@ -389,7 +417,7 @@ export function SidebarAccountMenuUser({
             ariaLabel ??
             t("sidebarAccountMenu.profile", {
               defaultValue: "Open profile: {{name}}",
-              name: user.name,
+              name: name,
             })
           }
           onClick={onClick}

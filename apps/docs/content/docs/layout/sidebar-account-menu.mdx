@@ -1,239 +1,179 @@
 ---
 title: SidebarAccountMenu
-description: Compose a workspace and account menu with shadcn menu items.
+description: Workspace and user identity through props, with composed account actions.
 ---
 
 ```bash
 pnpm dlx shadcn@latest add @thread-ui/sidebar-account-menu
 ```
 
-## Composition API
+## Props and composed actions
 
-SidebarAccountMenu is **composition-only**. The root holds current-workspace and user
-context and popup state. Compose the trigger, workspace choices, user identity,
-and actions to suit the application. Place it in shadcn `SidebarFooter`. The trigger
-uses the full sidebar width and shows the user avatar/name with the current
-workspace below it. Without a user it displays the workspace. Labels remain
-visible on mobile. The popup opens toward the content area on desktop and above the trigger on mobile.
+`SidebarAccountMenu` builds its trigger, popup, workspace radio list, user row,
+and section separators. Supply identity through props and compose additional
+menu items as children. Place it in shadcn `SidebarFooter`; it also works outside
+Layout. The trigger fills the sidebar width and collapses to an avatar in icon
+mode. The popup opens to the right on desktop and above the trigger on mobile.
 
 ```tsx
 import { useState } from "react";
 import {
   SidebarAccountMenu,
-  SidebarAccountMenuTrigger,
-  SidebarAccountMenuContent,
-  SidebarAccountMenuWorkspaceGroup,
-  SidebarAccountMenuWorkspaceLabel,
-  SidebarAccountMenuWorkspaceItem,
-  SidebarAccountMenuUser,
-  SidebarAccountMenuSeparator,
   SidebarAccountMenuItem,
+  SidebarAccountMenuSeparator,
 } from "@/components/thread-ui/sidebar-account-menu";
 
+const workspaces = [
+  { id: "north", name: "North Studio", description: "north.example.com" },
+  { id: "market", name: "Night Market", description: "market.example.com" },
+  { id: "east", name: "East Studio", description: "east.example.com" },
+];
+
 function AccountMenu() {
-  const [workspaceId, setWorkspaceId] = useState(activeWorkspace.id);
-  const current = [activeWorkspace, ...recentWorkspaces].find(
-    (workspace) => workspace.id === workspaceId,
-  );
-  // Recent list is application data: include the current tenant and show up to three.
-  const visible = [
-    ...(current ? [current] : []),
-    ...recentWorkspaces.filter((workspace) => workspace.id !== current?.id),
-  ].slice(0, 3);
+  const [workspaceId, setWorkspaceId] = useState("north");
+  const workspace = workspaces.find((item) => item.id === workspaceId);
 
   return (
-    <SidebarAccountMenu currentWorkspace={current} user={user}>
-      <SidebarAccountMenuTrigger />
-      <SidebarAccountMenuContent>
-        <SidebarAccountMenuWorkspaceGroup
-          value={workspaceId}
-          onValueChange={setWorkspaceId}
-        >
-          <SidebarAccountMenuWorkspaceLabel />
-          {visible.map((workspace) => (
-            <SidebarAccountMenuWorkspaceItem
-              key={workspace.id}
-              workspace={workspace}
-            />
-          ))}
-        </SidebarAccountMenuWorkspaceGroup>
-        <SidebarAccountMenuSeparator />
-        <SidebarAccountMenuItem onClick={openCreateWorkspace}>
-          Create workspace
-        </SidebarAccountMenuItem>
-        <SidebarAccountMenuSeparator />
-        <SidebarAccountMenuUser onClick={openProfile} />
-        <SidebarAccountMenuSeparator />
-        <SidebarAccountMenuItem onClick={openHelp}>
-          Help center
-        </SidebarAccountMenuItem>
-        <SidebarAccountMenuSeparator />
-        <SidebarAccountMenuItem onClick={signOut}>
-          Sign out
-        </SidebarAccountMenuItem>
-      </SidebarAccountMenuContent>
+    <SidebarAccountMenu
+      workspace={workspace}
+      workspaces={workspaces}
+      onWorkspaceChange={setWorkspaceId}
+      user={{
+        name: "Alex Morgan",
+        email: "alex@example.com",
+        onClick: openProfile,
+      }}
+    >
+      <SidebarAccountMenuItem onClick={openCreateWorkspace}>
+        Create workspace
+      </SidebarAccountMenuItem>
+      <SidebarAccountMenuItem onClick={openHelp}>
+        Help center
+      </SidebarAccountMenuItem>
+      <SidebarAccountMenuSeparator />
+      <SidebarAccountMenuItem onClick={signOut}>
+        Sign out
+      </SidebarAccountMenuItem>
     </SidebarAccountMenu>
   );
 }
 ```
 
-`SidebarAccountMenuWorkspaceGroup` uses shadcn's `DropdownMenuGroup` and
-`DropdownMenuRadioGroup`. Set `value` and `onValueChange` on the group. Each
-`SidebarAccountMenuWorkspaceItem` uses a `DropdownMenuRadioItem` with `workspace.id` as
-its value, a current-selection checkmark, an avatar, and optional description.
-Selecting an item closes the menu by default. `workspace.disabled` prevents
-selection; native radio-item props, refs and handlers are forwarded. The group
-label is optional: omit it for a more compact list.
+Define the business handlers in your application. There are no root-level
+`onHelp`, `onSignOut`, `onProfile`, or `onCreateWorkspace` callbacks: bind `onClick`
+on an extra menu item, or on `user` for the profile row.
 
-The application owns tenant data and switching. After requesting a switch,
-update the group's value and the root's `currentWorkspace` when it succeeds;
-set root `loading` while waiting. Keep the previous tenant on failure. Supply
-the current tenant separately when it is absent from recent results. The
-Storybook example deduplicates and shows at most three recent tenants with the
-current tenant first; the composition components themselves do not truncate
-children or fetch workspace data.
+## Root props
 
-## Root props and composed actions
+| Prop                                                          | Purpose                                                                           |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `workspace`                                                   | Current workspace object; supplies the selected ID and trigger context.           |
+| `workspaces`                                                  | Readonly list of available/recent workspace objects.                              |
+| `onWorkspaceChange`                                           | Receives the selected workspace ID and the underlying radio-group event details.  |
+| `workspaceLabel`                                              | Defaults to translated “Recent workspaces”; pass `null` to hide the label.        |
+| `user`                                                        | User name, optional email/avatar, and optional profile-row `onClick` or `render`. |
+| `children`                                                    | Additional menu items and submenus after workspace and user sections.             |
+| `loading`, `disabled`                                         | Disable the trigger; loading also shows a spinner.                                |
+| `render`                                                      | Base UI render element/function for the trigger.                                  |
+| `open`, `defaultOpen`, `onOpenChange`, `onOpenChangeComplete` | Popup state and lifecycle.                                                        |
 
-The root only accepts `children`, `user`, `currentWorkspace`, `loading`, `disabled`,
-`open`, `defaultOpen`, `onOpenChange`, and `onOpenChangeComplete`. It does not
-accept `onHelp`, `onSignOut`, `onProfile`, `onCreateWorkspace`, a workspace list,
-or a menu-items configuration.
-
-Attach business handlers to the corresponding parts:
+Both `workspace` and `user` are optional. Without workspaces the entire workspace
+section is omitted. Without a user the trigger displays workspace identity.
+Without extra children no trailing separator is generated. For a user-only menu:
 
 ```tsx
-<SidebarAccountMenuWorkspaceGroup value={workspaceId} onValueChange={setWorkspaceId}>
-  {/* Compose SidebarAccountMenuWorkspaceItem children here. */}
-</SidebarAccountMenuWorkspaceGroup>
-<SidebarAccountMenuUser onClick={openProfile} />
-<SidebarAccountMenuItem render={<Link href="/help" />}>Help center</SidebarAccountMenuItem>
-<SidebarAccountMenuItem onClick={signOut}>Sign out</SidebarAccountMenuItem>
-```
-
-Place these parts inside `SidebarAccountMenuContent`. Import `Link` from your
-router and define handlers in the application. The Storybook examples keep their
-sample data and action handlers locally; their Controls expose only the root's
-`user`, `loading`, and `disabled` props. Remove or add menu items directly in JSX.
-
-## Parts
-
-- `SidebarAccountMenu`: requires children and accepts `currentWorkspace`, `user`,
-  `loading`, and `disabled`. Supports `open`, `defaultOpen`, `onOpenChange`, and
-  `onOpenChangeComplete` from the underlying menu.
-- `SidebarAccountMenuTrigger`: user avatar and name with the current workspace as a secondary line; falls back to workspace identity when no user is supplied. Accepts custom children.
-  Forwards native trigger props, refs and `render`; root loading/disabled cannot
-  be overridden by the trigger. It uses the existing sidebar color tokens.
-- `SidebarAccountMenuContent`: responsive popup with one scrolling area; forwards
-  positioning props, refs, native popup attributes and `className`.
-- `SidebarAccountMenuWorkspaceGroup`: controlled radio group for tenant choices.
-- `SidebarAccountMenuWorkspaceLabel`: optional shadcn group label. Without children,
-  it uses `sidebarAccountMenu.recentWorkspaces` ("Recent workspaces" / "最近的工作空间").
-  Pass children to provide a custom heading.
-- `SidebarAccountMenuWorkspaceItem`: tenant avatar, name and description; accepts a
-  `workspace` object and native radio-item props including `render`.
-- `SidebarAccountMenuUser`: defaults to the root's user or accepts a separate `user`.
-  Supply `onClick` or `render` to make the whole row interactive. Without either,
-  it is informational. No separate personal-settings action is needed.
-
-`SidebarAccountMenuSeparator` directly re-exports shadcn's `DropdownMenuSeparator`,
-including its native props and ref. Place it before the creation action to
-separate tenant choices from workspace management.
-
-`SidebarAccountMenuItem` directly re-exports shadcn's `DropdownMenuItem`, preserving its
-`render`, event handlers, disabled state and ref.
-
-Use `SidebarAccountMenuItem` for creation, help, sign-out, and business actions. Compose
-language/theme choices with `SidebarAccountMenuSub`, `SidebarAccountMenuSubTrigger`,
-`SidebarAccountMenuSubContent`, `SidebarAccountMenuRadioGroup`, and `SidebarAccountMenuRadioItem`.
-These are direct aliases of the corresponding shadcn components and preserve
-native props, refs, and Base UI render behavior. All are exported from the sidebar-account-menu
-package. Their arrangement is entirely controlled by the caller.
-
-SidebarAccountMenu and Layout examples include working language/theme submenus. Language
-changes are scoped to each example, and theme selection updates the preview and
-stays in sync with the Storybook theme toolbar. Applications own preference
-persistence. Layout also includes a profile page.
-
-```tsx
-<SidebarAccountMenuSub>
-  <SidebarAccountMenuSubTrigger>Theme</SidebarAccountMenuSubTrigger>
-  <SidebarAccountMenuSubContent>
-    <SidebarAccountMenuRadioGroup value={theme} onValueChange={setTheme}>
-      <SidebarAccountMenuRadioItem value="light" closeOnClick>
-        Light
-      </SidebarAccountMenuRadioItem>
-      <SidebarAccountMenuRadioItem value="dark" closeOnClick>
-        Dark
-      </SidebarAccountMenuRadioItem>
-    </SidebarAccountMenuRadioGroup>
-  </SidebarAccountMenuSubContent>
-</SidebarAccountMenuSub>
-```
-
-The default trigger keeps its avatar and labels visible at every width.
-Workspace/user avatars default to one
-character, including Chinese names; custom icons/avatars remain supported.
-Storybook includes Composition API, User only, Framework links, and Empty.
-The main example also covers a current tenant absent from the recent list.
-Use Controls for loading/disabled states and the viewport, theme and locale
-controls for presentation variations.
-Keyboard navigation, Escape, disabled items, and focus restoration use Base UI's
-menu behavior. The popup provides a single scrolling area for long menus.
-
-## Without workspaces
-
-Omit `currentWorkspace` and the workspace parts to create an account-only menu.
-The trigger uses `user.avatar`, falling back to the first character of `user.name`.
-The name and email remain visible inside the mobile drawer.
-
-```tsx
-<SidebarAccountMenu user={{ name: "Alex Morgan", email: "alex@example.com" }}>
-  <SidebarAccountMenuTrigger />
-  <SidebarAccountMenuContent>
-    <SidebarAccountMenuUser onClick={openProfile} />
-    <SidebarAccountMenuSeparator />
-    {/* Compose language and theme submenus here as shown above. */}
-    <SidebarAccountMenuItem onClick={openHelp}>
-      Help center
-    </SidebarAccountMenuItem>
-    <SidebarAccountMenuSeparator />
-    <SidebarAccountMenuItem onClick={signOut}>Sign out</SidebarAccountMenuItem>
-  </SidebarAccountMenuContent>
+<SidebarAccountMenu
+  user={{
+    name: "Alex Morgan",
+    email: "alex@example.com",
+    onClick: openProfile,
+  }}
+>
+  <SidebarAccountMenuItem onClick={signOut}>Sign out</SidebarAccountMenuItem>
 </SidebarAccountMenu>
 ```
 
-## Framework links
+The workspace list is deduplicated by `id`, with the current workspace first,
+even if it is absent from the list. Current-workspace fields take priority over
+a matching list entry; list-level link rendering is preserved unless overridden.
+The component does not fetch or truncate the list. The examples supply at most
+three recent workspaces including the current one.
 
-Use the native [Base UI render API](https://base-ui.com/react/handbook/composition)
-on the component being customized. It accepts an element or `(props, state) =>
-element`; the function must spread props including ref, children, handlers,
-styles and ARIA attributes. A framework Link must forward them to its DOM node.
+Workspace selection is controlled: update `workspace` after a successful switch.
+Set `loading` during an asynchronous switch and retain the previous workspace on
+failure. The component requests a change but does not optimistically change the
+selected workspace. Selecting an enabled workspace closes the popup.
+
+## Identity props and links
+
+A `Workspace` contains `id`, `name`, optional `description`, `icon`, `disabled`,
+`onClick`, and `render`. `icon` accepts an `AvatarImage` or icon; missing/failed
+images use the first character of the name.
+
+`user` contains `name`, optional `email` and `avatar`, and native menu-item props
+such as `onClick`, `render`, `disabled`, and `closeOnClick`. With `onClick` or
+`render`, the user row is interactive. Otherwise it is informational. Native
+DOM props and refs target this row, not the trigger.
 
 ```tsx
 import Link from "next/link";
 
-<SidebarAccountMenuWorkspaceItem
+<SidebarAccountMenu
   workspace={workspace}
-  render={(props, state) => (
-    <Link
-      {...props}
-      href={`/workspaces/${workspace.id}`}
-      data-selected={state.checked || undefined}
-    />
-  )}
-/>;
-
-<SidebarAccountMenuUser render={<Link href="/account" />} />;
-
-<SidebarAccountMenuItem render={<Link href="/billing" />}>
-  Billing
-</SidebarAccountMenuItem>;
+  workspaces={recentWorkspaces.map((item) => ({
+    ...item,
+    render: (props, state) => (
+      <Link
+        {...props}
+        href={`/workspaces/${item.id}`}
+        data-selected={state.checked || undefined}
+      />
+    ),
+  }))}
+  onWorkspaceChange={switchWorkspace}
+  user={{ ...user, render: <Link href="/account" /> }}
+>
+  <SidebarAccountMenuItem render={<Link href="/billing" />}>
+    Billing
+  </SidebarAccountMenuItem>
+</SidebarAccountMenu>;
 ```
 
-Workspace render state includes `checked`, `highlighted`, and `disabled`.
-User/action render state includes `highlighted` and `disabled`. The group's
-`onValueChange` continues to control selected state when items render as links;
-avoid duplicating navigation in both the Link and the selection handler.
-Storybook uses a small router-like Link so examples run without a framework
-provider. Replace it with your app's Link.
+Render functions follow Base UI's `(props, state) => element` contract. Forward
+all received props, including refs, children, handlers, styles, and ARIA
+attributes. Workspace state includes `checked`, `highlighted`, and `disabled`;
+user/item state includes `highlighted` and `disabled`. Avoid duplicating
+navigation between the Link and the selection handler.
+
+## Additional menu items
+
+`SidebarAccountMenuItem` and `SidebarAccountMenuSeparator` directly alias shadcn
+menu items and separators. Compose language/theme preferences using
+`SidebarAccountMenuSub`, `SidebarAccountMenuSubTrigger`,
+`SidebarAccountMenuSubContent`, `SidebarAccountMenuRadioGroup`, and
+`SidebarAccountMenuRadioItem`. These aliases retain native props, refs, and
+`render` behavior. The trigger, content, workspace rows, and user row are internal
+and do not need to be composed separately.
+
+```tsx
+<SidebarAccountMenu user={user}>
+  <SidebarAccountMenuSub>
+    <SidebarAccountMenuSubTrigger>Theme</SidebarAccountMenuSubTrigger>
+    <SidebarAccountMenuSubContent>
+      <SidebarAccountMenuRadioGroup value={theme} onValueChange={setTheme}>
+        <SidebarAccountMenuRadioItem value="light" closeOnClick>
+          Light
+        </SidebarAccountMenuRadioItem>
+        <SidebarAccountMenuRadioItem value="dark" closeOnClick>
+          Dark
+        </SidebarAccountMenuRadioItem>
+      </SidebarAccountMenuRadioGroup>
+    </SidebarAccountMenuSubContent>
+  </SidebarAccountMenuSub>
+</SidebarAccountMenu>
+```
+
+Applications own preference persistence. The Storybook examples keep sample data
+and business handlers locally and expose `user`, `loading`, and `disabled` in
+Controls. The root props above are the public API; example scenario options are
+not component props.

@@ -25,12 +25,7 @@ import {
   LayoutSidebar,
 } from "@/components/thread-ui/layout";
 import { Page } from "@/components/thread-ui/page";
-import {
-  SidebarAccountMenu,
-  SidebarAccountMenuTrigger,
-  SidebarAccountMenuContent,
-  SidebarAccountMenuUser,
-} from "@/components/thread-ui/sidebar-account-menu";
+import { SidebarAccountMenu } from "@/components/thread-ui/sidebar-account-menu";
 import {
   SidebarHeader,
   SidebarContent,
@@ -97,13 +92,12 @@ function Navigation() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarAccountMenu
-          user={{ name: "Alex Morgan", email: "alex@example.com" }}
-        >
-          <SidebarAccountMenuTrigger />
-          <SidebarAccountMenuContent>
-            <SidebarAccountMenuUser render={<a href="/profile" />} />
-          </SidebarAccountMenuContent>
-        </SidebarAccountMenu>
+          user={{
+            name: "Alex Morgan",
+            email: "alex@example.com",
+            render: <a href="/profile" />,
+          }}
+        />
       </SidebarFooter>
     </LayoutSidebar>
   );

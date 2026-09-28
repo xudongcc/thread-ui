@@ -7,14 +7,10 @@ import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
 import type { ReactNode } from "react";
 import type { Root } from "react-dom/client";
-import type { SidebarAccountMenuTriggerProps } from "@/components/thread-ui/sidebar-account-menu";
+import type { SidebarAccountMenuProps } from "@/components/thread-ui/sidebar-account-menu";
 import {
   SidebarAccountMenu,
-  SidebarAccountMenuContent,
-  SidebarAccountMenuTrigger,
-  SidebarAccountMenuUser,
-  SidebarAccountMenuWorkspaceGroup,
-  SidebarAccountMenuWorkspaceItem,
+  SidebarAccountMenuItem,
 } from "@/components/thread-ui/sidebar-account-menu";
 import { AvatarImage } from "@/components/ui/avatar";
 import "../styles.css";
@@ -39,18 +35,14 @@ function mount(children: ReactNode) {
     root!.render(<I18nextProvider i18n={i18n}>{children}</I18nextProvider>),
   );
 }
-function menu(
-  triggerProps: SidebarAccountMenuTriggerProps = {},
-  loading = false,
-) {
+function menu(render?: SidebarAccountMenuProps["render"], loading = false) {
   return (
     <div className="w-64">
-      <SidebarAccountMenu loading={loading} user={{ name: "Alex Morgan" }}>
-        <SidebarAccountMenuTrigger {...triggerProps} />
-        <SidebarAccountMenuContent>
-          <SidebarAccountMenuUser onClick={() => {}} />
-        </SidebarAccountMenuContent>
-      </SidebarAccountMenu>
+      <SidebarAccountMenu
+        loading={loading}
+        render={render}
+        user={{ name: "Alex Morgan", onClick: () => {} }}
+      />
     </div>
   );
 }
@@ -61,13 +53,20 @@ for (const width of [375, 1280]) {
       await page.viewport(width, 800);
       const ref = createRef<HTMLButtonElement>();
       const onClick = vi.fn();
-      const render: SidebarAccountMenuTriggerProps["render"] =
+      const render: SidebarAccountMenuProps["render"] =
         mode === "element" ? (
-          <button />
+          <button ref={ref} onClick={onClick} />
         ) : (
-          (props, state) => <button {...props} data-render-open={state.open} />
+          (props, state) => (
+            <button
+              {...props}
+              ref={ref}
+              data-render-open={state.open}
+              onClick={onClick}
+            />
+          )
         );
-      mount(menu({ render, ref, onClick }));
+      mount(menu(render));
       const trigger = page.getByRole("button", {
         name: "Account: Alex Morgan",
       });
@@ -103,25 +102,12 @@ for (const width of [375, 1280]) {
   }
 }
 
-test("custom trigger text uses its natural width on mobile", async () => {
-  await page.viewport(375, 800);
-  mount(menu({ children: "Account settings" }));
-  const trigger = page.getByRole("button", { name: "Account: Alex Morgan" });
-  await expect.element(trigger).toBeVisible();
-  const button = trigger.element();
-  expect(button.getBoundingClientRect().width).toBeGreaterThan(100);
-  expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth);
-  expect(button.getBoundingClientRect().height).toBe(48);
-});
-
 test("custom render preserves loading indicator and disabled behavior", async () => {
   mount(
     menu(
-      {
-        render: (props, state) => (
-          <button {...props} data-render-disabled={state.disabled} />
-        ),
-      },
+      (props, state) => (
+        <button {...props} data-render-disabled={state.disabled} />
+      ),
       true,
     ),
   );
@@ -150,24 +136,13 @@ for (const kind of ["user", "workspace"] as const) {
       const workspace = { id: "north", name: "North Studio", icon: visual };
       mount(
         <SidebarAccountMenu
-          currentWorkspace={kind === "workspace" ? workspace : undefined}
+          workspace={kind === "workspace" ? workspace : undefined}
           user={
             kind === "user"
               ? { name: "Alex Morgan", avatar: visual }
               : undefined
           }
-        >
-          <SidebarAccountMenuTrigger />
-          <SidebarAccountMenuContent>
-            {kind === "user" ? (
-              <SidebarAccountMenuUser onClick={() => {}} />
-            ) : (
-              <SidebarAccountMenuWorkspaceGroup value="north">
-                <SidebarAccountMenuWorkspaceItem workspace={workspace} />
-              </SidebarAccountMenuWorkspaceGroup>
-            )}
-          </SidebarAccountMenuContent>
-        </SidebarAccountMenu>,
+        />,
       );
       await page.getByRole("button").click();
       await expect.element(page.getByRole("menu")).toBeVisible();
@@ -211,26 +186,23 @@ for (const styleMode of ["object", "callback"] as const) {
     const getStyle = vi.fn(() => style);
     mount(
       <SidebarAccountMenu
-        user={{ name: "Alex Morgan", email: "alex@example.com" }}
-      >
-        <SidebarAccountMenuTrigger />
-        <SidebarAccountMenuContent>
-          <SidebarAccountMenuUser
-            ref={ref}
-            disabled
-            aria-label="Current account"
-            closeOnClick={false}
-            data-testid="informational-user"
-            id="current-account"
-            label="Account"
-            nativeButton={false}
-            style={styleMode === "callback" ? getStyle : style}
-            title="Signed in as Alex"
-            variant="destructive"
-            onMouseEnter={onMouseEnter}
-          />
-        </SidebarAccountMenuContent>
-      </SidebarAccountMenu>,
+        user={{
+          name: "Alex Morgan",
+          email: "alex@example.com",
+          ref,
+          disabled: true,
+          "aria-label": "Current account",
+          closeOnClick: false,
+          ...{ "data-testid": "informational-user" },
+          id: "current-account",
+          label: "Account",
+          nativeButton: false,
+          style: styleMode === "callback" ? getStyle : style,
+          title: "Signed in as Alex",
+          variant: "destructive",
+          onMouseEnter,
+        }}
+      />,
     );
     await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
     const row = page.getByTestId("informational-user");
@@ -267,20 +239,18 @@ for (const mode of ["action", "link"] as const) {
     const ref = createRef<HTMLDivElement>();
     const onClick = vi.fn((event) => event.preventDefault());
     mount(
-      <SidebarAccountMenu user={{ name: "Alex Morgan" }}>
-        <SidebarAccountMenuTrigger />
-        <SidebarAccountMenuContent>
-          <SidebarAccountMenuUser
-            ref={ref}
-            aria-label="Manage my account"
-            closeOnClick={false}
-            data-testid="profile-user"
-            render={mode === "link" ? <a href="/profile" /> : undefined}
-            title="Profile"
-            onClick={onClick}
-          />
-        </SidebarAccountMenuContent>
-      </SidebarAccountMenu>,
+      <SidebarAccountMenu
+        user={{
+          name: "Alex Morgan",
+          ref,
+          "aria-label": "Manage my account",
+          closeOnClick: false,
+          ...{ "data-testid": "profile-user" },
+          render: mode === "link" ? <a href="/profile" /> : undefined,
+          title: "Profile",
+          onClick,
+        }}
+      />,
     );
     await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
     const row = page.getByRole("menuitem", { name: "Manage my account" });
@@ -295,3 +265,83 @@ for (const mode of ["action", "link"] as const) {
     await expect.element(page.getByRole("menu")).toBeVisible();
   });
 }
+
+for (const scenario of ["user", "workspace", "actions"] as const) {
+  test(`${scenario}-only props do not add stray separators`, async () => {
+    mount(
+      <SidebarAccountMenu
+        user={scenario === "user" ? { name: "Alex Morgan" } : undefined}
+        workspaces={[]}
+        workspace={
+          scenario === "workspace"
+            ? { id: "north", name: "North Studio" }
+            : undefined
+        }
+      >
+        {scenario === "actions" ? (
+          <SidebarAccountMenuItem>Help center</SidebarAccountMenuItem>
+        ) : (
+          [null, false]
+        )}
+      </SidebarAccountMenu>,
+    );
+    await page.getByRole("button").click();
+    await expect.element(page.getByRole("menu")).toBeVisible();
+    expect(page.getByRole("separator").elements()).toHaveLength(0);
+    if (scenario !== "workspace") {
+      expect(page.getByText("Recent workspaces").elements()).toHaveLength(0);
+      expect(page.getByRole("menuitemradio").elements()).toHaveLength(0);
+    }
+  });
+}
+
+test("workspace props deduplicate, preserve links and wait for controlled selection", async () => {
+  const north = { id: "north", name: "North Studio" };
+  const market = { id: "market", name: "Night Market" };
+  const onWorkspaceChange = vi.fn();
+  const linkClick = vi.fn((event) => event.preventDefault());
+  const view = (workspace = north) => (
+    <SidebarAccountMenu
+      user={{ name: "Alex Morgan" }}
+      workspace={workspace}
+      workspaces={[
+        market,
+        { ...north, render: <a href="#north" onClick={linkClick} /> },
+        market,
+        { id: "archive", name: "Archive", disabled: true },
+      ]}
+      onWorkspaceChange={onWorkspaceChange}
+    >
+      <SidebarAccountMenuItem>Help center</SidebarAccountMenuItem>
+    </SidebarAccountMenu>
+  );
+  mount(view());
+  await page.getByRole("button").click();
+  await expect.element(page.getByRole("menu")).toBeVisible();
+  const options = page.getByRole("menuitemradio").elements();
+  expect(options).toHaveLength(3);
+  expect(options[0]).toHaveAttribute("aria-label", north.name);
+  await expect
+    .element(page.getByRole("menuitemradio", { name: north.name }))
+    .toHaveAttribute("href", "#north");
+  await expect
+    .element(page.getByRole("menuitemradio", { name: "Archive" }))
+    .toHaveAttribute("aria-disabled", "true");
+  expect(page.getByRole("separator").elements()).toHaveLength(2);
+  await page.getByRole("menuitemradio", { name: market.name }).click();
+  expect(onWorkspaceChange).toHaveBeenCalledWith(market.id, expect.anything());
+  await expect
+    .element(
+      page.getByRole("button", { name: "Workspace and account: North Studio" }),
+    )
+    .toHaveAttribute("aria-expanded", "false");
+  flushSync(() =>
+    root!.render(<I18nextProvider i18n={i18n}>{view(market)}</I18nextProvider>),
+  );
+  await page
+    .getByRole("button", { name: "Workspace and account: Night Market" })
+    .click();
+  await expect
+    .element(page.getByRole("menuitemradio", { name: market.name }))
+    .toHaveAttribute("aria-checked", "true");
+});

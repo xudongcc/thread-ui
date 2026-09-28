@@ -33,7 +33,6 @@ import {
 } from "@/components/thread-ui/layout";
 import {
   SidebarAccountMenu,
-  SidebarAccountMenuContent,
   SidebarAccountMenuItem,
   SidebarAccountMenuRadioGroup,
   SidebarAccountMenuRadioItem,
@@ -41,10 +40,6 @@ import {
   SidebarAccountMenuSub,
   SidebarAccountMenuSubContent,
   SidebarAccountMenuSubTrigger,
-  SidebarAccountMenuTrigger,
-  SidebarAccountMenuUser,
-  SidebarAccountMenuWorkspaceGroup,
-  SidebarAccountMenuWorkspaceItem,
 } from "@/components/thread-ui/sidebar-account-menu";
 import { Button } from "@/components/thread-ui/button";
 import {
@@ -286,151 +281,133 @@ function ApplicationContent({
         </SidebarContent>
         <SidebarFooter>
           <SidebarAccountMenu
-            currentWorkspace={current}
-            user={{ name: "Alex Morgan", email: "alex@example.com" }}
+            workspace={current}
+            workspaceLabel={null}
+            workspaces={workspaces}
+            user={{
+              name: "Alex Morgan",
+              email: "alex@example.com",
+              onClick: () => {
+                setPage("profile");
+                if (isMobile) setOpenMobile(false);
+              },
+            }}
+            onWorkspaceChange={(next) => {
+              setWorkspace(next);
+              setPage(initialPage);
+            }}
           >
-            <SidebarAccountMenuTrigger />
-            <SidebarAccountMenuContent>
-              <SidebarAccountMenuWorkspaceGroup
-                value={workspace}
-                onValueChange={(next: string) => {
-                  setWorkspace(next);
-                  setPage(initialPage);
-                }}
-              >
-                {[
-                  current,
-                  ...workspaces.filter((item) => item.id !== current.id),
-                ]
-                  .slice(0, 3)
-                  .map((item) => (
-                    <SidebarAccountMenuWorkspaceItem
-                      key={item.id}
-                      workspace={item}
-                    />
-                  ))}
-              </SidebarAccountMenuWorkspaceGroup>
-
-              <SidebarAccountMenuSeparator />
-              <SidebarAccountMenuItem
-                className="min-h-10"
-                onClick={() =>
-                  toast.add({
-                    title: "Create a workspace",
-                    description: "Start a new space for your team.",
-                  })
-                }
-              >
-                <PlusIcon aria-hidden="true" />
-                {t("sidebarAccountMenu.create")}
-              </SidebarAccountMenuItem>
-              <SidebarAccountMenuItem
-                onClick={() =>
-                  toast.add({
-                    title: "You're all caught up",
-                    description: "No new notifications.",
-                  })
-                }
-              >
-                <BellIcon aria-hidden="true" />
-                Notifications
-              </SidebarAccountMenuItem>
-              <SidebarAccountMenuSeparator />
-              <SidebarAccountMenuUser
-                onClick={() => {
-                  setPage("profile");
-                  if (isMobile) setOpenMobile(false);
-                }}
-              />
-              <SidebarAccountMenuSeparator />
-              <SidebarAccountMenuSub>
-                <SidebarAccountMenuSubTrigger className="min-h-10">
-                  <LanguagesIcon aria-hidden="true" />
-                  {t("sidebarAccountMenu.language")}
-                </SidebarAccountMenuSubTrigger>
-                <SidebarAccountMenuSubContent>
-                  <SidebarAccountMenuRadioGroup
-                    value={i18n.resolvedLanguage ?? "en"}
-                    onValueChange={(next: string) => {
-                      void i18n.changeLanguage(next);
-                    }}
+            <SidebarAccountMenuItem
+              className="min-h-10"
+              onClick={() =>
+                toast.add({
+                  title: "Create a workspace",
+                  description: "Start a new space for your team.",
+                })
+              }
+            >
+              <PlusIcon aria-hidden="true" />
+              {t("sidebarAccountMenu.create")}
+            </SidebarAccountMenuItem>
+            <SidebarAccountMenuItem
+              onClick={() =>
+                toast.add({
+                  title: "You're all caught up",
+                  description: "No new notifications.",
+                })
+              }
+            >
+              <BellIcon aria-hidden="true" />
+              Notifications
+            </SidebarAccountMenuItem>
+            <SidebarAccountMenuSeparator />
+            <SidebarAccountMenuSub>
+              <SidebarAccountMenuSubTrigger className="min-h-10">
+                <LanguagesIcon aria-hidden="true" />
+                {t("sidebarAccountMenu.language")}
+              </SidebarAccountMenuSubTrigger>
+              <SidebarAccountMenuSubContent>
+                <SidebarAccountMenuRadioGroup
+                  value={i18n.resolvedLanguage ?? "en"}
+                  onValueChange={(next: string) => {
+                    void i18n.changeLanguage(next);
+                  }}
+                >
+                  <SidebarAccountMenuRadioItem
+                    closeOnClick
+                    className="min-h-10"
+                    value="en"
                   >
-                    <SidebarAccountMenuRadioItem
-                      closeOnClick
-                      className="min-h-10"
-                      value="en"
-                    >
-                      English
-                    </SidebarAccountMenuRadioItem>
-                    <SidebarAccountMenuRadioItem
-                      closeOnClick
-                      className="min-h-10"
-                      value="zh"
-                    >
-                      中文
-                    </SidebarAccountMenuRadioItem>
-                  </SidebarAccountMenuRadioGroup>
-                </SidebarAccountMenuSubContent>
-              </SidebarAccountMenuSub>
-              <SidebarAccountMenuSub>
-                <SidebarAccountMenuSubTrigger className="min-h-10">
-                  <SunMoonIcon aria-hidden="true" />
-                  {t("sidebarAccountMenu.theme")}
-                </SidebarAccountMenuSubTrigger>
-                <SidebarAccountMenuSubContent>
-                  <SidebarAccountMenuRadioGroup
-                    value={theme}
-                    onValueChange={(next: string) =>
-                      document.documentElement.classList.toggle(
-                        "dark",
-                        next === "dark",
-                      )
-                    }
+                    English
+                  </SidebarAccountMenuRadioItem>
+                  <SidebarAccountMenuRadioItem
+                    closeOnClick
+                    className="min-h-10"
+                    value="zh"
                   >
-                    <SidebarAccountMenuRadioItem
-                      closeOnClick
-                      className="min-h-10"
-                      value="light"
-                    >
-                      {i18n.language === "zh" ? "浅色" : "Light"}
-                    </SidebarAccountMenuRadioItem>
-                    <SidebarAccountMenuRadioItem
-                      closeOnClick
-                      className="min-h-10"
-                      value="dark"
-                    >
-                      {i18n.language === "zh" ? "深色" : "Dark"}
-                    </SidebarAccountMenuRadioItem>
-                  </SidebarAccountMenuRadioGroup>
-                </SidebarAccountMenuSubContent>
-              </SidebarAccountMenuSub>
-              <SidebarAccountMenuItem
-                className="min-h-10"
-                onClick={() =>
-                  toast.add({
-                    title: "Help center",
-                    description: "Demo: open your application's help center.",
-                  })
-                }
-              >
-                <CircleHelpIcon aria-hidden="true" />
-                {t("sidebarAccountMenu.help")}
-              </SidebarAccountMenuItem>
-              <SidebarAccountMenuSeparator />
-              <SidebarAccountMenuItem
-                className="min-h-10"
-                onClick={() =>
-                  toast.add({
-                    title: "Sign out requested",
-                    description:
-                      "Demo only. Connect this callback to your authentication service.",
-                  })
-                }
-              >
-                <LogOutIcon aria-hidden="true" />
-                {t("sidebarAccountMenu.signOut")}
-              </SidebarAccountMenuItem>
-            </SidebarAccountMenuContent>
+                    中文
+                  </SidebarAccountMenuRadioItem>
+                </SidebarAccountMenuRadioGroup>
+              </SidebarAccountMenuSubContent>
+            </SidebarAccountMenuSub>
+            <SidebarAccountMenuSub>
+              <SidebarAccountMenuSubTrigger className="min-h-10">
+                <SunMoonIcon aria-hidden="true" />
+                {t("sidebarAccountMenu.theme")}
+              </SidebarAccountMenuSubTrigger>
+              <SidebarAccountMenuSubContent>
+                <SidebarAccountMenuRadioGroup
+                  value={theme}
+                  onValueChange={(next: string) =>
+                    document.documentElement.classList.toggle(
+                      "dark",
+                      next === "dark",
+                    )
+                  }
+                >
+                  <SidebarAccountMenuRadioItem
+                    closeOnClick
+                    className="min-h-10"
+                    value="light"
+                  >
+                    {i18n.language === "zh" ? "浅色" : "Light"}
+                  </SidebarAccountMenuRadioItem>
+                  <SidebarAccountMenuRadioItem
+                    closeOnClick
+                    className="min-h-10"
+                    value="dark"
+                  >
+                    {i18n.language === "zh" ? "深色" : "Dark"}
+                  </SidebarAccountMenuRadioItem>
+                </SidebarAccountMenuRadioGroup>
+              </SidebarAccountMenuSubContent>
+            </SidebarAccountMenuSub>
+            <SidebarAccountMenuItem
+              className="min-h-10"
+              onClick={() =>
+                toast.add({
+                  title: "Help center",
+                  description: "Demo: open your application's help center.",
+                })
+              }
+            >
+              <CircleHelpIcon aria-hidden="true" />
+              {t("sidebarAccountMenu.help")}
+            </SidebarAccountMenuItem>
+            <SidebarAccountMenuSeparator />
+            <SidebarAccountMenuItem
+              className="min-h-10"
+              onClick={() =>
+                toast.add({
+                  title: "Sign out requested",
+                  description:
+                    "Demo only. Connect this callback to your authentication service.",
+                })
+              }
+            >
+              <LogOutIcon aria-hidden="true" />
+              {t("sidebarAccountMenu.signOut")}
+            </SidebarAccountMenuItem>
           </SidebarAccountMenu>
         </SidebarFooter>
       </LayoutSidebar>

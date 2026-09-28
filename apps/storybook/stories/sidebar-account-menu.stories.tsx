@@ -33,7 +33,7 @@ const meta = {
       source: withExampleSource(implementation),
       description: {
         component:
-          "Composition-only workspace/account menu. Compose SidebarAccountMenuTrigger, SidebarAccountMenuContent, SidebarAccountMenuWorkspaceGroup and SidebarAccountMenuUser with shadcn radio items, menu items and separators. This demo shows at most three recent tenants including the current tenant. Root props provide shared identity and popup state; actions use onClick/render on individual menu items. Controls only expose user, loading and disabled. Workspace data and handlers belong to the example, not the root API.",
+          "Workspace and user identity use props. The trigger, popup and identity rows are built in; children compose additional menu items. Use workspace, workspaces and onWorkspaceChange for controlled switching; user.onClick/render configures the profile row. Help, sign-out and other actions use onClick/render on SidebarAccountMenuItem. Controls expose user, loading and disabled while demo data and handlers stay local.",
       },
     },
   },
@@ -41,7 +41,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
-  name: "Composition API",
+  name: "Props and composed actions",
   globals: { locale: "en" },
   parameters: {
     docs: {

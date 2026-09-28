@@ -16,7 +16,6 @@ import type {
 } from "@/components/thread-ui/sidebar-account-menu";
 import {
   SidebarAccountMenu,
-  SidebarAccountMenuContent,
   SidebarAccountMenuItem,
   SidebarAccountMenuRadioGroup,
   SidebarAccountMenuRadioItem,
@@ -24,11 +23,6 @@ import {
   SidebarAccountMenuSub,
   SidebarAccountMenuSubContent,
   SidebarAccountMenuSubTrigger,
-  SidebarAccountMenuTrigger,
-  SidebarAccountMenuUser,
-  SidebarAccountMenuWorkspaceGroup,
-  SidebarAccountMenuWorkspaceItem,
-  SidebarAccountMenuWorkspaceLabel,
 } from "@/components/thread-ui/sidebar-account-menu";
 
 const workspaces: readonly Workspace[] = [
@@ -147,163 +141,141 @@ function MenuExampleContent({
   return (
     <div className="w-64 max-w-full space-y-4">
       <SidebarAccountMenu
-        currentWorkspace={value ?? undefined}
         disabled={disabled}
         loading={loading}
-        user={user}
+        workspace={value ?? undefined}
+        user={
+          user && {
+            ...user,
+            render: linkItems ? <DemoLink to="#profile" /> : undefined,
+            onClick: () => setMessage("Profile requested"),
+          }
+        }
+        workspaces={recent.map((workspace) => ({
+          ...workspace,
+          render: linkItems
+            ? (props, state) => (
+                <DemoLink
+                  {...props}
+                  data-selected={state.checked || undefined}
+                  to={`#workspace-${workspace.id}`}
+                />
+              )
+            : undefined,
+        }))}
+        onWorkspaceChange={(next) => {
+          const workspace = recent.find((item) => item.id === next);
+          if (workspace) setValue(workspace);
+        }}
       >
-        <SidebarAccountMenuTrigger />
-        <SidebarAccountMenuContent>
-          {recent.length > 0 && (
-            <SidebarAccountMenuWorkspaceGroup
-              value={value?.id ?? ""}
+        {showWorkspaces && (
+          <>
+            <SidebarAccountMenuItem
+              className="min-h-10"
+              onClick={() => setMessage("Create workspace requested")}
+            >
+              <PlusIcon aria-hidden="true" />
+              {t("sidebarAccountMenu.create")}
+            </SidebarAccountMenuItem>
+          </>
+        )}
+        {linkItems && (
+          <>
+            <SidebarAccountMenuItem
+              className="min-h-10"
+              render={(props) => <DemoLink {...props} to="#billing" />}
+              onClick={() => setMessage("Billing requested")}
+            >
+              <CreditCardIcon aria-hidden="true" />
+              Billing
+            </SidebarAccountMenuItem>
+            <SidebarAccountMenuItem
+              disabled
+              className="min-h-10"
+              render={<DemoLink to="#audit" />}
+            >
+              <LockKeyholeIcon aria-hidden="true" />
+              Audit log
+            </SidebarAccountMenuItem>
+          </>
+        )}
+        <SidebarAccountMenuSub>
+          <SidebarAccountMenuSubTrigger className="min-h-10">
+            <LanguagesIcon aria-hidden="true" />
+            {t("sidebarAccountMenu.language")}
+          </SidebarAccountMenuSubTrigger>
+          <SidebarAccountMenuSubContent>
+            <SidebarAccountMenuRadioGroup
+              value={i18n.resolvedLanguage ?? "en"}
               onValueChange={(next: string) => {
-                const workspace = recent.find((item) => item.id === next);
-                if (workspace) setValue(workspace);
+                void i18n.changeLanguage(next);
               }}
             >
-              <SidebarAccountMenuWorkspaceLabel />
-              {recent.map((workspace) => (
-                <SidebarAccountMenuWorkspaceItem
-                  key={workspace.id}
-                  workspace={workspace}
-                  render={
-                    linkItems
-                      ? (props, state) => (
-                          <DemoLink
-                            {...props}
-                            data-selected={state.checked || undefined}
-                            to={`#workspace-${workspace.id}`}
-                          />
-                        )
-                      : undefined
-                  }
-                />
-              ))}
-            </SidebarAccountMenuWorkspaceGroup>
-          )}
-          {showWorkspaces && (
-            <>
-              {recent.length > 0 && <SidebarAccountMenuSeparator />}
-              <SidebarAccountMenuItem
+              <SidebarAccountMenuRadioItem
+                closeOnClick
                 className="min-h-10"
-                onClick={() => setMessage("Create workspace requested")}
+                value="en"
               >
-                <PlusIcon aria-hidden="true" />
-                {t("sidebarAccountMenu.create")}
-              </SidebarAccountMenuItem>
-            </>
-          )}
-          {user && (
-            <>
-              {showWorkspaces && <SidebarAccountMenuSeparator />}
-              <SidebarAccountMenuUser
-                render={linkItems ? <DemoLink to="#profile" /> : undefined}
-                onClick={() => setMessage("Profile requested")}
-              />
-              <SidebarAccountMenuSeparator />
-            </>
-          )}
-          {linkItems && (
-            <>
-              {!user && <SidebarAccountMenuSeparator />}
-              <SidebarAccountMenuItem
+                English
+              </SidebarAccountMenuRadioItem>
+              <SidebarAccountMenuRadioItem
+                closeOnClick
                 className="min-h-10"
-                render={(props) => <DemoLink {...props} to="#billing" />}
-                onClick={() => setMessage("Billing requested")}
+                value="zh"
               >
-                <CreditCardIcon aria-hidden="true" />
-                Billing
-              </SidebarAccountMenuItem>
-              <SidebarAccountMenuItem
-                disabled
+                中文
+              </SidebarAccountMenuRadioItem>
+            </SidebarAccountMenuRadioGroup>
+          </SidebarAccountMenuSubContent>
+        </SidebarAccountMenuSub>
+        <SidebarAccountMenuSub>
+          <SidebarAccountMenuSubTrigger className="min-h-10">
+            <SunMoonIcon aria-hidden="true" />
+            {t("sidebarAccountMenu.theme")}
+          </SidebarAccountMenuSubTrigger>
+          <SidebarAccountMenuSubContent>
+            <SidebarAccountMenuRadioGroup
+              value={theme}
+              onValueChange={(next: string) =>
+                document.documentElement.classList.toggle(
+                  "dark",
+                  next === "dark",
+                )
+              }
+            >
+              <SidebarAccountMenuRadioItem
+                closeOnClick
                 className="min-h-10"
-                render={<DemoLink to="#audit" />}
+                value="light"
               >
-                <LockKeyholeIcon aria-hidden="true" />
-                Audit log
-              </SidebarAccountMenuItem>
-            </>
-          )}
-          {!user && !linkItems && <SidebarAccountMenuSeparator />}
-          <SidebarAccountMenuSub>
-            <SidebarAccountMenuSubTrigger className="min-h-10">
-              <LanguagesIcon aria-hidden="true" />
-              {t("sidebarAccountMenu.language")}
-            </SidebarAccountMenuSubTrigger>
-            <SidebarAccountMenuSubContent>
-              <SidebarAccountMenuRadioGroup
-                value={i18n.resolvedLanguage ?? "en"}
-                onValueChange={(next: string) => {
-                  void i18n.changeLanguage(next);
-                }}
+                {i18n.language === "zh" ? "浅色" : "Light"}
+              </SidebarAccountMenuRadioItem>
+              <SidebarAccountMenuRadioItem
+                closeOnClick
+                className="min-h-10"
+                value="dark"
               >
-                <SidebarAccountMenuRadioItem
-                  closeOnClick
-                  className="min-h-10"
-                  value="en"
-                >
-                  English
-                </SidebarAccountMenuRadioItem>
-                <SidebarAccountMenuRadioItem
-                  closeOnClick
-                  className="min-h-10"
-                  value="zh"
-                >
-                  中文
-                </SidebarAccountMenuRadioItem>
-              </SidebarAccountMenuRadioGroup>
-            </SidebarAccountMenuSubContent>
-          </SidebarAccountMenuSub>
-          <SidebarAccountMenuSub>
-            <SidebarAccountMenuSubTrigger className="min-h-10">
-              <SunMoonIcon aria-hidden="true" />
-              {t("sidebarAccountMenu.theme")}
-            </SidebarAccountMenuSubTrigger>
-            <SidebarAccountMenuSubContent>
-              <SidebarAccountMenuRadioGroup
-                value={theme}
-                onValueChange={(next: string) =>
-                  document.documentElement.classList.toggle(
-                    "dark",
-                    next === "dark",
-                  )
-                }
-              >
-                <SidebarAccountMenuRadioItem
-                  closeOnClick
-                  className="min-h-10"
-                  value="light"
-                >
-                  {i18n.language === "zh" ? "浅色" : "Light"}
-                </SidebarAccountMenuRadioItem>
-                <SidebarAccountMenuRadioItem
-                  closeOnClick
-                  className="min-h-10"
-                  value="dark"
-                >
-                  {i18n.language === "zh" ? "深色" : "Dark"}
-                </SidebarAccountMenuRadioItem>
-              </SidebarAccountMenuRadioGroup>
-            </SidebarAccountMenuSubContent>
-          </SidebarAccountMenuSub>
-          <SidebarAccountMenuItem
-            className="min-h-10"
-            render={linkItems ? <DemoLink to="#help" /> : undefined}
-            onClick={() => setMessage("Help requested")}
-          >
-            <CircleHelpIcon aria-hidden="true" />
-            {t("sidebarAccountMenu.help")}
-          </SidebarAccountMenuItem>
-          <SidebarAccountMenuSeparator />
-          <SidebarAccountMenuItem
-            className="min-h-10"
-            onClick={() => setMessage("Sign out requested")}
-          >
-            <LogOutIcon aria-hidden="true" />
-            {t("sidebarAccountMenu.signOut")}
-          </SidebarAccountMenuItem>
-        </SidebarAccountMenuContent>
+                {i18n.language === "zh" ? "深色" : "Dark"}
+              </SidebarAccountMenuRadioItem>
+            </SidebarAccountMenuRadioGroup>
+          </SidebarAccountMenuSubContent>
+        </SidebarAccountMenuSub>
+        <SidebarAccountMenuItem
+          className="min-h-10"
+          render={linkItems ? <DemoLink to="#help" /> : undefined}
+          onClick={() => setMessage("Help requested")}
+        >
+          <CircleHelpIcon aria-hidden="true" />
+          {t("sidebarAccountMenu.help")}
+        </SidebarAccountMenuItem>
+        <SidebarAccountMenuSeparator />
+        <SidebarAccountMenuItem
+          className="min-h-10"
+          onClick={() => setMessage("Sign out requested")}
+        >
+          <LogOutIcon aria-hidden="true" />
+          {t("sidebarAccountMenu.signOut")}
+        </SidebarAccountMenuItem>
       </SidebarAccountMenu>
       {message && <p role="status">{message}</p>}
     </div>

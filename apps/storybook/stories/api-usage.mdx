@@ -37,8 +37,12 @@ examples are shown separately where supported. Existing story URLs remain stable
       <td>Props API first; Composition API for custom layout</td>
     </tr>
     <tr>
-      <td>Page, PageLayout, CodeBlock, Dialog, Layout, SidebarAccountMenu</td>
+      <td>Page, PageLayout, CodeBlock, Dialog, Layout</td>
       <td>Composition API</td>
+    </tr>
+    <tr>
+      <td>SidebarAccountMenu</td>
+      <td>Props for identity; composed additional menu items</td>
     </tr>
     <tr>
       <td>AlertDialog</td>
@@ -147,23 +151,22 @@ allows content to fill the width. LayoutSidebar automatically enables floating
 mobile navigation, safe-area spacing, and inner
 content bottom padding. Omit LayoutSidebar to omit the button and padding; there
 is no separate switch. Desktop navigation can collapse to an icon rail using
-`collapsible="icon"`. Layout and
-SidebarAccountMenu support **Composition API only**.
+`collapsible="icon"`. Layout supports **Composition API only**.
 
-`SidebarAccountMenu` supports **Composition API only** and works outside Layout.
-Use `SidebarAccountMenuTrigger`, `SidebarAccountMenuContent`, `SidebarAccountMenuWorkspaceGroup`,
-`SidebarAccountMenuWorkspaceLabel`, `SidebarAccountMenuWorkspaceItem`, and `SidebarAccountMenuUser`.
-The workspace group exposes shadcn radio-group `value`/`onValueChange`;
-workspace items, user items, and ordinary shadcn items accept Base UI `render`
-elements/functions for framework links. Use `SidebarAccountMenuItem` (a direct shadcn alias) for
-additional account actions.
-The root supplies `currentWorkspace`/`user` context and loading/disabled state.
-It does not generate actions or search UI. The examples show at most three recent
-tenants including the current one; the application owns this data and updates
-selection after switching succeeds. Compose language/theme submenus with the `SidebarAccountMenuSub`,
-`SidebarAccountMenuSubTrigger`, `SidebarAccountMenuSubContent`, `SidebarAccountMenuRadioGroup`, and
-`SidebarAccountMenuRadioItem` aliases. SidebarAccountMenu and Layout demonstrate working
-preference changes; Layout also includes a profile page.
+`SidebarAccountMenu` uses props for workspace/user identity and children for extra
+menu actions. Its trigger, popup, workspace radio list, user row, and separators
+are built in. Set `workspace`, `workspaces`, and `onWorkspaceChange` for controlled
+workspace switching; pass `user.onClick` or `user.render` for profile navigation.
+Workspace entries also accept Base UI `render` for framework links. The current
+workspace appears first and duplicate IDs are removed. Examples supply at most
+three recent tenants; applications own the data and update selection after a
+successful switch.
+
+Use `SidebarAccountMenuItem` for help, sign-out, creation, and other business
+actions. Compose language/theme preferences with `SidebarAccountMenuSub`,
+`SidebarAccountMenuSubTrigger`, `SidebarAccountMenuSubContent`,
+`SidebarAccountMenuRadioGroup`, and `SidebarAccountMenuRadioItem`. The examples
+include working preference changes, and Layout includes a profile page.
 These components have no global function API.
 
 See [Layout](?path=/docs/components-layout--docs),
