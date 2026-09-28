@@ -157,6 +157,7 @@ function AccountMenuTrigger({
   const { t } = useTranslation("thread-ui");
   const selected = config.workspace;
   const user = config.user;
+  const description = selected ? selected.description : user?.email;
   const label =
     selected?.name ??
     config.user?.name ??
@@ -198,18 +199,16 @@ function AccountMenuTrigger({
           children
         ) : (
           <>
-            {user ? (
-              <UserAvatar user={user} />
-            ) : (
+            {selected || !user ? (
               <WorkspaceIcon workspace={selected} />
+            ) : (
+              <UserAvatar user={user} />
             )}
             <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <span className="block truncate">
-                {config.user?.name ?? label}
-              </span>
-              {config.user && (selected || config.user.email) && (
+              <span className="block truncate">{label}</span>
+              {description && (
                 <span className="text-muted-foreground block truncate text-xs font-normal">
-                  {selected?.name ?? config.user?.email}
+                  {description}
                 </span>
               )}
             </span>

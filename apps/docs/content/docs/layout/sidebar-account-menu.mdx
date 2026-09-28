@@ -13,7 +13,10 @@ pnpm dlx shadcn@latest add @thread-ui/sidebar-account-menu
 and section separators. Supply identity through props and compose additional
 menu items as children. Place it in shadcn `SidebarFooter`; it also works outside
 Layout. The trigger fills the sidebar width and collapses to an avatar in icon
-mode. The popup opens to the right on desktop and above the trigger on mobile.
+mode. When `workspace` is supplied, the trigger shows only its icon, name, and
+optional description. Otherwise it shows the user's avatar, name, and optional
+email. The popup can still contain both the workspace list and user row. It opens
+to the right on desktop and above the trigger on mobile.
 
 ```tsx
 import { useState } from "react";
@@ -78,7 +81,8 @@ on an extra menu item, or on `user` for the profile row.
 | `open`, `defaultOpen`, `onOpenChange`, `onOpenChangeComplete` | Popup state and lifecycle.                                                        |
 
 Both `workspace` and `user` are optional. Without workspaces the entire workspace
-section is omitted. Without a user the trigger displays workspace identity.
+section is omitted. Workspace identity takes priority in the trigger even when
+both `workspace` and `user` are supplied.
 Without extra children no trailing separator is generated. For a user-only menu:
 
 ```tsx

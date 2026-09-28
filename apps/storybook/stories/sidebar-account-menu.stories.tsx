@@ -54,11 +54,19 @@ export const Default: Story = {
   play: testOnly(async ({ canvas, canvasElement, step }) => {
     await step("Account identity", async () => {
       const body = within(canvasElement.ownerDocument.body);
-      await userEvent.click(
-        canvas.getByRole("button", {
-          name: "Workspace and account: North Studio",
-        }),
-      );
+      const trigger = canvas.getByRole("button", {
+        name: "Workspace and account: North Studio",
+      });
+      await expect(trigger).toHaveTextContent("North Studio");
+      await expect(trigger).toHaveTextContent("Production workspace");
+      await expect(trigger).not.toHaveTextContent("Alex Morgan");
+      await expect(
+        trigger.querySelector('[data-slot="user-avatar"]'),
+      ).toBeNull();
+      await expect(
+        trigger.querySelector('[data-slot="workspace-icon"]'),
+      ).toHaveTextContent(/^N$/);
+      await userEvent.click(trigger);
       await waitFor(() => expect(body.getByRole("menu")).toBeVisible());
       const rows = body.getAllByRole("menuitemradio");
       await expect(rows).toHaveLength(3);
