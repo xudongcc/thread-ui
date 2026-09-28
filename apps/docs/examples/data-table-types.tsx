@@ -1,7 +1,9 @@
 "use client";
 
-import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
-import { DataTable } from "@/components/thread-ui/data-table";
+import {
+  DataTable,
+  createDataTableColumnHelper,
+} from "@/components/thread-ui/data-table";
 
 interface Order {
   id: string;
@@ -13,28 +15,39 @@ interface Order {
   elapsed: number;
 }
 
-const columns: DataTableColumnProps<Order>[] = [
-  { field: "id", header: "Order" },
-  { field: "quantity", header: "Quantity", type: "number", precision: 0 },
-  { field: "total", header: "Total", type: "currency", currency: "USD" },
-  { field: "rate", header: "Rate", type: "percent", precision: 1 },
-  { field: "elapsed", header: "Duration", type: "duration", unit: "seconds" },
-  { field: "date", header: "Date", type: "date", locale: "en-GB" },
-  {
-    field: "createdAt",
+const column = createDataTableColumnHelper<Order>();
+const columns = column.columns([
+  column.accessor("id", { header: "Order" }),
+  column.accessor("quantity", {
+    header: "Quantity",
+    type: "number",
+    precision: 0,
+  }),
+  column.accessor("total", {
+    header: "Total",
+    type: "currency",
+    currency: "USD",
+  }),
+  column.accessor("rate", { header: "Rate", type: "percent", precision: 1 }),
+  column.accessor("elapsed", {
+    header: "Duration",
+    type: "duration",
+    unit: "seconds",
+  }),
+  column.accessor("date", { header: "Date", type: "date", locale: "en-GB" }),
+  column.accessor("createdAt", {
     header: "Created (Shanghai)",
     type: "datetime",
     locale: "zh-CN",
-  },
-  {
+  }),
+  column.accessor("createdAt", {
     id: "createdAtNewYork",
-    field: "createdAt",
     header: "Time (New York)",
     type: "time",
     hour12: false,
     timeZone: "America/New_York",
-  },
-];
+  }),
+]);
 
 const data: Order[] = [
   {

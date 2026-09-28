@@ -21,7 +21,7 @@ pnpm dlx shadcn@latest add @thread-ui/data-table
 ```tsx
 import {
   DataTable,
-  type DataTableColumnProps,
+  createDataTableColumnHelper,
 } from "@/components/thread-ui/data-table";
 ```
 
@@ -32,18 +32,11 @@ interface User {
   email: string;
 }
 
-const columns: Array<DataTableColumnProps<User>> = [
-  {
-    id: "name",
-    header: "Name",
-    field: "name",
-  },
-  {
-    id: "email",
-    header: "Email",
-    field: "email",
-  },
-];
+const column = createDataTableColumnHelper<User>();
+const columns = column.columns([
+  column.accessor("name", { header: "Name" }),
+  column.accessor("email", { header: "Email" }),
+]);
 
 const data: Array<User> = [
   { id: "1", name: "Alice", email: "alice@example.com" },
@@ -90,30 +83,58 @@ exits that mode and reports `false`. It does not load or retain records across p
 | `duration`       | Right             | `locale`, `unit`, `style`                  |
 
 ```tsx
+interface Order {
+  id: string;
+  name: string;
+  total: number;
+  rate: number;
+  elapsed: number;
+  createdAt: string;
+}
+
+const orderColumn = createDataTableColumnHelper<Order>();
+const columns = orderColumn.columns([
+  orderColumn.accessor("name", { header: "Name" }),
+  orderColumn.accessor("total", {
+    header: "Total",
+    type: "currency",
+    currency: "USD",
+  }),
+  orderColumn.accessor("rate", {
+    header: "Rate",
+    type: "percent",
+    precision: 1,
+  }),
+  orderColumn.accessor("elapsed", {
+    header: "Duration",
+    type: "duration",
+    unit: "seconds",
+    style: "digital",
+  }),
+  orderColumn.accessor("createdAt", {
+    header: "Created",
+    type: "datetime",
+    locale: "zh-CN",
+    timeZone: "America/New_York",
+  }),
+]);
+const orders: Order[] = [
+  {
+    id: "1",
+    name: "Order 1",
+    total: 12.5,
+    rate: 0.125,
+    elapsed: 3661,
+    createdAt: "2026-01-01T01:00:00Z",
+  },
+];
+
 <DataTable
+  columns={columns}
+  data={orders}
   locale="en-US"
   timeZone="Asia/Shanghai"
-  columns={[
-    { field: "name", header: "Name" },
-    { field: "total", header: "Total", type: "currency", currency: "USD" },
-    { field: "rate", header: "Rate", type: "percent", precision: 1 },
-    {
-      field: "elapsed",
-      header: "Duration",
-      type: "duration",
-      unit: "seconds",
-      style: "digital",
-    },
-    {
-      field: "createdAt",
-      header: "Created",
-      type: "datetime",
-      locale: "zh-CN",
-      timeZone: "America/New_York",
-    },
-  ]}
-  data={data}
-/>
+/>;
 ```
 
 - **Locale:** column `locale` → table `locale` → runtime default locale (the user's
@@ -168,11 +189,12 @@ cells. Numeric and duration types default to `"right"`; other types default to `
 An explicit `align` overrides the type default.
 
 ```tsx
-const columns: DataTableColumnProps<User>[] = [
-  { field: "name", header: "Name" },
-  { field: "email", header: "Email", align: "center" },
-  { field: "id", header: "ID", align: "right" },
-];
+const column = createDataTableColumnHelper<User>();
+const columns = column.columns([
+  column.accessor("name", { header: "Name" }),
+  column.accessor("email", { header: "Email", align: "center" }),
+  column.accessor("id", { header: "ID", align: "right" }),
+]);
 ```
 
 Alignment applies to the outer `th` / `td`, including pinned columns. Custom
@@ -283,6 +305,24 @@ row models without unbounded type expansion. Use a computed accessor for deeper
 paths or dynamic access. Exported `DataTableField<TData>` and
 `DataTableFieldValue<TData, TField>` are available for reusable field selectors.
 
+### Plain object compatibility
+
+Plain objects remain supported when value inference is not needed. Field paths
+are still checked; supply an explicit `TValue` for manually typed render callbacks.
+The examples above use the helper so values are inferred per column.
+
+```tsx
+import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
+
+const columns: DataTableColumnProps<User, string>[] = [
+  {
+    field: "name",
+    header: "Name",
+    render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
+  },
+];
+```
+
 ### DataTableRowActionProps
 
 Configuration for row action items in the dropdown menu.
@@ -326,14 +366,14 @@ contains only `{ id, index, original }`. `onRowSelectionChange` receives the ori
 records. No TanStack instance or methods are exposed.
 
 ```tsx
-const columns: DataTableColumnProps<User, string>[] = [
-  {
+const column = createDataTableColumnHelper<User>();
+const columns = column.columns([
+  column.accessor((user) => `${user.name} <${user.email}>`, {
     id: "contact",
-    getValue: (user) => `${user.name} <${user.email}>`,
     header: "Contact",
     render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
-  },
-];
+  }),
+]);
 ```
 
 `field` supports dotted object paths such as `customer.name`. If it is omitted,
@@ -351,13 +391,13 @@ The cell `render` element keeps the default value, while the header element supp
 its own label:
 
 ```tsx
-const columns: DataTableColumnProps<User>[] = [
-  {
-    field: "name",
+const column = createDataTableColumnHelper<User>();
+const columns = column.columns([
+  column.accessor("name", {
     header: <em>Name</em>,
     render: <strong />,
-  },
-];
+  }),
+]);
 ```
 
 Row action `render` replaces the menu item and supports framework Link components.

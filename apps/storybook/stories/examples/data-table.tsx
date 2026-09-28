@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { fn } from "storybook/test";
-import type { DataTableColumnProps } from "@/components/thread-ui/data-table";
 import type { ComponentProps } from "react";
+import type { DataTableRow } from "@/components/thread-ui/data-table";
 import {
   DataTable,
   createDataTableColumnHelper,
@@ -21,11 +21,12 @@ export const data: User[] = [
   },
   { id: "4", name: "Diana Prince", email: "diana@example.com", role: "Member" },
 ];
-export const columns: DataTableColumnProps<User>[] = [
-  { id: "name", header: "Name", field: "name" },
-  { id: "email", header: "Email", field: "email" },
-  { id: "role", header: "Role", field: "role" },
-];
+const userColumn = createDataTableColumnHelper<User>();
+export const columns = userColumn.columns([
+  userColumn.accessor("name", { id: "name", header: "Name" }),
+  userColumn.accessor("email", { id: "email", header: "Email" }),
+  userColumn.accessor("role", { id: "role", header: "Role" }),
+]);
 
 export function RowSelectionDataTableExample(
   args: ComponentProps<typeof DataTable<User>>,
@@ -99,28 +100,47 @@ interface Order {
   elapsed: number;
 }
 
-const typedColumns: DataTableColumnProps<Order>[] = [
-  { field: "id", header: "Order" },
-  { field: "quantity", header: "Quantity", type: "number", precision: 0 },
-  { field: "total", header: "Total", type: "currency", currency: "USD" },
-  { field: "rate", header: "Rate", type: "percent", precision: 1 },
-  { field: "elapsed", header: "Duration", type: "duration", unit: "seconds" },
-  { field: "date", header: "Date", type: "date", locale: "en-GB" },
-  {
-    field: "createdAt",
+const orderColumn = createDataTableColumnHelper<Order>();
+const typedColumns = orderColumn.columns([
+  orderColumn.accessor("id", { header: "Order" }),
+  orderColumn.accessor("quantity", {
+    header: "Quantity",
+    type: "number",
+    precision: 0,
+  }),
+  orderColumn.accessor("total", {
+    header: "Total",
+    type: "currency",
+    currency: "USD",
+  }),
+  orderColumn.accessor("rate", {
+    header: "Rate",
+    type: "percent",
+    precision: 1,
+  }),
+  orderColumn.accessor("elapsed", {
+    header: "Duration",
+    type: "duration",
+    unit: "seconds",
+  }),
+  orderColumn.accessor("date", {
+    header: "Date",
+    type: "date",
+    locale: "en-GB",
+  }),
+  orderColumn.accessor("createdAt", {
     header: "Created (Shanghai)",
     type: "datetime",
     locale: "zh-CN",
-  },
-  {
+  }),
+  orderColumn.accessor("createdAt", {
     id: "createdAtNewYork",
-    field: "createdAt",
     header: "Time (New York)",
     type: "time",
     hour12: false,
     timeZone: "America/New_York",
-  },
-];
+  }),
+]);
 
 const typedData: Order[] = [
   {
@@ -156,7 +176,6 @@ export function TypedColumnsDataTableExample() {
 
 TypedColumnsDataTableExample.displayName = "TypedColumnsDataTableExample";
 
-const userColumn = createDataTableColumnHelper<User>();
 const inferredColumns = userColumn.columns([
   userColumn.accessor("name", {
     header: "Name",
@@ -182,3 +201,30 @@ const inferredColumns = userColumn.columns([
 export function InferredValuesDataTableExample() {
   return <DataTable columns={inferredColumns} data={data} />;
 }
+
+InferredValuesDataTableExample.displayName = "InferredValuesDataTableExample";
+
+export const customCellColumns = userColumn.columns([
+  userColumn.accessor((person) => `${person.name} <${person.email}>`, {
+    id: "contact",
+    header: "Contact",
+    render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
+  }),
+]);
+export const renderElementColumns = userColumn.columns([
+  userColumn.accessor("name", { header: <em>Name</em>, render: <strong /> }),
+]);
+export const alignedColumns = userColumn.columns([
+  userColumn.accessor("name", { header: "Name" }),
+  userColumn.accessor("role", { header: "Role", align: "center" }),
+  userColumn.accessor("id", { header: "ID", align: "right" }),
+]);
+export const pinnedColumns = columns.map((column, index) => ({
+  ...column,
+  size: 400,
+  pinned: index === 0 ? ("left" as const) : (false as const),
+}));
+
+export const profileRowActions = (row: DataTableRow<User>) => [
+  { label: "View profile", render: <a href={`#person-${row.id}`} /> },
+];

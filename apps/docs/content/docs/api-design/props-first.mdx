@@ -59,18 +59,15 @@ A props-first component can preserve a simple default while exposing deliberate
 customization points:
 
 ```tsx
-<DataTable
-  columns={[
-    {
-      field: "status",
-      header: "Status",
-      render: (props, { row }) => (
-        <Badge {...props}>{row.original.status}</Badge>
-      ),
-    },
-  ]}
-  data={rows}
-/>
+const column = createDataTableColumnHelper<{ id: string; status: string }>();
+const columns = column.columns([
+  column.accessor("status", {
+    header: "Status",
+    render: (props, { getValue }) => <Badge {...props}>{getValue()}</Badge>,
+  }),
+]);
+
+<DataTable columns={columns} data={rows} />;
 ```
 
 Prefer a small number of typed render callbacks over a generic callback for
