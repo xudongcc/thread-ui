@@ -1,14 +1,14 @@
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
 import {
-  TopbarMenuExample,
-  TopbarMenuLinksExample,
+  SidebarUserMenuExample,
+  SidebarUserMenuLinksExample,
   workspaces,
-} from "./examples/topbar-menu";
-import implementation from "./examples/topbar-menu.tsx?raw";
+} from "./examples/sidebar-user-menu";
+import implementation from "./examples/sidebar-user-menu.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { TopbarMenuExampleProps } from "./examples/topbar-menu";
+import type { SidebarUserMenuExampleProps } from "./examples/sidebar-user-menu";
 
 const accountArgs = {
   user: { name: "Alex Morgan", email: "alex@example.com" },
@@ -18,9 +18,9 @@ const accountArgs = {
 };
 
 const meta = {
-  id: "components-topbarmenu",
-  title: "Layout/TopbarMenu",
-  component: TopbarMenuExample,
+  id: "components-sidebarusermenu",
+  title: "Layout/SidebarUserMenu",
+  component: SidebarUserMenuExample,
   args: {
     ...accountArgs,
     workspaces,
@@ -35,17 +35,17 @@ const meta = {
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
   },
-  render: (args) => <TopbarMenuExample {...args} />,
+  render: (args) => <SidebarUserMenuExample {...args} />,
   parameters: {
     docs: {
       source: withExampleSource(implementation),
       description: {
         component:
-          "Composition-only workspace/account menu. Compose TopbarMenuTrigger, TopbarMenuContent, TopbarMenuWorkspaceGroup and TopbarMenuUser with shadcn radio items, menu items and separators. This demo shows at most three recent tenants including the current tenant. No search or generated menu content.",
+          "Composition-only workspace/account menu. Compose SidebarUserMenuTrigger, SidebarUserMenuContent, SidebarUserMenuWorkspaceGroup and SidebarUserMenuUser with shadcn radio items, menu items and separators. This demo shows at most three recent tenants including the current tenant. No search or generated menu content.",
       },
     },
   },
-} satisfies Meta<TopbarMenuExampleProps>;
+} satisfies Meta<SidebarUserMenuExampleProps>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
@@ -77,7 +77,9 @@ export const Default: Story = {
       await expect(rows[0]).toHaveAccessibleName("North Studio");
       await expect(rows[0]).toHaveAttribute("aria-checked", "true");
       await expect(body.queryByRole("textbox")).not.toBeInTheDocument();
-      await expect(body.getByText("Alex Morgan")).toBeVisible();
+      await expect(
+        within(body.getByRole("menu")).getByText("Alex Morgan"),
+      ).toBeVisible();
       await expect(body.getByText("alex@example.com")).toBeVisible();
       await expect(
         body
@@ -286,7 +288,7 @@ export const UserOnly: Story = {
 
 export const Links: Story = {
   name: "Framework links",
-  render: (args) => <TopbarMenuLinksExample {...args} />,
+  render: (args) => <SidebarUserMenuLinksExample {...args} />,
   globals: { locale: "en" },
   play: testOnly(async ({ args, canvas, canvasElement }) => {
     const body = within(canvasElement.ownerDocument.body);

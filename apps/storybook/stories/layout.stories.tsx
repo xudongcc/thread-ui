@@ -24,7 +24,7 @@ const meta = {
       story: { inline: false, height: "720px" },
       description: {
         component:
-          "Responsive application layout with a top bar, sidebar navigation, and independently scrolling content. The sidebar stays visible on desktop and opens as a drawer on mobile. Compose Topbar, shadcn Sidebar, and LayoutContent directly. CSS Grid adapts when the sidebar or top bar is omitted.",
+          "Two-column application layout with full-height sidebar navigation and independently scrolling content. The sidebar collapses to an icon rail on desktop and opens as a drawer on mobile. Compose LayoutSidebar, SidebarUserMenu, and LayoutContent directly. The default sidebar variant keeps content flush with the viewport. LayoutSidebar automatically enables floating mobile navigation and safe-area spacing.",
       },
     },
   },

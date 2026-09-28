@@ -1,6 +1,6 @@
 {
   "name": "@repo/layout",
-  "description": "Application shell with a top bar, shadcn sidebar, and mobile drawer navigation.",
+  "description": "Two-column application shell with shadcn sidebar and independently scrolling content.",
   "version": "0.0.0",
   "private": true,
   "dependencies": {

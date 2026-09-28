@@ -51,7 +51,6 @@ test("theme installs via its namespace, preserves custom CSS, and compiles on re
     assert.equal(item.cssVars.light.secondary, "oklch(0.922 0 0)");
     assert.equal(item.cssVars.dark.secondary, "oklch(0.269 0 0)");
     assert.equal(item.cssVars.theme["color-canvas"], "var(--canvas)");
-    assert.equal(item.cssVars.theme["color-topbar"], "var(--topbar)");
     assert.equal(item.cssVars.theme["font-sans"], undefined);
     assert.equal(item.cssVars.theme["font-mono"], undefined);
     assert.equal(item.dependencies?.length ?? 0, 0);
@@ -111,7 +110,7 @@ test("theme installs via its namespace, preserves custom CSS, and compiles on re
       join(dir, "styles.css"),
       `
 @import "tailwindcss";
-@source inline("bg-canvas bg-secondary bg-topbar dark:bg-canvas");
+@source inline("bg-canvas bg-secondary dark:bg-canvas");
 @theme inline { --font-sans: "Existing Font", sans-serif; }
 :root { --secondary: hotpink; --custom-color: red; }
 .dark { --secondary: purple; }
@@ -141,8 +140,6 @@ test("theme installs via its namespace, preserves custom CSS, and compiles on re
       for (const [key, value] of Object.entries(item.cssVars[mode])) {
         assert.equal(actual[key], value, `${mode} ${key} must be installed`);
       }
-      const scoped = item.css[`[data-slot="topbar"][data-variant="${mode}"]`];
-      assert.equal(scoped["--secondary"], item.cssVars[mode].secondary);
     }
     const compiled = await postcss([tailwindcss({ base: dir })]).process(
       installed,
@@ -154,10 +151,6 @@ test("theme installs via its namespace, preserves custom CSS, and compiles on re
     assert.match(
       compiled.css,
       /\.bg-canvas\s*\{\s*background-color: var\(--canvas\)/,
-    );
-    assert.match(
-      compiled.css,
-      /\.bg-topbar\s*\{\s*background-color: var\(--topbar\)/,
     );
     assert.match(compiled.css, /body\s*\{\s*background-color: var\(--canvas\)/);
     assert.match(compiled.css, /\.dark/);

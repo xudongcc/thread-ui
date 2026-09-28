@@ -1,72 +1,115 @@
 ---
 title: Layout
-description: Grid application shell composed with Topbar, shadcn Sidebar, and scrolling content.
+description: Two-column application shell with sidebar navigation and independently scrolling content.
 ---
 
 ## Installation
 
 ```bash
 pnpm dlx shadcn@latest add @thread-ui/default-theme
-pnpm dlx shadcn@latest add @thread-ui/layout
-pnpm dlx shadcn@latest add @thread-ui/topbar
+pnpm dlx shadcn@latest add @thread-ui/layout @thread-ui/sidebar-user-menu
 ```
 
 ## Composition API
 
-`Layout` provides `SidebarProvider` and a viewport-height Grid. Compose `Topbar`,
-the original shadcn `Sidebar`, and `LayoutContent` directly as children. These
-parts can also be returned through fragments or custom components.
-
-`Layout` and `LayoutContent` use `bg-canvas` for the page surface. Customize
-`--canvas` in the light and dark themes to change this background independently
-of `--sidebar` and `--card`. In light mode, the canvas is light gray and the sidebar is white.
+`Layout` provides `SidebarProvider` with a fixed viewport height. Compose
+`LayoutSidebar` and `LayoutContent` directly, including through fragments or custom
+components. Place branding in `SidebarHeader`, existing navigation in
+`SidebarContent`, and `SidebarUserMenu` in `SidebarFooter`.
 
 ```tsx
-import { Layout, LayoutContent } from "@/components/thread-ui/layout";
+import { ShoppingBagIcon } from "lucide-react";
+import {
+  Layout,
+  LayoutContent,
+  LayoutSidebar,
+} from "@/components/thread-ui/layout";
 import { Page } from "@/components/thread-ui/page";
 import {
-  Topbar,
-  TopbarBrand,
-  TopbarSidebarTrigger,
-} from "@/components/thread-ui/topbar";
+  SidebarUserMenu,
+  SidebarUserMenuTrigger,
+  SidebarUserMenuContent,
+  SidebarUserMenuUser,
+} from "@/components/thread-ui/sidebar-user-menu";
 import {
-  Sidebar,
+  SidebarHeader,
   SidebarContent,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 function Navigation() {
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, open, setOpenMobile } = useSidebar();
+  const label = open ? "Collapse navigation" : "Expand navigation";
   return (
-    <Sidebar>
+    <LayoutSidebar collapsible="icon">
+      <SidebarHeader>
+        <div className="flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            className="group-data-[collapsible=icon]:hidden"
+          >
+            T
+          </span>
+          <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
+            Thread UI
+          </span>
+          {!isMobile && (
+            <Tooltip>
+              <TooltipTrigger
+                render={<SidebarTrigger aria-label={label} size="icon" />}
+              />
+              <TooltipContent side="right">{label}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <nav aria-label="Navigation">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
+                aria-label="Orders"
+                tooltip="Orders"
                 render={<a href="/orders" />}
                 onClick={() => {
                   if (isMobile) setOpenMobile(false);
                 }}
               >
-                Orders
+                <ShoppingBagIcon aria-hidden="true" />
+                <span className="group-data-[collapsible=icon]:hidden">
+                  Orders
+                </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </nav>
       </SidebarContent>
-    </Sidebar>
+      <SidebarFooter>
+        <SidebarUserMenu
+          user={{ name: "Alex Morgan", email: "alex@example.com" }}
+        >
+          <SidebarUserMenuTrigger />
+          <SidebarUserMenuContent>
+            <SidebarUserMenuUser render={<a href="/profile" />} />
+          </SidebarUserMenuContent>
+        </SidebarUserMenu>
+      </SidebarFooter>
+    </LayoutSidebar>
   );
 }
 
 <Layout>
-  <Topbar>
-    <TopbarSidebarTrigger />
-    <TopbarBrand>Thread UI</TopbarBrand>
-  </Topbar>
   <Navigation />
   <LayoutContent>
     <Page>{/* Page content */}</Page>
@@ -74,41 +117,80 @@ function Navigation() {
 </Layout>;
 ```
 
-Layout does not generate navigation or header content. Compose shadcn
-`SidebarGroup`, `SidebarMenuBadge`, `SidebarFooter`, and other Sidebar parts
-as needed. Framework links can use the menu button's native `render` prop.
-Navigation callbacks should call `setOpenMobile(false)` after accepting a
-navigation action.
+Layout does not generate navigation. Compose shadcn sidebar groups, menu items,
+and badges as needed. Framework links use the menu button's native `render` prop.
+After accepting navigation, call `setOpenMobile(false)` to dismiss the drawer.
 
-## Grid and scrolling
+## Layout and scrolling
 
-The top bar spans the full first row. Desktop sidebars occupy an automatic-width
-column beside the remaining content area; their positioning is scoped to Layout
-instead of the browser viewport. The content row uses the remaining height.
-Omitting Sidebar makes content fill the width. Omitting Topbar makes content fill
-the height. A right-side Sidebar uses the right column.
+The sidebar spans the full height beside the main content. Use
+`<LayoutSidebar collapsible="icon">` with the default sidebar variant. `LayoutContent`
+renders the native `SidebarInset` as its outer element, but its inset styling is
+only activated by `variant="inset"`. With the default variant, content fills the
+available space without outer margins, rounded corners, or a shadow. shadcn
+handles the sidebar border and collapsed width.
 
-`LayoutContent` wraps Base UI ScrollArea with shadcn scrollbars. Its viewport is
-the `main` landmark; native attributes, `ref`, `className`, and `onScroll` apply
-to this element. Use one LayoutContent per Layout. Its optional `id` is also used
-by the keyboard skip link. Put `Page` and `PageLayout` inside it to organize
-content. Nested tables can retain their own horizontal scrolling.
+`Layout` uses `bg-sidebar`; `LayoutContent` uses `bg-canvas`. Customize the existing
+`--sidebar` and `--canvas` theme tokens independently. Omitting Sidebar lets content
+fill the available width. For a right-side Sidebar, compose
+LayoutContent before `<LayoutSidebar side="right">` to match the native flex layout.
 
-`Layout` accepts native div attributes, refs, classes, and styles. For example,
-set `--sidebar-width` through `style` to customize the sidebar width. Default
-height is `100svh`; use a class such as `h-full` to fit a sized container.
+`LayoutContent` composes Base UI ScrollArea with shadcn scrollbars. SidebarInset is
+the single `main` landmark; its scrolling viewport is a div. Native attributes,
+`ref`, and `className` apply to the outer main element; `onScroll` applies to the
+inner viewport (`data-slot="layout-content-viewport"`). Use one LayoutContent per
+Layout. Its optional `id` is also used by the keyboard skip link. Put `Page` and
+`PageLayout` inside it to organize content. Tables can retain their own horizontal
+scrolling.
 
-## Mobile
+`Layout` accepts native div attributes, refs, classes, and styles. Set
+`--sidebar-width` through `style` to customize sidebar width. The default height
+is `100svh`; the native desktop sidebar is fixed to the viewport.
 
-The desktop sidebar stays expanded. Below 768px, shadcn Sidebar opens as a Sheet,
-with Escape/outside-click dismissal and focus management. Use
-`<TopbarSidebarTrigger />` to open it on mobile; its icon, accessible label,
-and sidebar toggle are built in. Layout closes an open
-drawer when returning to desktop. Omit the navigation trigger when no Sidebar
-is present.
+## Collapsing and mobile
+
+Use `<LayoutSidebar collapsible="icon">` for a desktop icon rail. The default is
+expanded. Compose shadcn `SidebarTrigger` with `Tooltip` in SidebarHeader. It stays
+visible on desktop, including the collapsed rail. Set `aria-label` and tooltip
+text to the same translated action label. The example uses `layout.expandNavigation`
+and `layout.collapseNavigation` from the locale dictionary.
+Add `tooltip` and `aria-label` to icon-only navigation buttons, and hide custom
+text with `group-data-[collapsible=icon]:hidden`. SidebarUserMenu automatically
+reduces its default trigger to the avatar.
+
+Below 768px, Sidebar opens as the existing shadcn Sheet with Escape/outside-click
+dismissal and focus management. `LayoutSidebar` automatically enables a floating shadcn `SidebarTrigger`
+using its built-in accessible text, without an extra Tooltip or `aria-label`. The button uses native
+`variant="outline"` and `size="icon-lg"` (36px) and is fixed to the bottom-left corner, with a 16px gap plus device safe-area insets. It
+stays visible while content scrolls and sits below the drawer overlay.
+
+`LayoutContent` keeps the viewport full-height and automatically adds 80px plus the
+bottom safe-area inset as padding to its inner scrolling content. The button and
+padding are both disabled on desktop. No extra button or spacer is needed in pages.
+
+`LayoutSidebar` accepts the native shadcn Sidebar props and children, including
+`side`, `variant`, `collapsible`, and `className`. Continue using shadcn
+`SidebarHeader`, `SidebarContent`, and `SidebarFooter` inside it. Floating navigation
+and content spacing are coordinated automatically through Layout.
+
+When LayoutSidebar is omitted or unmounted, both the floating button and its
+content padding are removed. A non-collapsible sidebar (`collapsible="none"`)
+also leaves them disabled. You can use the original shadcn Sidebar when you need
+to implement mobile navigation yourself.
+
+```tsx
+<Layout>
+  <LayoutContent>
+    <Page>{/* Content without a sidebar */}</Page>
+  </LayoutContent>
+</Layout>
+```
+
+Layout closes the drawer when returning to desktop. The user menu remains in the
+drawer footer.
 
 ## Examples
 
-Storybook includes the dashboard, an orders page using Page/DataFilter/DataTable,
-a two-column collection editor, and a layout without a sidebar. Use the viewport,
-theme, and language toolbars to inspect responsive behavior.
+Storybook includes a dashboard, Page/DataFilter/DataTable orders, a two-column
+collection editor, and a layout without a sidebar. Use viewport, theme and
+language toolbars to inspect responsive behavior.

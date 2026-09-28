@@ -258,9 +258,11 @@
   "layout": {
     "navigation": "导航",
     "toggleNavigation": "切换导航",
-    "skipToContent": "跳转到主要内容"
+    "skipToContent": "跳转到主要内容",
+    "expandNavigation": "展开导航",
+    "collapseNavigation": "收起导航"
   },
-  "topbarMenu": {
+  "sidebarUserMenu": {
     "choose": "选择工作空间",
     "switch": "切换工作空间：{{name}}",
     "recentWorkspaces": "最近的工作空间",

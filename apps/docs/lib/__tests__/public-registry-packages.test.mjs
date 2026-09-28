@@ -13,9 +13,9 @@ const registryPackages = [
     repoDependencies: ["@repo/locales"],
   },
   {
-    name: "topbar",
+    name: "sidebar-user-menu",
     dependencies: ["react-i18next"],
-    repoDependencies: ["@repo/button", "@repo/locales"],
+    repoDependencies: ["@repo/locales"],
   },
   {
     name: "form-layout",

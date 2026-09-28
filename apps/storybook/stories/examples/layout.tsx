@@ -26,27 +26,26 @@ import type {
   DataFilterField,
   DataFilterValue,
 } from "@/components/thread-ui/data-filter";
-import { Layout, LayoutContent } from "@/components/thread-ui/layout";
 import {
-  Topbar,
-  TopbarAction,
-  TopbarActionGroup,
-  TopbarBrand,
-  TopbarMenu,
-  TopbarMenuContent,
-  TopbarMenuItem,
-  TopbarMenuRadioGroup,
-  TopbarMenuRadioItem,
-  TopbarMenuSeparator,
-  TopbarMenuSub,
-  TopbarMenuSubContent,
-  TopbarMenuSubTrigger,
-  TopbarMenuTrigger,
-  TopbarMenuUser,
-  TopbarMenuWorkspaceGroup,
-  TopbarMenuWorkspaceItem,
-  TopbarSidebarTrigger,
-} from "@/components/thread-ui/topbar";
+  Layout,
+  LayoutContent,
+  LayoutSidebar,
+} from "@/components/thread-ui/layout";
+import {
+  SidebarUserMenu,
+  SidebarUserMenuContent,
+  SidebarUserMenuItem,
+  SidebarUserMenuRadioGroup,
+  SidebarUserMenuRadioItem,
+  SidebarUserMenuSeparator,
+  SidebarUserMenuSub,
+  SidebarUserMenuSubContent,
+  SidebarUserMenuSubTrigger,
+  SidebarUserMenuTrigger,
+  SidebarUserMenuUser,
+  SidebarUserMenuWorkspaceGroup,
+  SidebarUserMenuWorkspaceItem,
+} from "@/components/thread-ui/sidebar-user-menu";
 import { Button } from "@/components/thread-ui/button";
 import {
   Page,
@@ -82,16 +81,23 @@ import {
   PageLayoutSection,
 } from "@/components/thread-ui/page-layout";
 import {
-  Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "@/components/thread-ui/toast";
 
 const workspaces = [
@@ -142,7 +148,7 @@ function ApplicationContent({
   initialPage = "home",
   children,
 }: LayoutExampleProps) {
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, open, setOpenMobile } = useSidebar();
   const { t, i18n } = useTranslation("thread-ui");
   const [theme, setTheme] = useState("light");
   useEffect(() => {
@@ -197,171 +203,47 @@ function ApplicationContent({
       ],
     },
   ];
+  const navigationLabel = open
+    ? t("layout.collapseNavigation")
+    : t("layout.expandNavigation");
+  const navigationTrigger = (
+    <Tooltip>
+      <TooltipTrigger
+        render={<SidebarTrigger aria-label={navigationLabel} size="icon" />}
+      />
+      <TooltipContent side="right">{navigationLabel}</TooltipContent>
+    </Tooltip>
+  );
+  const brand = (
+    <svg
+      aria-hidden="true"
+      className="text-primary size-8 shrink-0 group-data-[collapsible=icon]:hidden"
+      fill="none"
+      viewBox="0 0 32 32"
+    >
+      <rect fill="currentColor" height="32" rx="9" width="32" />
+      <path
+        className="text-primary-foreground"
+        d="M8 10h16M11 15h10M16 10v14"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.5"
+      />
+    </svg>
+  );
   return (
     <>
-      <Topbar>
-        <TopbarSidebarTrigger />
-        <TopbarBrand>
-          <span className="inline-flex items-center gap-2.5 align-middle">
-            <svg
-              aria-hidden="true"
-              className="text-primary size-8 shrink-0"
-              fill="none"
-              viewBox="0 0 32 32"
-            >
-              <rect fill="currentColor" height="32" rx="9" width="32" />
-              <path
-                className="text-primary-foreground"
-                d="M8 10h16M11 15h10M16 10v14"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2.5"
-              />
-            </svg>
-            <span>Thread UI</span>
-          </span>
-        </TopbarBrand>
-        <TopbarActionGroup>
-          <TopbarAction
-            aria-label="Notifications"
-            onClick={() =>
-              toast.add({
-                title: "You're all caught up",
-                description: "No new notifications.",
-              })
-            }
-          >
-            <BellIcon />
-          </TopbarAction>
-        </TopbarActionGroup>
-        <TopbarMenu
-          currentWorkspace={current}
-          user={{ name: "Alex Morgan", email: "alex@example.com" }}
-        >
-          <TopbarMenuTrigger />
-          <TopbarMenuContent>
-            <TopbarMenuWorkspaceGroup
-              value={workspace}
-              onValueChange={(next: string) => {
-                setWorkspace(next);
-                setPage(initialPage);
-              }}
-            >
-              {[current, ...workspaces.filter((item) => item.id !== current.id)]
-                .slice(0, 3)
-                .map((item) => (
-                  <TopbarMenuWorkspaceItem key={item.id} workspace={item} />
-                ))}
-            </TopbarMenuWorkspaceGroup>
-
-            <TopbarMenuSeparator />
-            <TopbarMenuItem
-              className="min-h-10"
-              onClick={() =>
-                toast.add({
-                  title: "Create a workspace",
-                  description: "Start a new space for your team.",
-                })
-              }
-            >
-              <PlusIcon aria-hidden="true" />
-              {t("topbarMenu.create")}
-            </TopbarMenuItem>
-            <TopbarMenuSeparator />
-            <TopbarMenuUser onClick={() => setPage("profile")} />
-            <TopbarMenuSeparator />
-            <TopbarMenuSub>
-              <TopbarMenuSubTrigger className="min-h-10">
-                <LanguagesIcon aria-hidden="true" />
-                {t("topbarMenu.language")}
-              </TopbarMenuSubTrigger>
-              <TopbarMenuSubContent>
-                <TopbarMenuRadioGroup
-                  value={i18n.resolvedLanguage ?? "en"}
-                  onValueChange={(next: string) => {
-                    void i18n.changeLanguage(next);
-                  }}
-                >
-                  <TopbarMenuRadioItem
-                    closeOnClick
-                    className="min-h-10"
-                    value="en"
-                  >
-                    English
-                  </TopbarMenuRadioItem>
-                  <TopbarMenuRadioItem
-                    closeOnClick
-                    className="min-h-10"
-                    value="zh"
-                  >
-                    中文
-                  </TopbarMenuRadioItem>
-                </TopbarMenuRadioGroup>
-              </TopbarMenuSubContent>
-            </TopbarMenuSub>
-            <TopbarMenuSub>
-              <TopbarMenuSubTrigger className="min-h-10">
-                <SunMoonIcon aria-hidden="true" />
-                {t("topbarMenu.theme")}
-              </TopbarMenuSubTrigger>
-              <TopbarMenuSubContent>
-                <TopbarMenuRadioGroup
-                  value={theme}
-                  onValueChange={(next: string) =>
-                    document.documentElement.classList.toggle(
-                      "dark",
-                      next === "dark",
-                    )
-                  }
-                >
-                  <TopbarMenuRadioItem
-                    closeOnClick
-                    className="min-h-10"
-                    value="light"
-                  >
-                    {i18n.language === "zh" ? "浅色" : "Light"}
-                  </TopbarMenuRadioItem>
-                  <TopbarMenuRadioItem
-                    closeOnClick
-                    className="min-h-10"
-                    value="dark"
-                  >
-                    {i18n.language === "zh" ? "深色" : "Dark"}
-                  </TopbarMenuRadioItem>
-                </TopbarMenuRadioGroup>
-              </TopbarMenuSubContent>
-            </TopbarMenuSub>
-            <TopbarMenuItem
-              className="min-h-10"
-              onClick={() =>
-                toast.add({
-                  title: "Help center",
-                  description: "Demo: open your application's help center.",
-                })
-              }
-            >
-              <CircleHelpIcon aria-hidden="true" />
-              {t("topbarMenu.help")}
-            </TopbarMenuItem>
-            <TopbarMenuSeparator />
-            <TopbarMenuItem
-              className="min-h-10"
-              onClick={() =>
-                toast.add({
-                  title: "Sign out requested",
-                  description:
-                    "Demo only. Connect this callback to your authentication service.",
-                })
-              }
-            >
-              <LogOutIcon aria-hidden="true" />
-              {t("topbarMenu.signOut")}
-            </TopbarMenuItem>
-          </TopbarMenuContent>
-        </TopbarMenu>
-      </Topbar>
-      <Sidebar>
+      <LayoutSidebar collapsible="icon">
+        <SidebarHeader>
+          <div className="flex h-12 min-w-0 items-center gap-2.5 px-2 font-semibold group-data-[collapsible=icon]:px-0">
+            {brand}
+            <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
+              Thread UI
+            </span>
+            {!isMobile && navigationTrigger}
+          </div>
+        </SidebarHeader>
         <SidebarContent>
           <nav aria-label={t("layout.navigation", "Navigation")}>
             {navigation.map((group) => (
@@ -375,8 +257,10 @@ function ApplicationContent({
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton
                           aria-current={item.active ? "page" : undefined}
+                          aria-label={item.label}
                           className="h-10 md:h-9"
                           isActive={item.active}
+                          tooltip={item.label}
                           onClick={() => {
                             item.onClick();
                             if (isMobile) setOpenMobile(false);
@@ -388,7 +272,9 @@ function ApplicationContent({
                           >
                             {item.icon}
                           </span>
-                          <span className="truncate">{item.label}</span>
+                          <span className="truncate group-data-[collapsible=icon]:hidden">
+                            {item.label}
+                          </span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
@@ -398,7 +284,156 @@ function ApplicationContent({
             ))}
           </nav>
         </SidebarContent>
-      </Sidebar>
+        <SidebarFooter>
+          <SidebarUserMenu
+            currentWorkspace={current}
+            user={{ name: "Alex Morgan", email: "alex@example.com" }}
+          >
+            <SidebarUserMenuTrigger />
+            <SidebarUserMenuContent>
+              <SidebarUserMenuWorkspaceGroup
+                value={workspace}
+                onValueChange={(next: string) => {
+                  setWorkspace(next);
+                  setPage(initialPage);
+                }}
+              >
+                {[
+                  current,
+                  ...workspaces.filter((item) => item.id !== current.id),
+                ]
+                  .slice(0, 3)
+                  .map((item) => (
+                    <SidebarUserMenuWorkspaceItem
+                      key={item.id}
+                      workspace={item}
+                    />
+                  ))}
+              </SidebarUserMenuWorkspaceGroup>
+
+              <SidebarUserMenuSeparator />
+              <SidebarUserMenuItem
+                className="min-h-10"
+                onClick={() =>
+                  toast.add({
+                    title: "Create a workspace",
+                    description: "Start a new space for your team.",
+                  })
+                }
+              >
+                <PlusIcon aria-hidden="true" />
+                {t("sidebarUserMenu.create")}
+              </SidebarUserMenuItem>
+              <SidebarUserMenuItem
+                onClick={() =>
+                  toast.add({
+                    title: "You're all caught up",
+                    description: "No new notifications.",
+                  })
+                }
+              >
+                <BellIcon aria-hidden="true" />
+                Notifications
+              </SidebarUserMenuItem>
+              <SidebarUserMenuSeparator />
+              <SidebarUserMenuUser
+                onClick={() => {
+                  setPage("profile");
+                  if (isMobile) setOpenMobile(false);
+                }}
+              />
+              <SidebarUserMenuSeparator />
+              <SidebarUserMenuSub>
+                <SidebarUserMenuSubTrigger className="min-h-10">
+                  <LanguagesIcon aria-hidden="true" />
+                  {t("sidebarUserMenu.language")}
+                </SidebarUserMenuSubTrigger>
+                <SidebarUserMenuSubContent>
+                  <SidebarUserMenuRadioGroup
+                    value={i18n.resolvedLanguage ?? "en"}
+                    onValueChange={(next: string) => {
+                      void i18n.changeLanguage(next);
+                    }}
+                  >
+                    <SidebarUserMenuRadioItem
+                      closeOnClick
+                      className="min-h-10"
+                      value="en"
+                    >
+                      English
+                    </SidebarUserMenuRadioItem>
+                    <SidebarUserMenuRadioItem
+                      closeOnClick
+                      className="min-h-10"
+                      value="zh"
+                    >
+                      中文
+                    </SidebarUserMenuRadioItem>
+                  </SidebarUserMenuRadioGroup>
+                </SidebarUserMenuSubContent>
+              </SidebarUserMenuSub>
+              <SidebarUserMenuSub>
+                <SidebarUserMenuSubTrigger className="min-h-10">
+                  <SunMoonIcon aria-hidden="true" />
+                  {t("sidebarUserMenu.theme")}
+                </SidebarUserMenuSubTrigger>
+                <SidebarUserMenuSubContent>
+                  <SidebarUserMenuRadioGroup
+                    value={theme}
+                    onValueChange={(next: string) =>
+                      document.documentElement.classList.toggle(
+                        "dark",
+                        next === "dark",
+                      )
+                    }
+                  >
+                    <SidebarUserMenuRadioItem
+                      closeOnClick
+                      className="min-h-10"
+                      value="light"
+                    >
+                      {i18n.language === "zh" ? "浅色" : "Light"}
+                    </SidebarUserMenuRadioItem>
+                    <SidebarUserMenuRadioItem
+                      closeOnClick
+                      className="min-h-10"
+                      value="dark"
+                    >
+                      {i18n.language === "zh" ? "深色" : "Dark"}
+                    </SidebarUserMenuRadioItem>
+                  </SidebarUserMenuRadioGroup>
+                </SidebarUserMenuSubContent>
+              </SidebarUserMenuSub>
+              <SidebarUserMenuItem
+                className="min-h-10"
+                onClick={() =>
+                  toast.add({
+                    title: "Help center",
+                    description: "Demo: open your application's help center.",
+                  })
+                }
+              >
+                <CircleHelpIcon aria-hidden="true" />
+                {t("sidebarUserMenu.help")}
+              </SidebarUserMenuItem>
+              <SidebarUserMenuSeparator />
+              <SidebarUserMenuItem
+                className="min-h-10"
+                onClick={() =>
+                  toast.add({
+                    title: "Sign out requested",
+                    description:
+                      "Demo only. Connect this callback to your authentication service.",
+                  })
+                }
+              >
+                <LogOutIcon aria-hidden="true" />
+                {t("sidebarUserMenu.signOut")}
+              </SidebarUserMenuItem>
+            </SidebarUserMenuContent>
+          </SidebarUserMenu>
+        </SidebarFooter>
+      </LayoutSidebar>
       <LayoutContent>
         {page === "profile" ? (
           <Page className="max-w-3xl" variant="full">
@@ -1097,15 +1132,6 @@ LayoutSplitPageExample.displayName = "LayoutSplitPageExample";
 export function LayoutWithoutSidebarExample(args: LayoutProps) {
   return (
     <Layout {...args}>
-      <Topbar>
-        <TopbarBrand>Thread UI</TopbarBrand>
-        <TopbarMenu user={{ name: "Alex Morgan", email: "alex@example.com" }}>
-          <TopbarMenuTrigger />
-          <TopbarMenuContent>
-            <TopbarMenuUser />
-          </TopbarMenuContent>
-        </TopbarMenu>
-      </Topbar>
       <LayoutContent id="account-content">
         <Page variant="full">
           <PageHeader>

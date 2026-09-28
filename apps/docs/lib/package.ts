@@ -311,7 +311,7 @@ export const getPackage = async (packageName: string) => {
     files
       .map((f) => f.content)
       .join("\n")
-      .match(/@\/components\/ui\/([a-z-]+)/g)
+      .match(/@\/(?:components\/ui\/[a-z-]+|hooks\/use-mobile\b)/g)
       ?.map((path) => path.split("/").pop())
       .filter((name): name is string => !!name) || [];
 
@@ -417,29 +417,6 @@ export const getPackage = async (packageName: string) => {
     type = "registry:style";
   }
 
-  // Standalone Topbar installs its own background token without replacing the
-  // consuming application's general palette with the full Thread UI theme.
-  let cssVars: RegistryItem["cssVars"];
-  if (packageName === "topbar") {
-    cssVars = { theme: {}, light: {}, dark: {} };
-    theme.walkAtRules("theme", (rule) => {
-      rule.walkDecls("--color-topbar", (decl) => {
-        cssVars!.theme!["color-topbar"] = decl.value;
-      });
-    });
-    theme.walkRules((rule) => {
-      const mode = rule.selectors.includes(":root")
-        ? "light"
-        : rule.selectors.includes(".dark")
-          ? "dark"
-          : undefined;
-      if (!mode) return;
-      rule.walkDecls("--topbar", (decl) => {
-        cssVars![mode]!.topbar = decl.value;
-      });
-    });
-  }
-
   const response: RegistryItem = {
     $schema: "https://ui.shadcn.com/schema/registry-item.json",
     name: packageName,
@@ -451,7 +428,6 @@ export const getPackage = async (packageName: string) => {
     registryDependencies,
     files,
     css,
-    ...(cssVars ? { cssVars } : {}),
   };
 
   return response;

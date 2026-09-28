@@ -1,25 +1,21 @@
 import { afterEach, beforeAll, expect, test, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { page } from "vitest/browser";
 import { createRef } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Root } from "react-dom/client";
-import type { TopbarMenuTriggerProps } from "@/components/thread-ui/topbar";
+import type { SidebarUserMenuTriggerProps } from "@/components/thread-ui/sidebar-user-menu";
 import {
-  Topbar,
-  TopbarAction,
-  TopbarMenu,
-  TopbarMenuContent,
-  TopbarMenuTrigger,
-  TopbarMenuUser,
-  TopbarMenuWorkspaceGroup,
-  TopbarMenuWorkspaceItem,
-  TopbarSidebarTrigger,
-} from "@/components/thread-ui/topbar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+  SidebarUserMenu,
+  SidebarUserMenuContent,
+  SidebarUserMenuTrigger,
+  SidebarUserMenuUser,
+  SidebarUserMenuWorkspaceGroup,
+  SidebarUserMenuWorkspaceItem,
+} from "@/components/thread-ui/sidebar-user-menu";
 import { AvatarImage } from "@/components/ui/avatar";
 import "../styles.css";
 
@@ -43,16 +39,16 @@ function mount(children: ReactNode) {
     root!.render(<I18nextProvider i18n={i18n}>{children}</I18nextProvider>),
   );
 }
-function menu(triggerProps: TopbarMenuTriggerProps = {}, loading = false) {
+function menu(triggerProps: SidebarUserMenuTriggerProps = {}, loading = false) {
   return (
-    <Topbar>
-      <TopbarMenu loading={loading} user={{ name: "Alex Morgan" }}>
-        <TopbarMenuTrigger {...triggerProps} />
-        <TopbarMenuContent>
-          <TopbarMenuUser onClick={() => {}} />
-        </TopbarMenuContent>
-      </TopbarMenu>
-    </Topbar>
+    <div className="w-64">
+      <SidebarUserMenu loading={loading} user={{ name: "Alex Morgan" }}>
+        <SidebarUserMenuTrigger {...triggerProps} />
+        <SidebarUserMenuContent>
+          <SidebarUserMenuUser onClick={() => {}} />
+        </SidebarUserMenuContent>
+      </SidebarUserMenu>
+    </div>
   );
 }
 
@@ -62,7 +58,7 @@ for (const width of [375, 1280]) {
       await page.viewport(width, 800);
       const ref = createRef<HTMLButtonElement>();
       const onClick = vi.fn();
-      const render: TopbarMenuTriggerProps["render"] =
+      const render: SidebarUserMenuTriggerProps["render"] =
         mode === "element" ? (
           <button />
         ) : (
@@ -77,8 +73,8 @@ for (const width of [375, 1280]) {
       expect(ref.current).toBe(button);
       expect(getComputedStyle(button).display).toMatch(/^(inline-)?flex$/);
       const bounds = button.getBoundingClientRect();
-      expect(bounds.height).toBe(40);
-      if (width < 640) expect(bounds.width).toBe(40);
+      expect(bounds.height).toBe(48);
+      expect(bounds.width).toBe(256);
       // Every visible descendant stays vertically inside the trigger.
       for (const child of button.querySelectorAll("span, svg")) {
         const rect = child.getBoundingClientRect();
@@ -112,7 +108,7 @@ test("custom trigger text uses its natural width on mobile", async () => {
   const button = trigger.element();
   expect(button.getBoundingClientRect().width).toBeGreaterThan(100);
   expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth);
-  expect(button.getBoundingClientRect().height).toBe(40);
+  expect(button.getBoundingClientRect().height).toBe(48);
 });
 
 test("custom render preserves loading indicator and disabled behavior", async () => {
@@ -150,7 +146,7 @@ for (const kind of ["user", "workspace"] as const) {
         );
       const workspace = { id: "north", name: "North Studio", icon: visual };
       mount(
-        <TopbarMenu
+        <SidebarUserMenu
           currentWorkspace={kind === "workspace" ? workspace : undefined}
           user={
             kind === "user"
@@ -158,17 +154,17 @@ for (const kind of ["user", "workspace"] as const) {
               : undefined
           }
         >
-          <TopbarMenuTrigger />
-          <TopbarMenuContent>
+          <SidebarUserMenuTrigger />
+          <SidebarUserMenuContent>
             {kind === "user" ? (
-              <TopbarMenuUser onClick={() => {}} />
+              <SidebarUserMenuUser onClick={() => {}} />
             ) : (
-              <TopbarMenuWorkspaceGroup value="north">
-                <TopbarMenuWorkspaceItem workspace={workspace} />
-              </TopbarMenuWorkspaceGroup>
+              <SidebarUserMenuWorkspaceGroup value="north">
+                <SidebarUserMenuWorkspaceItem workspace={workspace} />
+              </SidebarUserMenuWorkspaceGroup>
             )}
-          </TopbarMenuContent>
-        </TopbarMenu>,
+          </SidebarUserMenuContent>
+        </SidebarUserMenu>,
       );
       await page.getByRole("button").click();
       await expect.element(page.getByRole("menu")).toBeVisible();
@@ -204,113 +200,6 @@ for (const kind of ["user", "workspace"] as const) {
   }
 }
 
-// Fixed header palettes must remain legible even when the page theme is opposite.
-function pixel(color: string) {
-  const context = document.createElement("canvas").getContext("2d")!;
-  context.fillStyle = color;
-  context.fillRect(0, 0, 1, 1);
-  return Array.from(context.getImageData(0, 0, 1, 1).data);
-}
-for (const globalDark of [false, true]) {
-  for (const variant of [undefined, "light", "dark"] as const) {
-    test(`Topbar ${variant ?? "auto"} palette under ${globalDark ? "dark" : "light"} theme`, async () => {
-      await page.viewport(1280, 800);
-      document.documentElement.classList.toggle("dark", globalDark);
-      mount(
-        <Topbar variant={variant}>
-          <TopbarAction aria-label="Notifications">!</TopbarAction>
-          <TopbarMenu user={{ name: "Alex Morgan" }}>
-            <TopbarMenuTrigger />
-            <TopbarMenuContent>
-              <TopbarMenuUser onClick={() => {}} />
-            </TopbarMenuContent>
-          </TopbarMenu>
-        </Topbar>,
-      );
-      const dark = variant === "dark" || (variant === undefined && globalDark);
-      const foreground = dark ? [250, 250, 250, 255] : [10, 10, 10, 255];
-      const accent = dark ? [38, 38, 38, 255] : [245, 245, 245, 255];
-      const accentForeground = dark ? [250, 250, 250, 255] : [23, 23, 23, 255];
-      const headerBackground = dark ? [23, 23, 23, 255] : [255, 255, 255, 255];
-      const header = container.querySelector("header")!;
-      expect(pixel(getComputedStyle(header).backgroundColor)).toEqual(
-        headerBackground,
-      );
-      expect(pixel(getComputedStyle(header).color)).toEqual(foreground);
-      const action = page.getByRole("button", { name: "Notifications" });
-      const trigger = page.getByRole("button", {
-        name: "Account: Alex Morgan",
-      });
-      expect(pixel(getComputedStyle(action.element()).color)).toEqual(
-        foreground,
-      );
-      expect(pixel(getComputedStyle(trigger.element()).color)).toEqual(
-        foreground,
-      );
-      expect(
-        pixel(getComputedStyle(trigger.element()).backgroundColor),
-      ).toEqual(headerBackground);
-      await action.hover();
-      await expect
-        .poll(() => pixel(getComputedStyle(action.element()).backgroundColor))
-        .toEqual(accent);
-      await trigger.click();
-      await expect.element(page.getByRole("menu")).toBeVisible();
-      await expect
-        .poll(() => pixel(getComputedStyle(trigger.element()).backgroundColor))
-        .toEqual(accent);
-      expect(pixel(getComputedStyle(trigger.element()).color)).toEqual(
-        accentForeground,
-      );
-      // The portaled popup remains in the page's theme, outside the header scope.
-      expect(
-        pixel(
-          getComputedStyle(page.getByRole("menu").element()).backgroundColor,
-        ),
-      ).toEqual(globalDark ? [23, 23, 23, 255] : [255, 255, 255, 255]);
-      expect(
-        pixel(
-          getComputedStyle(page.getByRole("menu").element()).getPropertyValue(
-            "--background",
-          ),
-        ),
-      ).toEqual(globalDark ? [10, 10, 10, 255] : [255, 255, 255, 255]);
-    });
-  }
-}
-
-test("automatic Topbar inherits custom application colors", async () => {
-  mount(
-    <div
-      style={
-        {
-          "--background": "rgb(20 40 60)",
-          "--sidebar": "rgb(40 60 80)",
-          "--topbar": "rgb(30 50 70)",
-          "--foreground": "rgb(240 230 220)",
-          "--accent": "rgb(60 80 100)",
-          "--accent-foreground": "rgb(250 250 250)",
-        } as CSSProperties
-      }
-    >
-      {menu()}
-    </div>,
-  );
-  const header = container.querySelector("header")!;
-  expect(pixel(getComputedStyle(header).backgroundColor)).toEqual([
-    30, 50, 70, 255,
-  ]);
-  expect(pixel(getComputedStyle(header).color)).toEqual([240, 230, 220, 255]);
-  const trigger = page.getByRole("button", { name: "Account: Alex Morgan" });
-  expect(pixel(getComputedStyle(trigger.element()).backgroundColor)).toEqual([
-    30, 50, 70, 255,
-  ]);
-  await trigger.hover();
-  await expect
-    .poll(() => pixel(getComputedStyle(trigger.element()).backgroundColor))
-    .toEqual([60, 80, 100, 255]);
-});
-
 for (const styleMode of ["object", "callback"] as const) {
   test(`informational user forwards DOM props, events and ref with ${styleMode} styles`, async () => {
     const ref = createRef<HTMLDivElement>();
@@ -318,10 +207,12 @@ for (const styleMode of ["object", "callback"] as const) {
     const style = { letterSpacing: "1px" };
     const getStyle = vi.fn(() => style);
     mount(
-      <TopbarMenu user={{ name: "Alex Morgan", email: "alex@example.com" }}>
-        <TopbarMenuTrigger />
-        <TopbarMenuContent>
-          <TopbarMenuUser
+      <SidebarUserMenu
+        user={{ name: "Alex Morgan", email: "alex@example.com" }}
+      >
+        <SidebarUserMenuTrigger />
+        <SidebarUserMenuContent>
+          <SidebarUserMenuUser
             ref={ref}
             disabled
             aria-label="Current account"
@@ -335,8 +226,8 @@ for (const styleMode of ["object", "callback"] as const) {
             variant="destructive"
             onMouseEnter={onMouseEnter}
           />
-        </TopbarMenuContent>
-      </TopbarMenu>,
+        </SidebarUserMenuContent>
+      </SidebarUserMenu>,
     );
     await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
     const row = page.getByTestId("informational-user");
@@ -373,10 +264,10 @@ for (const mode of ["action", "link"] as const) {
     const ref = createRef<HTMLDivElement>();
     const onClick = vi.fn((event) => event.preventDefault());
     mount(
-      <TopbarMenu user={{ name: "Alex Morgan" }}>
-        <TopbarMenuTrigger />
-        <TopbarMenuContent>
-          <TopbarMenuUser
+      <SidebarUserMenu user={{ name: "Alex Morgan" }}>
+        <SidebarUserMenuTrigger />
+        <SidebarUserMenuContent>
+          <SidebarUserMenuUser
             ref={ref}
             aria-label="Manage my account"
             closeOnClick={false}
@@ -385,8 +276,8 @@ for (const mode of ["action", "link"] as const) {
             title="Profile"
             onClick={onClick}
           />
-        </TopbarMenuContent>
-      </TopbarMenu>,
+        </SidebarUserMenuContent>
+      </SidebarUserMenu>,
     );
     await page.getByRole("button", { name: "Account: Alex Morgan" }).click();
     const row = page.getByRole("menuitem", { name: "Manage my account" });
@@ -401,72 +292,3 @@ for (const mode of ["action", "link"] as const) {
     await expect.element(page.getByRole("menu")).toBeVisible();
   });
 }
-
-test("navigation trigger works without props and hides on desktop", async () => {
-  await page.viewport(375, 800);
-  mount(
-    <SidebarProvider>
-      <Topbar>
-        <TopbarSidebarTrigger />
-      </Topbar>
-    </SidebarProvider>,
-  );
-  const trigger = page.getByRole("button", { name: "Toggle navigation" });
-  await expect.element(trigger).toBeVisible();
-  const button = trigger.element();
-  expect(button.tagName).toBe("BUTTON");
-  expect(button.querySelector("button")).toBeNull();
-  expect(button.querySelector("svg[aria-hidden=true]")).not.toBeNull();
-  expect(button.getBoundingClientRect().width).toBe(40);
-  expect(button.getBoundingClientRect().height).toBe(40);
-  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
-  await trigger.click();
-  await expect.element(trigger).toHaveAttribute("aria-expanded", "true");
-  await userEvent.keyboard("{Enter}");
-  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
-  await page.viewport(1280, 800);
-  await expect.element(button).not.toBeVisible();
-});
-
-test("navigation trigger forwards ref and render, and allows cancelling the toggle", async () => {
-  await page.viewport(375, 800);
-  const ref = createRef<HTMLButtonElement>();
-  const onClick = vi.fn((event) => event.preventDefault());
-  mount(
-    <SidebarProvider>
-      <Topbar>
-        <TopbarSidebarTrigger
-          ref={ref}
-          aria-label="Open menu"
-          render={<button data-testid="custom-navigation" />}
-          onClick={onClick}
-        />
-      </Topbar>
-    </SidebarProvider>,
-  );
-  const trigger = page.getByRole("button", { name: "Open menu" });
-  expect(ref.current).toBe(trigger.element());
-  await trigger.click();
-  expect(onClick).toHaveBeenCalledOnce();
-  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
-  await expect
-    .element(trigger)
-    .toHaveAttribute("data-testid", "custom-navigation");
-});
-
-test("disabled navigation trigger does not open the sidebar", async () => {
-  await page.viewport(375, 800);
-  const onClick = vi.fn();
-  mount(
-    <SidebarProvider>
-      <Topbar>
-        <TopbarSidebarTrigger disabled onClick={onClick} />
-      </Topbar>
-    </SidebarProvider>,
-  );
-  const trigger = page.getByRole("button", { name: "Toggle navigation" });
-  await expect.element(trigger).toBeDisabled();
-  (trigger.element() as HTMLButtonElement).click();
-  expect(onClick).not.toHaveBeenCalled();
-  await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
-});
