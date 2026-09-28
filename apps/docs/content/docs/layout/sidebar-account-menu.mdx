@@ -93,6 +93,29 @@ Storybook example deduplicates and shows at most three recent tenants with the
 current tenant first; the composition components themselves do not truncate
 children or fetch workspace data.
 
+## Root props and composed actions
+
+The root only accepts `children`, `user`, `currentWorkspace`, `loading`, `disabled`,
+`open`, `defaultOpen`, `onOpenChange`, and `onOpenChangeComplete`. It does not
+accept `onHelp`, `onSignOut`, `onProfile`, `onCreateWorkspace`, a workspace list,
+or a menu-items configuration.
+
+Attach business handlers to the corresponding parts:
+
+```tsx
+<SidebarAccountMenuWorkspaceGroup value={workspaceId} onValueChange={setWorkspaceId}>
+  {/* Compose SidebarAccountMenuWorkspaceItem children here. */}
+</SidebarAccountMenuWorkspaceGroup>
+<SidebarAccountMenuUser onClick={openProfile} />
+<SidebarAccountMenuItem render={<Link href="/help" />}>Help center</SidebarAccountMenuItem>
+<SidebarAccountMenuItem onClick={signOut}>Sign out</SidebarAccountMenuItem>
+```
+
+Place these parts inside `SidebarAccountMenuContent`. Import `Link` from your
+router and define handlers in the application. The Storybook examples keep their
+sample data and action handlers locally; their Controls expose only the root's
+`user`, `loading`, and `disabled` props. Remove or add menu items directly in JSX.
+
 ## Parts
 
 - `SidebarAccountMenu`: requires children and accepts `currentWorkspace`, `user`,

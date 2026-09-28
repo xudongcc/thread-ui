@@ -31,7 +31,7 @@ import {
   SidebarAccountMenuWorkspaceLabel,
 } from "@/components/thread-ui/sidebar-account-menu";
 
-export const workspaces = [
+const workspaces: readonly Workspace[] = [
   { id: "north", name: "North Studio", description: "Production workspace" },
   { id: "market", name: "Night Market", description: "Commerce workspace" },
   {
@@ -45,17 +45,17 @@ export const workspaces = [
   { id: "west", name: "West Studio", description: "west.example.com" },
 ];
 
-export type SidebarAccountMenuExampleProps = Omit<
+// Controls expose only actual root props. Business actions are composed below.
+export type SidebarAccountMenuExampleProps = Pick<
   SidebarAccountMenuProps,
-  "children"
-> & {
-  workspaces?: readonly Workspace[];
-  value?: string | null;
-  onValueChange?: (value: string) => void;
-  onCreateWorkspace?: () => void;
-  onProfile?: () => void;
-  onHelp?: () => void;
-  onSignOut?: () => void;
+  "user" | "loading" | "disabled"
+>;
+
+// Private demo scenarios, not SidebarAccountMenu API.
+type DemoOptions = {
+  recentWorkspaces?: readonly Workspace[];
+  initialWorkspace?: Workspace | null;
+  showWorkspaces?: boolean;
   linkItems?: boolean;
 };
 
@@ -90,31 +90,29 @@ function DemoLink({
 }
 
 /** Language changes stay local to this example, including portaled submenus. */
-export function SidebarAccountMenuExample(
-  args: SidebarAccountMenuExampleProps,
-) {
+function MenuExample({
+  options,
+  ...props
+}: SidebarAccountMenuExampleProps & { options?: DemoOptions }) {
   const { i18n } = useTranslation();
   const instance = useMemo(() => i18n.cloneInstance(), [i18n]);
   return (
     <I18nextProvider i18n={instance}>
-      <MenuExampleContent {...args} />
+      <MenuExampleContent {...props} {...options} />
     </I18nextProvider>
   );
 }
 
 /** Only the demo owns recent-workspace data and application navigation. */
 function MenuExampleContent({
-  workspaces = [],
-  currentWorkspace,
-  value: initialValue,
-  onValueChange,
-  onCreateWorkspace,
-  onProfile,
-  onHelp,
-  onSignOut,
+  recentWorkspaces = workspaces.slice(1),
+  initialWorkspace = workspaces[0],
+  showWorkspaces = true,
   linkItems = false,
-  ...args
-}: SidebarAccountMenuExampleProps) {
+  user,
+  loading,
+  disabled,
+}: SidebarAccountMenuExampleProps & DemoOptions) {
   const { t, i18n } = useTranslation("thread-ui");
   const [theme, setTheme] = useState("light");
   useEffect(() => {
@@ -130,38 +128,38 @@ function MenuExampleContent({
       root.classList.toggle("dark", original);
     };
   }, []);
-  const [value, setValue] = useState(initialValue);
-  const [message, setMessage] = useState("");
-  const selected = [currentWorkspace, ...workspaces].find(
-    (item) => item?.id === value,
+  const [value, setValue] = useState(
+    showWorkspaces ? initialWorkspace : undefined,
   );
-  // The application supplies recent tenants; include the current one and cap at three.
-  const recent = [
-    ...new Map(
-      [
-        ...(selected ? [selected] : []),
-        ...workspaces.filter((item) => item.id !== selected?.id),
-      ].map((item) => [item.id, item]),
-    ).values(),
-  ].slice(0, 3);
-  const hasWorkspaceSection = recent.length > 0 || Boolean(onCreateWorkspace);
-  const action = (message: string, callback?: () => void) => {
-    setMessage(message);
-    callback?.();
-  };
+  const [message, setMessage] = useState("");
+  // Include the current tenant and cap the recent list at three.
+  const recent = showWorkspaces
+    ? [
+        ...new Map(
+          [
+            ...(value ? [value] : []),
+            ...(initialWorkspace ? [initialWorkspace] : []),
+            ...recentWorkspaces,
+          ].map((workspace) => [workspace.id, workspace]),
+        ).values(),
+      ].slice(0, 3)
+    : [];
   return (
     <div className="w-64 max-w-full space-y-4">
-      <SidebarAccountMenu {...args} currentWorkspace={selected}>
+      <SidebarAccountMenu
+        currentWorkspace={value ?? undefined}
+        disabled={disabled}
+        loading={loading}
+        user={user}
+      >
         <SidebarAccountMenuTrigger />
         <SidebarAccountMenuContent>
           {recent.length > 0 && (
             <SidebarAccountMenuWorkspaceGroup
-              value={value ?? ""}
+              value={value?.id ?? ""}
               onValueChange={(next: string) => {
-                if (next !== value) {
-                  setValue(next);
-                  onValueChange?.(next);
-                }
+                const workspace = recent.find((item) => item.id === next);
+                if (workspace) setValue(workspace);
               }}
             >
               <SidebarAccountMenuWorkspaceLabel />
@@ -184,41 +182,35 @@ function MenuExampleContent({
               ))}
             </SidebarAccountMenuWorkspaceGroup>
           )}
-          {onCreateWorkspace && (
+          {showWorkspaces && (
             <>
               {recent.length > 0 && <SidebarAccountMenuSeparator />}
               <SidebarAccountMenuItem
                 className="min-h-10"
-                onClick={() =>
-                  action("Create workspace requested", onCreateWorkspace)
-                }
+                onClick={() => setMessage("Create workspace requested")}
               >
                 <PlusIcon aria-hidden="true" />
                 {t("sidebarAccountMenu.create")}
               </SidebarAccountMenuItem>
             </>
           )}
-          {args.user && (
+          {user && (
             <>
-              {hasWorkspaceSection && <SidebarAccountMenuSeparator />}
+              {showWorkspaces && <SidebarAccountMenuSeparator />}
               <SidebarAccountMenuUser
                 render={linkItems ? <DemoLink to="#profile" /> : undefined}
-                onClick={
-                  onProfile
-                    ? () => action("Profile requested", onProfile)
-                    : undefined
-                }
+                onClick={() => setMessage("Profile requested")}
               />
               <SidebarAccountMenuSeparator />
             </>
           )}
           {linkItems && (
             <>
-              {!args.user && <SidebarAccountMenuSeparator />}
+              {!user && <SidebarAccountMenuSeparator />}
               <SidebarAccountMenuItem
                 className="min-h-10"
                 render={(props) => <DemoLink {...props} to="#billing" />}
-                onClick={() => action("Billing requested")}
+                onClick={() => setMessage("Billing requested")}
               >
                 <CreditCardIcon aria-hidden="true" />
                 Billing
@@ -233,7 +225,7 @@ function MenuExampleContent({
               </SidebarAccountMenuItem>
             </>
           )}
-          {!args.user && !linkItems && <SidebarAccountMenuSeparator />}
+          {!user && !linkItems && <SidebarAccountMenuSeparator />}
           <SidebarAccountMenuSub>
             <SidebarAccountMenuSubTrigger className="min-h-10">
               <LanguagesIcon aria-hidden="true" />
@@ -295,36 +287,58 @@ function MenuExampleContent({
               </SidebarAccountMenuRadioGroup>
             </SidebarAccountMenuSubContent>
           </SidebarAccountMenuSub>
-          {onHelp && (
-            <SidebarAccountMenuItem
-              className="min-h-10"
-              render={linkItems ? <DemoLink to="#help" /> : undefined}
-              onClick={onHelp}
-            >
-              <CircleHelpIcon aria-hidden="true" />
-              {t("sidebarAccountMenu.help")}
-            </SidebarAccountMenuItem>
-          )}
-          {onSignOut && (
-            <>
-              <SidebarAccountMenuSeparator />
-              <SidebarAccountMenuItem className="min-h-10" onClick={onSignOut}>
-                <LogOutIcon aria-hidden="true" />
-                {t("sidebarAccountMenu.signOut")}
-              </SidebarAccountMenuItem>
-            </>
-          )}
+          <SidebarAccountMenuItem
+            className="min-h-10"
+            render={linkItems ? <DemoLink to="#help" /> : undefined}
+            onClick={() => setMessage("Help requested")}
+          >
+            <CircleHelpIcon aria-hidden="true" />
+            {t("sidebarAccountMenu.help")}
+          </SidebarAccountMenuItem>
+          <SidebarAccountMenuSeparator />
+          <SidebarAccountMenuItem
+            className="min-h-10"
+            onClick={() => setMessage("Sign out requested")}
+          >
+            <LogOutIcon aria-hidden="true" />
+            {t("sidebarAccountMenu.signOut")}
+          </SidebarAccountMenuItem>
         </SidebarAccountMenuContent>
       </SidebarAccountMenu>
       {message && <p role="status">{message}</p>}
     </div>
   );
 }
+export function SidebarAccountMenuExample(
+  props: SidebarAccountMenuExampleProps,
+) {
+  return <MenuExample {...props} />;
+}
 SidebarAccountMenuExample.displayName = "SidebarAccountMenuExample";
 
-export function SidebarAccountMenuLinksExample(
-  args: SidebarAccountMenuExampleProps,
+export function SidebarAccountMenuEmptyExample(
+  props: SidebarAccountMenuExampleProps,
 ) {
-  return <SidebarAccountMenuExample {...args} linkItems />;
+  return (
+    <MenuExample
+      {...props}
+      options={{ recentWorkspaces: [], initialWorkspace: null }}
+    />
+  );
+}
+SidebarAccountMenuEmptyExample.displayName = "SidebarAccountMenuEmptyExample";
+
+export function SidebarAccountMenuUserOnlyExample(
+  props: SidebarAccountMenuExampleProps,
+) {
+  return <MenuExample {...props} options={{ showWorkspaces: false }} />;
+}
+SidebarAccountMenuUserOnlyExample.displayName =
+  "SidebarAccountMenuUserOnlyExample";
+
+export function SidebarAccountMenuLinksExample(
+  props: SidebarAccountMenuExampleProps,
+) {
+  return <MenuExample {...props} options={{ linkItems: true }} />;
 }
 SidebarAccountMenuLinksExample.displayName = "SidebarAccountMenuLinksExample";

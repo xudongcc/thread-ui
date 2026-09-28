@@ -1,69 +1,57 @@
-import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
 import {
+  SidebarAccountMenuEmptyExample,
   SidebarAccountMenuExample,
   SidebarAccountMenuLinksExample,
-  workspaces,
+  SidebarAccountMenuUserOnlyExample,
 } from "./examples/sidebar-account-menu";
 import implementation from "./examples/sidebar-account-menu.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { SidebarAccountMenuExampleProps } from "./examples/sidebar-account-menu";
-
-const accountArgs = {
-  user: { name: "Alex Morgan", email: "alex@example.com" },
-  onProfile: fn(),
-  onHelp: fn(),
-  onSignOut: fn(),
-};
+import { SidebarAccountMenu } from "@/components/thread-ui/sidebar-account-menu";
 
 const meta = {
   id: "components-sidebaraccountmenu",
   title: "Layout/SidebarAccountMenu",
-  component: SidebarAccountMenuExample,
+  component: SidebarAccountMenu,
   args: {
-    ...accountArgs,
-    workspaces,
-    value: "north",
-    onValueChange: fn(),
-    onCreateWorkspace: fn(),
+    children: undefined,
+    user: { name: "Alex Morgan", email: "alex@example.com" },
     loading: false,
     disabled: false,
   },
   argTypes: {
-    value: { control: false },
+    children: { control: false },
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
   },
   render: (args) => <SidebarAccountMenuExample {...args} />,
   parameters: {
+    controls: { include: ["user", "loading", "disabled"] },
     docs: {
       source: withExampleSource(implementation),
       description: {
         component:
-          "Composition-only workspace/account menu. Compose SidebarAccountMenuTrigger, SidebarAccountMenuContent, SidebarAccountMenuWorkspaceGroup and SidebarAccountMenuUser with shadcn radio items, menu items and separators. This demo shows at most three recent tenants including the current tenant. No search or generated menu content.",
+          "Composition-only workspace/account menu. Compose SidebarAccountMenuTrigger, SidebarAccountMenuContent, SidebarAccountMenuWorkspaceGroup and SidebarAccountMenuUser with shadcn radio items, menu items and separators. This demo shows at most three recent tenants including the current tenant. Root props provide shared identity and popup state; actions use onClick/render on individual menu items. Controls only expose user, loading and disabled. Workspace data and handlers belong to the example, not the root API.",
       },
     },
   },
-} satisfies Meta<SidebarAccountMenuExampleProps>;
+} satisfies Meta<typeof SidebarAccountMenu>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   name: "Composition API",
-  args: {
-    currentWorkspace: workspaces[0],
-    workspaces: workspaces.slice(1),
-  },
   globals: { locale: "en" },
   parameters: {
     docs: {
       description: {
         story:
-          "Complete workspace and account menu: switch or create a workspace, open the personal center, change language/theme, get help, and sign out. The current workspace is supplied separately from recent tenants and appears first among at most three entries. Use Controls for loading, disabled, and optional actions.",
+          "Complete workspace and account menu: switch or create a workspace, open the personal center, change language/theme, get help, and sign out. The current workspace is supplied separately from recent tenants and appears first among at most three entries. Use Controls for user, loading and disabled. Each business action is explicitly composed as a menu item with its own handler.",
       },
     },
   },
-  play: testOnly(async ({ args, canvas, canvasElement, step }) => {
+  play: testOnly(async ({ canvas, canvasElement, step }) => {
     await step("Account identity", async () => {
       const body = within(canvasElement.ownerDocument.body);
       await userEvent.click(
@@ -99,20 +87,19 @@ export const Default: Story = {
       const trigger = canvas.getByRole("button", {
         name: "Workspace and account: North Studio",
       });
-      for (const [name, callback] of [
-        ["Open profile: Alex Morgan", args.onProfile],
-        ["Help center", args.onHelp],
-        ["Sign out", args.onSignOut],
+      for (const [name, message] of [
+        ["Open profile: Alex Morgan", "Profile requested"],
+        ["Help center", "Help requested"],
+        ["Sign out", "Sign out requested"],
       ] as const) {
         await userEvent.click(trigger);
         await userEvent.click(await body.findByRole("menuitem", { name }));
-        await expect(callback).toHaveBeenCalledOnce();
+        await expect(canvas.getByRole("status")).toHaveTextContent(message);
         await waitFor(() =>
           expect(body.queryByRole("menu")).not.toBeInTheDocument(),
         );
         await expect(trigger).toHaveFocus();
       }
-      await expect(args.onValueChange).not.toHaveBeenCalled();
     });
     await step("Switch workspace", async () => {
       const body = within(canvasElement.ownerDocument.body);
@@ -145,7 +132,6 @@ export const Default: Story = {
       await userEvent.click(
         body.getByRole("menuitemradio", { name: "Night Market" }),
       );
-      await expect(args.onValueChange).toHaveBeenCalledWith("market");
       await waitFor(() =>
         expect(body.queryByRole("menu")).not.toBeInTheDocument(),
       );
@@ -166,7 +152,6 @@ export const Default: Story = {
           name: "Create workspace",
         }),
       );
-      await expect(args.onCreateWorkspace).toHaveBeenCalled();
       await expect(canvas.getByRole("status")).toHaveTextContent(
         "Create workspace requested",
       );
@@ -230,17 +215,35 @@ export const Default: Story = {
   }),
 };
 
-export const Empty: Story = { args: { workspaces: [], value: null } };
+export const Empty: Story = {
+  render: (args) => <SidebarAccountMenuEmptyExample {...args} />,
+  globals: { locale: "en" },
+  play: testOnly(async ({ canvas, canvasElement }) => {
+    await userEvent.click(
+      canvas.getByRole("button", { name: "Account: Alex Morgan" }),
+    );
+    const body = within(canvasElement.ownerDocument.body);
+    await waitFor(() => expect(body.getByRole("menu")).toBeVisible());
+    await expect(body.queryByRole("menuitemradio")).not.toBeInTheDocument();
+    await expect(body.queryByText("Recent workspaces")).not.toBeInTheDocument();
+    await userEvent.click(
+      body.getByRole("menuitem", { name: "Create workspace" }),
+    );
+    await expect(canvas.getByRole("status")).toHaveTextContent(
+      "Create workspace requested",
+    );
+    await waitFor(() =>
+      expect(body.queryByRole("menu")).not.toBeInTheDocument(),
+    );
+    await expect(
+      canvas.getByRole("button", { name: "Account: Alex Morgan" }),
+    ).toHaveFocus();
+  }),
+};
 
 export const UserOnly: Story = {
   name: "User only",
-  args: {
-    workspaces: [],
-    currentWorkspace: undefined,
-    value: null,
-    onCreateWorkspace: undefined,
-    onValueChange: undefined,
-  },
+  render: (args) => <SidebarAccountMenuUserOnlyExample {...args} />,
   globals: { locale: "en" },
   parameters: {
     docs: {
@@ -250,7 +253,7 @@ export const UserOnly: Story = {
       },
     },
   },
-  play: testOnly(async ({ args, canvas, canvasElement }) => {
+  play: testOnly(async ({ canvas, canvasElement }) => {
     const trigger = canvas.getByRole("button", {
       name: "Account: Alex Morgan",
     });
@@ -278,7 +281,9 @@ export const UserOnly: Story = {
     await userEvent.click(
       body.getByRole("menuitem", { name: "Open profile: Alex Morgan" }),
     );
-    await expect(args.onProfile).toHaveBeenCalled();
+    await expect(canvas.getByRole("status")).toHaveTextContent(
+      "Profile requested",
+    );
     await waitFor(() =>
       expect(body.queryByRole("menu")).not.toBeInTheDocument(),
     );
@@ -290,7 +295,7 @@ export const Links: Story = {
   name: "Framework links",
   render: (args) => <SidebarAccountMenuLinksExample {...args} />,
   globals: { locale: "en" },
-  play: testOnly(async ({ args, canvas, canvasElement }) => {
+  play: testOnly(async ({ canvas, canvasElement }) => {
     const body = within(canvasElement.ownerDocument.body);
     const trigger = canvas.getByRole("button", {
       name: "Workspace and account: North Studio",
@@ -305,7 +310,6 @@ export const Links: Story = {
     ).toHaveAttribute("aria-disabled", "true");
     body.getByRole("menuitemradio", { name: "Night Market" }).focus();
     await userEvent.keyboard("{Enter}");
-    await expect(args.onValueChange).toHaveBeenCalledWith("market");
     await expect(canvasElement.ownerDocument.defaultView!.location.hash).toBe(
       "#workspace-market",
     );
@@ -329,7 +333,9 @@ export const Links: Story = {
     await userEvent.click(
       await body.findByRole("menuitem", { name: "Open profile: Alex Morgan" }),
     );
-    await expect(args.onProfile).toHaveBeenCalledOnce();
+    await expect(canvas.getByRole("status")).toHaveTextContent(
+      "Profile requested",
+    );
     await expect(canvasElement.ownerDocument.defaultView!.location.hash).toBe(
       "#profile",
     );
