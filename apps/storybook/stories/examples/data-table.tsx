@@ -23,9 +23,9 @@ export const data: User[] = [
 ];
 const userColumnHelper = createDataTableColumnHelper<User>();
 export const columns = userColumnHelper.columns([
-  userColumnHelper.field("name", { id: "name", header: "Name" }),
-  userColumnHelper.field("email", { id: "email", header: "Email" }),
-  userColumnHelper.field("role", { id: "role", header: "Role" }),
+  userColumnHelper.column("name", { header: "Name" }),
+  userColumnHelper.column("email", { header: "Email" }),
+  userColumnHelper.column("role", { header: "Role" }),
 ]);
 
 export function RowSelectionDataTableExample(
@@ -102,39 +102,39 @@ interface Order {
 
 const orderColumnHelper = createDataTableColumnHelper<Order>();
 const typedColumns = orderColumnHelper.columns([
-  orderColumnHelper.field("id", { header: "Order" }),
-  orderColumnHelper.field("quantity", {
+  orderColumnHelper.column("id", { header: "Order" }),
+  orderColumnHelper.column("quantity", {
     header: "Quantity",
     type: "number",
     precision: 0,
   }),
-  orderColumnHelper.field("total", {
+  orderColumnHelper.column("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  orderColumnHelper.field("rate", {
+  orderColumnHelper.column("rate", {
     header: "Rate",
     type: "percent",
     precision: 1,
   }),
-  orderColumnHelper.field("elapsed", {
+  orderColumnHelper.column("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
   }),
-  orderColumnHelper.field("date", {
+  orderColumnHelper.column("date", {
     header: "Date",
     type: "date",
     locale: "en-GB",
   }),
-  orderColumnHelper.field("createdAt", {
+  orderColumnHelper.column("createdAt", {
     header: "Created (Shanghai)",
     type: "datetime",
     locale: "zh-CN",
   }),
-  orderColumnHelper.field("createdAt", {
-    id: "createdAtNewYork",
+  orderColumnHelper.column("createdAtNewYork", {
+    field: "createdAt",
     header: "Time (New York)",
     type: "time",
     hour12: false,
@@ -177,24 +177,30 @@ export function TypedColumnsDataTableExample() {
 TypedColumnsDataTableExample.displayName = "TypedColumnsDataTableExample";
 
 const inferredColumns = userColumnHelper.columns([
-  userColumnHelper.field("name", {
+  userColumnHelper.column("displayName", {
+    field: "name",
     header: "Name",
     render: (props, { getValue }) => (
       <strong {...props}>{getValue().toUpperCase()}</strong>
     ),
   }),
-  userColumnHelper.getValue((user) => `${user.name} <${user.email}>`, {
-    id: "contact",
+  userColumnHelper.column("contact", {
+    getValue: (user) => `${user.name} <${user.email}>`,
     header: "Contact",
     render: (props, { getValue }) => <span {...props}>{getValue()}</span>,
   }),
-  userColumnHelper.getValue((user) => user.name.length, {
-    id: "nameLength",
+  userColumnHelper.column("nameLength", {
+    getValue: (user) => user.name.length,
     header: "Name length",
     type: "number",
     render: (props, { getValue }) => (
       <span {...props}>{getValue().toFixed(0)}</span>
     ),
+  }),
+  userColumnHelper.column("identity", {
+    field: null,
+    header: "Record",
+    render: (props, { row }) => <span {...props}>User #{row.original.id}</span>,
   }),
 ]);
 
@@ -205,19 +211,22 @@ export function InferredValuesDataTableExample() {
 InferredValuesDataTableExample.displayName = "InferredValuesDataTableExample";
 
 export const customCellColumns = userColumnHelper.columns([
-  userColumnHelper.getValue((person) => `${person.name} <${person.email}>`, {
-    id: "contact",
+  userColumnHelper.column("contact", {
+    getValue: (person) => `${person.name} <${person.email}>`,
     header: "Contact",
     render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
   }),
 ]);
 export const renderElementColumns = userColumnHelper.columns([
-  userColumnHelper.field("name", { header: <em>Name</em>, render: <strong /> }),
+  userColumnHelper.column("name", {
+    header: <em>Name</em>,
+    render: <strong />,
+  }),
 ]);
 export const alignedColumns = userColumnHelper.columns([
-  userColumnHelper.field("name", { header: "Name" }),
-  userColumnHelper.field("role", { header: "Role", align: "center" }),
-  userColumnHelper.field("id", { header: "ID", align: "right" }),
+  userColumnHelper.column("name", { header: "Name" }),
+  userColumnHelper.column("role", { header: "Role", align: "center" }),
+  userColumnHelper.column("id", { header: "ID", align: "right" }),
 ]);
 export const pinnedColumns = columns.map((column, index) => ({
   ...column,

@@ -17,39 +17,39 @@ interface Order {
 
 const orderColumnHelper = createDataTableColumnHelper<Order>();
 const columns = orderColumnHelper.columns([
-  orderColumnHelper.field("id", { header: "Order" }),
-  orderColumnHelper.field("quantity", {
+  orderColumnHelper.column("id", { header: "Order" }),
+  orderColumnHelper.column("quantity", {
     header: "Quantity",
     type: "number",
     precision: 0,
   }),
-  orderColumnHelper.field("total", {
+  orderColumnHelper.column("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  orderColumnHelper.field("rate", {
+  orderColumnHelper.column("rate", {
     header: "Rate",
     type: "percent",
     precision: 1,
   }),
-  orderColumnHelper.field("elapsed", {
+  orderColumnHelper.column("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
   }),
-  orderColumnHelper.field("date", {
+  orderColumnHelper.column("date", {
     header: "Date",
     type: "date",
     locale: "en-GB",
   }),
-  orderColumnHelper.field("createdAt", {
+  orderColumnHelper.column("createdAt", {
     header: "Created (Shanghai)",
     type: "datetime",
     locale: "zh-CN",
   }),
-  orderColumnHelper.field("createdAt", {
-    id: "createdAtNewYork",
+  orderColumnHelper.column("createdAtNewYork", {
+    field: "createdAt",
     header: "Time (New York)",
     type: "time",
     hour12: false,

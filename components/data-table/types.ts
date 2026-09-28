@@ -96,16 +96,9 @@ export interface DataTableCellContext<
   getValue: () => TValue;
 }
 
-/** Thread UI column options. Table-engine-specific options are intentionally private. */
-export interface DataTableBaseColumnProps<
-  TData extends object,
-  TValue = unknown,
-> {
+/** Column options with mutually exclusive field and computed data sources. */
+export type DataTableBaseColumnProps<TData extends object, TValue = unknown> = {
   id?: string;
-  /** Object key or dotted path. When omitted, id is used as the accessor. */
-  field?: DataTableField<TData>;
-  /** Computes the cell value; takes precedence over field. */
-  getValue?: (row: TData, index: number) => TValue;
   /** Header content, or a render function receiving DOM props and column context. */
   header?:
     | ReactNode
@@ -121,12 +114,23 @@ export interface DataTableBaseColumnProps<
   minSize?: number;
   maxSize?: number;
   pinned?: "left" | "right" | false;
-}
+} & (
+  | {
+      /** Object key or dotted path. Defaults to id; null disables field access. */
+      field?: DataTableField<TData> | null;
+      getValue?: never;
+    }
+  | {
+      field?: never;
+      /** Computes the cell value. Cannot be combined with field, including null. */
+      getValue: (row: TData, index: number) => TValue;
+    }
+);
 
-export interface DataTableTextColumnProps<
+export type DataTableTextColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type?: "text";
   // Explicitly exclude formatting options when the optional type is omitted.
   locale?: never;
@@ -136,83 +140,83 @@ export interface DataTableTextColumnProps<
   hour12?: never;
   unit?: never;
   style?: never;
-}
+};
 
-export interface DataTableNumberColumnProps<
+export type DataTableNumberColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type: "number";
   locale?: string;
   /** Fixed decimal places. Omit to use Intl's default fraction digits. */
   precision?: number;
-}
+};
 
-export interface DataTableCurrencyColumnProps<
+export type DataTableCurrencyColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type: "currency";
   locale?: string;
   /** ISO 4217 currency code. Values use major units, e.g. 12.5 means 12.50 USD. */
   currency: string;
   /** Fixed decimal places. Omit to use the currency's default fraction digits. */
   precision?: number;
-}
+};
 
-export interface DataTablePercentColumnProps<
+export type DataTablePercentColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type: "percent";
   locale?: string;
   /** Fixed decimal places in the displayed percentage; 0.125 with 1 becomes 12.5%. */
   precision?: number;
-}
+};
 
-export interface DataTableDateColumnProps<
+export type DataTableDateColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type: "date";
   locale?: string;
   /** IANA time zone for timestamps. Falls back to the table, then runtime default. Date-only strings retain their date. */
   timeZone?: string;
-}
+};
 
-export interface DataTableDateTimeColumnProps<
+export type DataTableDateTimeColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type: "datetime";
   locale?: string;
   /** IANA time zone for timestamps. Falls back to the table, then runtime default. */
   timeZone?: string;
-}
+};
 
-export interface DataTableTimeColumnProps<
+export type DataTableTimeColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type: "time";
   locale?: string;
   /** IANA time zone for timestamps. Falls back to the table, then runtime default. */
   timeZone?: string;
   /** Use a 12-hour clock. When omitted, follows the formatting locale. */
   hour12?: boolean;
-}
+};
 
-export interface DataTableDurationColumnProps<
+export type DataTableDurationColumnProps<
   TData extends object,
   TValue = unknown,
-> extends DataTableBaseColumnProps<TData, TValue> {
+> = DataTableBaseColumnProps<TData, TValue> & {
   type: "duration";
   locale?: string;
   /** Unit of the numeric input. Defaults to seconds; normalized to millisecond precision. */
   unit?: "milliseconds" | "seconds" | "minutes" | "hours";
   /** Localized duration style. Defaults to digital. */
   style?: "long" | "short" | "narrow" | "digital";
-}
+};
 
 export type DataTableColumnProps<TData extends object, TValue = unknown> =
   | DataTableTextColumnProps<TData, TValue>

@@ -34,8 +34,8 @@ interface User {
 
 const userColumnHelper = createDataTableColumnHelper<User>();
 const columns = userColumnHelper.columns([
-  userColumnHelper.field("name", { header: "Name" }),
-  userColumnHelper.field("email", { header: "Email" }),
+  userColumnHelper.column("name", { header: "Name" }),
+  userColumnHelper.column("email", { header: "Email" }),
 ]);
 
 const data: Array<User> = [
@@ -94,24 +94,24 @@ interface Order {
 
 const orderColumnHelper = createDataTableColumnHelper<Order>();
 const columns = orderColumnHelper.columns([
-  orderColumnHelper.field("name", { header: "Name" }),
-  orderColumnHelper.field("total", {
+  orderColumnHelper.column("name", { header: "Name" }),
+  orderColumnHelper.column("total", {
     header: "Total",
     type: "currency",
     currency: "USD",
   }),
-  orderColumnHelper.field("rate", {
+  orderColumnHelper.column("rate", {
     header: "Rate",
     type: "percent",
     precision: 1,
   }),
-  orderColumnHelper.field("elapsed", {
+  orderColumnHelper.column("elapsed", {
     header: "Duration",
     type: "duration",
     unit: "seconds",
     style: "digital",
   }),
-  orderColumnHelper.field("createdAt", {
+  orderColumnHelper.column("createdAt", {
     header: "Created",
     type: "datetime",
     locale: "zh-CN",
@@ -191,9 +191,9 @@ An explicit `align` overrides the type default.
 ```tsx
 const userColumnHelper = createDataTableColumnHelper<User>();
 const columns = userColumnHelper.columns([
-  userColumnHelper.field("name", { header: "Name" }),
-  userColumnHelper.field("email", { header: "Email", align: "center" }),
-  userColumnHelper.field("id", { header: "ID", align: "right" }),
+  userColumnHelper.column("name", { header: "Name" }),
+  userColumnHelper.column("email", { header: "Email", align: "center" }),
+  userColumnHelper.column("id", { header: "ID", align: "right" }),
 ]);
 ```
 
@@ -233,7 +233,7 @@ The root component props for the data table.
 `DataTableCurrencyColumnProps`, `DataTablePercentColumnProps`,
 `DataTableDateColumnProps`, `DataTableDateTimeColumnProps`,
 `DataTableTimeColumnProps`, and `DataTableDurationColumnProps`.
-Each extends `DataTableBaseColumnProps<TData, TValue>`. All types are exported and
+Each combines `DataTableBaseColumnProps<TData, TValue>` with its formatting options. All types are exported and
 remain independent of TanStack Table. `TValue` preserves the accessor and render
 context's value type. Plain objects default to `unknown`; use the column helper
 below to infer it from a field or computed accessor. Omitting `type` keeps existing
@@ -248,9 +248,11 @@ The base properties are shared by all column types:
 
 ### Inferred column values
 
-`createDataTableColumnHelper<TData>()` provides `field(path, options)` for object
-fields and `getValue(fn, options)` for computed values. Both infer the raw value
-type in `render` and `header`. The helper uses Thread UI's own types, not TanStack types.
+`createDataTableColumnHelper<TData>()` provides `column(id, options)` for field,
+computed, and display-only columns. The ID always identifies the column. Without
+an explicit source, it also serves as a checked field path, including nested paths
+such as `customer.name`. The helper infers the raw value type in `render` and
+`header` using Thread UI's own types, not TanStack types.
 
 ```tsx
 import {
@@ -266,23 +268,23 @@ interface Product {
 
 const productColumnHelper = createDataTableColumnHelper<Product>();
 const columns = productColumnHelper.columns([
-  productColumnHelper.field("price", {
+  productColumnHelper.column("price", {
     type: "currency",
     currency: "USD",
     header: "Price",
   }),
-  productColumnHelper.field("customer.name", {
+  productColumnHelper.column("customer.name", {
     header: "Customer",
     render: (props, { getValue }) => (
       <span {...props}>{getValue()?.toUpperCase() ?? "Guest"}</span>
-    ), // getValue(): string | undefined
+    ),
   }),
-  productColumnHelper.getValue((product) => product.price * 2, {
-    id: "doublePrice",
+  productColumnHelper.column("doublePrice", {
+    getValue: (product) => product.price * 2,
     header: "Double price",
     render: (props, { getValue }) => (
       <span {...props}>{getValue().toFixed(2)}</span>
-    ), // getValue(): number
+    ),
   }),
 ]);
 
@@ -290,16 +292,58 @@ const products: Product[] = [{ id: "1", price: 12.5 }];
 <DataTable columns={columns} data={products} />;
 ```
 
-Both methods require an options object (use `{}` for a field with defaults).
-`getValue` requires `id`; `field` and `getValue` cannot be replaced in the options.
-Use `productColumnHelper.columns([...])` to combine columns with different value types. It keeps
-the same array at runtime and normalizes its type to `DataTableColumnProps<TData>[]`
-for the table. Each helper-created callback is checked at its `field` or `getValue`
-call. Plain objects passed to `columns` retain the public `unknown` value contract;
-use the helper when a renderer needs a specific value type. Existing plain objects
-and explicit `TValue` remain supported when passed directly to `DataTable`.
+`column` requires an ID and an options object (use `{}` for defaults).
+Choose the data source in the options:
 
-The combined `accessor` method has been replaced by `field` and `getValue`.
+- Omit `field` and `getValue` to read the ID as a field path.
+- Set `field` to read a different field path while keeping a stable ID.
+- Set `getValue` to compute a value from the row and its index.
+- Set `field: null` for a display-only column; its value is `undefined`, even if
+  the row has a property matching the ID. Use `row.original` in its renderer.
+
+For inline computed callbacks, place `getValue` before `render` or a header render
+function so TypeScript can infer the return type before checking the renderer.
+A separately declared, typed computation can be placed in either order.
+
+`field` and `getValue` are mutually exclusive in both the helper and all public
+column types, including handwritten column objects. `field: null` also excludes
+`getValue`. The ID cannot be overwritten in
+options. An unknown ID without an explicit source is rejected as an invalid
+field path; it is not silently treated as a display column.
+
+```tsx
+productColumnHelper.column("customerName", {
+  field: "customer.name",
+  header: "Customer",
+});
+
+productColumnHelper.column("actions", {
+  field: null,
+  header: "Actions",
+  render: (props, { row }) => (
+    <a {...props} href={`/products/${row.original.id}`}>
+      View product
+    </a>
+  ),
+});
+```
+
+Use `productColumnHelper.columns([...])` to combine columns with different value
+types. It keeps the same array at runtime and normalizes its type to
+`DataTableColumnProps<TData>[]` for the table. Each helper-created callback is
+checked at its `column` call, and `columns` rechecks reused/spread definitions
+against their original value type and source. You can spread a column to change
+presentation options such as `header`, `size`, or `align`. Inferred `field` and
+`getValue` properties are readonly; create a new `column` definition when changing
+its data source. Plain objects passed to `columns` retain the public
+`unknown` value contract; use the helper when a renderer needs a specific value
+type. Existing plain objects and explicit `TValue` remain supported when passed
+directly to `DataTable`.
+
+The previous `helper.field(path, options)` becomes `helper.column(path, options)`.
+For a different ID, move the field path to `options.field`. The previous
+`helper.getValue(fn, { id, ...options })` becomes
+`helper.column(id, { getValue: fn, ...options })`.
 
 Field paths are checked in both the helper and plain column definitions. Nested
 objects, numeric array indices (`items.0.name`), and tuple positions are supported.
@@ -361,7 +405,9 @@ header functions render a custom content element. The outer `td` / `th` stays
 owned by DataTable to preserve semantics and column pinning.
 Without `render`, the column type formats the accessor value. A render function
 takes precedence over formatting and receives the raw value through `getValue()`
-(and the original text fallback in `props.children`). A render element receives
+(and the original text fallback in `props.children`). Values that cannot be
+converted to text have an empty fallback; the renderer still receives the
+unchanged value. A render element receives
 the formatted default children, preserving the Base UI element composition API.
 
 `render` state contains `{ row, column, getValue }`; `header` callback state contains
@@ -373,8 +419,8 @@ records. No TanStack instance or methods are exposed.
 ```tsx
 const userColumnHelper = createDataTableColumnHelper<User>();
 const columns = userColumnHelper.columns([
-  userColumnHelper.getValue((user) => `${user.name} <${user.email}>`, {
-    id: "contact",
+  userColumnHelper.column("contact", {
+    getValue: (user) => `${user.name} <${user.email}>`,
     header: "Contact",
     render: (props, { getValue }) => <strong {...props}>{getValue()}</strong>,
   }),
@@ -383,7 +429,7 @@ const columns = userColumnHelper.columns([
 
 `field` supports dotted object paths such as `customer.name`. If it is omitted,
 `id` is used as the field unless `getValue` is provided. Column `getValue(record, index)`
-computes the value and takes precedence over `field`; the render context’s
+computes the value and cannot be combined with `field`; the render context’s
 `getValue()` returns that computed value. Supply an explicit `id` for computed
 columns. Column sizing and left/right pinning are supported; sorting, filtering,
 and pagination of the input records remain the application's responsibility.
@@ -398,7 +444,7 @@ its own label:
 ```tsx
 const userColumnHelper = createDataTableColumnHelper<User>();
 const columns = userColumnHelper.columns([
-  userColumnHelper.field("name", {
+  userColumnHelper.column("name", {
     header: <em>Name</em>,
     render: <strong />,
   }),
