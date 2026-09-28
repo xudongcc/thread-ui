@@ -335,3 +335,53 @@ productColumnHelper.getValue((row) => row.price, {
     <span>{getValue()}</span>
   ),
 });
+
+// Exported helpers and individual columns must remain declaration-emittable.
+export const itemColumnHelper = createDataTableColumnHelper<Item>();
+export const itemNameColumn = itemColumnHelper.field("name", {
+  header: "Name",
+});
+export const itemLengthColumn = itemColumnHelper.getValue(
+  (row) => row.name.length,
+  { id: "length" },
+);
+
+interface PatternRow {
+  metrics: {
+    [key: `amount_${string}`]: number;
+    amount_total: number;
+  };
+  customers: Record<`customer_${number}`, { name: string }>;
+}
+const patternColumnHelper = createDataTableColumnHelper<PatternRow>();
+patternColumnHelper.field("metrics.amount_missing", {
+  render: (props, { getValue }) => {
+    const value: number | undefined = getValue();
+    // @ts-expect-error A template index signature does not guarantee a key exists.
+    const _required: number = getValue();
+    return <span {...props}>{value?.toFixed(2)}</span>;
+  },
+});
+patternColumnHelper.field("metrics.amount_total", {
+  render: (props, { getValue }) => {
+    const value: number = getValue();
+    return <span {...props}>{value.toFixed(2)}</span>;
+  },
+});
+patternColumnHelper.field("customers.customer_1.name", {
+  render: (props, { getValue }) => {
+    const value: string | undefined = getValue();
+    // @ts-expect-error A missing template-keyed parent makes nested values optional.
+    const _required: string = getValue();
+    return <span {...props}>{value?.toUpperCase()}</span>;
+  },
+});
+
+// Common module reuse patterns must also produce valid declarations.
+export const {
+  field: itemField,
+  getValue: itemGetValue,
+  columns: itemColumns,
+} = itemColumnHelper;
+export const resizedNameColumn = { ...itemNameColumn, size: 180 };
+export const reusedColumns = itemColumns([resizedNameColumn, itemLengthColumn]);

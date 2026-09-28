@@ -56,6 +56,10 @@ import { cn } from "@/lib/utils";
 
 export type * from "./types";
 export { createDataTableColumnHelper } from "./column-helper";
+export type {
+  DataTableColumnHelper,
+  DataTableInferredColumn,
+} from "./column-helper";
 
 // Internal render callbacks are render functions, not component types. Keeping
 // this component stable preserves child state when column options are recreated.

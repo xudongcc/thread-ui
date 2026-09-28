@@ -26,10 +26,11 @@ type FieldPath<T, Depth extends unknown[] = []> = Depth["length"] extends 6
 /** Object keys and dotted paths, including array indices, up to six segments. */
 export type DataTableField<TData extends object> = FieldPath<TData>;
 
-// Remove index signatures while preserving explicitly declared properties.
+// Only required, explicitly declared keys guarantee a value exists. Open index
+// signatures (including template patterns) and optional properties do not.
 type DeclaredKeys<T> = keyof {
   [
-    K in keyof T as string extends K ? never : number extends K ? never : K
+    K in keyof T as Record<never, never> extends Pick<T, K> ? never : K
   ]: unknown;
 };
 
