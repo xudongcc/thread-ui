@@ -43,7 +43,7 @@
     "@repo/shadcn-ui": "workspace:*",
     "@repo/textarea": "workspace:*",
     "@repo/toast": "workspace:*",
-    "@repo/topbar": "workspace:*",
+    "@repo/sidebar-account-menu": "workspace:*",
     "i18next": "^26.4.2",
     "lucide-react": "^1.48.0",
     "react": "^19.3.0",

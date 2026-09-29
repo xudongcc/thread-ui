@@ -1,9 +1,8 @@
 import { expect, fn, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
-import {
-  ControlledSelectExample,
-  MultipleSelectExample,
-} from "./examples/select";
+import { ControlledSelectExample } from "./examples/select";
+import { MultipleSelectExample } from "./examples/select-multiple";
+import multipleSource from "./examples/select-multiple.tsx?raw";
 import implementation from "./examples/select.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -82,5 +81,5 @@ export const Controlled: Story = {
 };
 export const Multiple: Story = {
   render: (args) => <MultipleSelectExample {...args} />,
-  parameters: { docs: { source: withExampleSource(implementation) } },
+  parameters: { docs: { source: withExampleSource(multipleSource) } },
 };

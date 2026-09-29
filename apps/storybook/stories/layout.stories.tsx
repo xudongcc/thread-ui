@@ -1,11 +1,12 @@
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
-import {
-  LayoutExample,
-  LayoutOrdersExample,
-  LayoutSplitPageExample,
-  LayoutWithoutSidebarExample,
-} from "./examples/layout";
+import { LayoutExample } from "./examples/layout";
+import { LayoutOrdersExample } from "./examples/layout-orders";
+import { LayoutSplitPageExample } from "./examples/layout-split-page";
+import { LayoutWithoutSidebarExample } from "./examples/layout-without-sidebar";
+import ordersSource from "./examples/layout-orders.tsx?raw";
+import splitPageSource from "./examples/layout-split-page.tsx?raw";
+import withoutSidebarSource from "./examples/layout-without-sidebar.tsx?raw";
 import implementation from "./examples/layout.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -24,7 +25,7 @@ const meta = {
       story: { inline: false, height: "720px" },
       description: {
         component:
-          "Responsive application layout with a top bar, sidebar navigation, and independently scrolling content. The sidebar stays visible on desktop and opens as a drawer on mobile. Compose Topbar, shadcn Sidebar, and LayoutContent directly. CSS Grid adapts when the sidebar or top bar is omitted.",
+          "Two-column application layout with full-height sidebar navigation and independently scrolling content. The sidebar collapses to an icon rail on desktop and opens as a drawer on mobile. Compose LayoutSidebar, SidebarAccountMenu, and LayoutContent directly. The default sidebar variant keeps content flush with the viewport. LayoutSidebar automatically enables floating mobile navigation and safe-area spacing.",
       },
     },
   },
@@ -38,6 +39,9 @@ export const SplitPage: Story = {
   globals: { locale: "en" },
   parameters: {
     docs: {
+      source: withExampleSource(splitPageSource, {
+        "./layout": implementation,
+      }),
       description: {
         story:
           "Layout + Page + PageLayout: a two-thirds collection editor and a one-third settings column. Sections stack on narrow screens. Edit fields, add/remove products, save changes, or discard changes using in-memory state.",
@@ -85,6 +89,7 @@ export const PageAndDataTable: Story = {
   globals: { locale: "en" },
   parameters: {
     docs: {
+      source: withExampleSource(ordersSource, { "./layout": implementation }),
       description: {
         story:
           "A complete orders page inside Layout, with Page header/actions, DataFilter search/fulfillment/amount filters, and a DataTable. Filtering, pagination, selection, fulfillment, and creation work with in-memory sample data. Narrow screens keep horizontal scrolling inside the table and move secondary page actions into a menu.",
@@ -176,6 +181,7 @@ export const PageAndDataTable: Story = {
 };
 
 export const WithoutSidebar: Story = {
+  parameters: { docs: { source: withExampleSource(withoutSidebarSource) } },
   render: (args) => <LayoutWithoutSidebarExample {...args} />,
   globals: { locale: "en" },
   play: testOnly(async ({ canvas, canvasElement, userEvent }) => {

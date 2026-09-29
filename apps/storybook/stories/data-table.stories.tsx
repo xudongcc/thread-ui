@@ -1,45 +1,63 @@
 import { expect, fn, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
+import { DataTableExample, data, getRowId } from "./examples/data-table-shared";
+import { columns } from "./examples/data-table";
+import { InferredValuesDataTableExample } from "./examples/data-table-inferred-values";
+import { PaginationDataTableExample } from "./examples/data-table-pagination";
+import { RowSelectionDataTableExample } from "./examples/data-table-row-selection";
+import { TypedColumnsDataTableExample } from "./examples/data-table-column-types";
+import { alignedColumns } from "./examples/data-table-column-alignment";
+import { customCellColumns } from "./examples/data-table-custom-cells";
+import { customEmpty } from "./examples/data-table-custom-empty";
+import { hiddenColumns } from "./examples/data-table-hidden-columns";
+import { pinnedColumns } from "./examples/data-table-pinned-columns";
 import {
-  DataTableExample,
-  InferredValuesDataTableExample,
-  PaginationDataTableExample,
-  RowSelectionDataTableExample,
-  TypedColumnsDataTableExample,
-  alignedColumns,
-  columns,
-  customCellColumns,
-  customEmpty,
-  data,
-  getRowId,
-  hiddenColumns,
-  pinnedColumns,
   profileRowActions,
   renderElementColumns,
-  rowActions,
-} from "./examples/data-table";
+} from "./examples/data-table-render-element";
+import { rowActions } from "./examples/data-table-row-actions";
+import sharedSource from "./examples/data-table-shared.tsx?raw";
+import inferredSource from "./examples/data-table-inferred-values.tsx?raw";
+import paginationSource from "./examples/data-table-pagination.tsx?raw";
+import selectionSource from "./examples/data-table-row-selection.tsx?raw";
+import typesSource from "./examples/data-table-column-types.tsx?raw";
+import alignmentSource from "./examples/data-table-column-alignment.tsx?raw";
+import customCellsSource from "./examples/data-table-custom-cells.tsx?raw";
+import customEmptySource from "./examples/data-table-custom-empty.tsx?raw";
+import hiddenSource from "./examples/data-table-hidden-columns.tsx?raw";
+import pinnedSource from "./examples/data-table-pinned-columns.tsx?raw";
+import renderElementSource from "./examples/data-table-render-element.tsx?raw";
+import actionsSource from "./examples/data-table-row-actions.tsx?raw";
 import implementation from "./examples/data-table.tsx?raw";
 import {
   functionSource,
   withExampleParameters,
   withExampleSource,
 } from "./utils/example-source";
-import type { User } from "./examples/data-table";
+import type { User } from "./examples/data-table-shared";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { DataTable } from "@/components/thread-ui/data-table";
 
-const exampleParameters = withExampleParameters(
-  implementation,
-  {
-    columns,
-    alignedColumns,
-    hiddenColumns,
-    customCellColumns,
-    renderElementColumns,
-    pinnedColumns,
-  },
-  ["columns"],
-);
+const sharedSources = { "./data-table-shared": sharedSource };
+function tableParameters(
+  source: string,
+  dependencies: Record<string, string> = {},
+) {
+  return withExampleParameters(
+    source,
+    {
+      columns,
+      alignedColumns,
+      hiddenColumns,
+      customCellColumns,
+      renderElementColumns,
+      pinnedColumns,
+    },
+    ["columns"],
+    { ...sharedSources, ...dependencies },
+  );
+}
+const exampleParameters = tableParameters(implementation);
 
 const meta = {
   id: "components-datatable",
@@ -73,12 +91,18 @@ export const Default: Story = {
 };
 export const EmptyState: Story = { args: { data: [] } };
 export const CustomEmpty: Story = {
+  parameters: tableParameters(customEmptySource, {
+    "./data-table": implementation,
+  }),
   args: {
     data: [],
     empty: customEmpty,
   },
 };
 export const RowSelection: Story = {
+  parameters: tableParameters(selectionSource, {
+    "./data-table": implementation,
+  }),
   globals: { locale: "en" },
   render: (args) => <RowSelectionDataTableExample {...args} />,
   play: testOnly(async ({ canvas, userEvent }) => {
@@ -93,6 +117,9 @@ export const RowSelection: Story = {
   }),
 };
 export const RowActions: Story = {
+  parameters: tableParameters(actionsSource, {
+    "./data-table": implementation,
+  }),
   args: {
     rowActions,
     onRowClick: fn(),
@@ -100,7 +127,10 @@ export const RowActions: Story = {
 };
 export const PinnedColumns: Story = {
   // TODO(a11y): scrollable-region-focusable: the overflow container needs keyboard access.
-  parameters: { a11y: { test: "todo" } },
+  parameters: {
+    ...tableParameters(pinnedSource, { "./data-table": implementation }),
+    a11y: { test: "todo" },
+  },
   args: {
     columns: pinnedColumns,
   },
@@ -113,6 +143,9 @@ export const PinnedColumns: Story = {
   ],
 };
 export const Pagination: Story = {
+  parameters: tableParameters(paginationSource, {
+    "./data-table": implementation,
+  }),
   globals: { locale: "en" },
   render: (args) => <PaginationDataTableExample {...args} />,
   play: testOnly(async ({ canvas, userEvent }) => {
@@ -123,12 +156,14 @@ export const Pagination: Story = {
 };
 
 export const CustomCells: Story = {
+  parameters: tableParameters(customCellsSource),
   args: {
     columns: customCellColumns,
   },
 };
 
 export const RenderElement: Story = {
+  parameters: tableParameters(renderElementSource),
   args: {
     columns: renderElementColumns,
     rowActions: profileRowActions,
@@ -136,6 +171,7 @@ export const RenderElement: Story = {
 };
 
 export const HiddenColumns: Story = {
+  parameters: tableParameters(hiddenSource),
   args: { columns: hiddenColumns },
   play: testOnly(async ({ canvas }) => {
     await expect(
@@ -151,6 +187,7 @@ export const HiddenColumns: Story = {
 };
 
 export const ColumnAlignment: Story = {
+  parameters: tableParameters(alignmentSource),
   args: {
     columns: alignedColumns,
   },
@@ -158,12 +195,14 @@ export const ColumnAlignment: Story = {
 
 export const ColumnTypes: Story = {
   render: () => <TypedColumnsDataTableExample />,
-  parameters: { docs: { source: withExampleSource(implementation) } },
+  parameters: { docs: { source: withExampleSource(typesSource) } },
 };
 
 export const InferredValues: Story = {
   render: () => <InferredValuesDataTableExample />,
-  parameters: { docs: { source: withExampleSource(implementation) } },
+  parameters: {
+    docs: { source: withExampleSource(inferredSource, sharedSources) },
+  },
   play: testOnly(async ({ canvas }) => {
     await expect(canvas.getByText("ALICE JOHNSON")).toBeVisible();
     await expect(

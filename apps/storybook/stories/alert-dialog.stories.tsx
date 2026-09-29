@@ -1,5 +1,6 @@
-import { Trash2 } from "lucide-react";
 import { expect, waitFor, within } from "storybook/test";
+import { DestructiveAlertDialogExample } from "./examples/alert-dialog-destructive";
+import destructiveSource from "./examples/alert-dialog-destructive.tsx?raw";
 import { testOnly } from "./utils/test-only";
 import { withExampleSource } from "./utils/example-source";
 import { CompositionExample } from "./examples/alert-dialog-composition";
@@ -23,9 +24,7 @@ const meta = {
   },
   parameters: {
     docs: {
-      source: withExampleSource(
-        `import { Trash2 } from "lucide-react";\n${exampleSource}`,
-      ),
+      source: withExampleSource(exampleSource),
       story: { inline: false, height: "400px" },
       description: {
         component:
@@ -40,12 +39,19 @@ export const Default: Story = {
   name: "Function API",
 };
 export const Destructive: Story = {
+  render: (args) => <DestructiveAlertDialogExample {...args} />,
+  parameters: {
+    docs: {
+      source: withExampleSource(destructiveSource, {
+        "./alert-dialog": exampleSource,
+      }),
+    },
+  },
   args: {
     title: "Delete project?",
     description: "This action cannot be undone.",
     variant: "destructive",
     confirmText: "Delete project",
-    icon: <Trash2 />,
   },
 };
 export const Small: Story = { args: { size: "sm" } };

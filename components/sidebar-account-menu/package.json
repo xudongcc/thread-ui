@@ -1,10 +1,9 @@
 {
-  "name": "@repo/topbar",
-  "description": "Independent application top bar with a workspace and account menu.",
+  "name": "@repo/sidebar-account-menu",
+  "description": "Composable workspace and account menu for the sidebar footer.",
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@repo/button": "workspace:*",
     "@repo/locales": "workspace:*",
     "lucide-react": "^1.48.0",
     "react": "^19.3.0",

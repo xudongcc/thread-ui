@@ -1,11 +1,12 @@
 import { expect, within } from "storybook/test";
 import { testOnly } from "./utils/test-only";
-import {
-  CodeBlockExample,
-  FilesCodeBlockExample,
-  LanguageSelectorCodeBlockExample,
-  WithoutHighlightingCodeBlockExample,
-} from "./examples/code-block";
+import { CodeBlockExample } from "./examples/code-block";
+import { FilesCodeBlockExample } from "./examples/code-block-files";
+import { LanguageSelectorCodeBlockExample } from "./examples/code-block-language-selector";
+import { WithoutHighlightingCodeBlockExample } from "./examples/code-block-without-highlighting";
+import filesSource from "./examples/code-block-files.tsx?raw";
+import languageSource from "./examples/code-block-language-selector.tsx?raw";
+import plainSource from "./examples/code-block-without-highlighting.tsx?raw";
 import implementation from "./examples/code-block.tsx?raw";
 import { withExampleSource } from "./utils/example-source";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -50,7 +51,7 @@ export const Default: Story = {
 };
 export const Files: Story = {
   render: (args) => <FilesCodeBlockExample {...args} />,
-  parameters: { docs: { source: withExampleSource(implementation) } },
+  parameters: { docs: { source: withExampleSource(filesSource) } },
   play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: "greeting.js" }));
     await expect(canvasElement.querySelector("pre")).toHaveTextContent(
@@ -60,7 +61,10 @@ export const Files: Story = {
 };
 export const LanguageSelector: Story = {
   // TODO(a11y): color-contrast: selected language text on the muted trigger.
-  parameters: { a11y: { test: "todo" } },
+  parameters: {
+    a11y: { test: "todo" },
+    docs: { source: withExampleSource(languageSource) },
+  },
   render: (args) => <LanguageSelectorCodeBlockExample {...args} />,
   play: testOnly(async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(canvas.getByRole("combobox"));
@@ -84,5 +88,6 @@ export const Notation: Story = {
   },
 };
 export const WithoutHighlighting: Story = {
+  parameters: { docs: { source: withExampleSource(plainSource) } },
   render: (args) => <WithoutHighlightingCodeBlockExample {...args} />,
 };

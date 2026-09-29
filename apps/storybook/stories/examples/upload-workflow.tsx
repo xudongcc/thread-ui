@@ -7,7 +7,6 @@ import type {
 import { FileUpload } from "@/components/thread-ui/file-upload";
 import { Button } from "@/components/thread-ui/button";
 
-// A local simulation: selected file contents never leave the browser.
 export async function simulateUpload({
   file,
   signal,
@@ -30,6 +29,7 @@ export async function simulateUpload({
   }
   return file.name;
 }
+
 export function UploadExample(args: FileUploadProps<string>) {
   const handle = useRef<FileUploadHandle<string>>(null);
   const [completed, setCompleted] = useState<string[]>([]);
@@ -48,37 +48,4 @@ export function UploadExample(args: FileUploadProps<string>) {
   );
 }
 
-export function AutomaticUploadExample(args: FileUploadProps<string>) {
-  return <UploadExample onUpload={simulateUpload} {...args} />;
-}
-
-export function ManualUploadExample(args: FileUploadProps<string>) {
-  return (
-    <UploadExample
-      autoUpload={false}
-      concurrency={1}
-      onUpload={simulateUpload}
-      {...args}
-    />
-  );
-}
-
-export function RetryFailureExample(args: FileUploadProps<string>) {
-  const attempts = useRef(0);
-  return (
-    <UploadExample
-      {...args}
-      onUpload={async (context) => {
-        if (attempts.current++ === 0)
-          throw new Error("Simulated failure. Retry to continue.");
-        return simulateUpload(context);
-      }}
-    />
-  );
-}
-
-// Keep Code panel component names stable in production builds.
 UploadExample.displayName = "UploadExample";
-AutomaticUploadExample.displayName = "AutomaticUploadExample";
-ManualUploadExample.displayName = "ManualUploadExample";
-RetryFailureExample.displayName = "RetryFailureExample";

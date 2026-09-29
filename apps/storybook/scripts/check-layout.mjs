@@ -1,4 +1,4 @@
-/* global console, document, getComputedStyle, URL */
+/* global console, document, URL */
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -30,7 +30,7 @@ try {
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     const mobile = width < 768;
-    const toggleLabel = locale === "zh" ? "切换导航" : "Toggle navigation";
+    const toggleLabel = "Toggle Sidebar";
     const switchLabel = (name) =>
       locale === "zh"
         ? `工作空间与账号：${name}`
@@ -40,61 +40,57 @@ try {
     );
     const main = page.getByRole("main");
     await main.waitFor();
+    assert.equal(await page.locator("main").count(), 1, "Single main landmark");
+    const viewport = main.locator('[data-slot="layout-content-viewport"]');
     const toggle = page.getByRole("button", { name: toggleLabel });
     if (mobile) {
       await toggle.waitFor();
-      assert.equal(await toggle.getAttribute("aria-expanded"), "false");
+      assert.equal(await page.getByRole("dialog").count(), 0);
     } else {
-      assert.equal(await toggle.count(), 0, "Desktop hides the menu button");
+      assert.equal(
+        await toggle.isVisible(),
+        false,
+        "Desktop hides the menu button",
+      );
     }
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth),
       width,
       "No horizontal overflow",
     );
-    const header = page.locator('[data-slot="topbar"]');
-    assert.equal((await header.boundingBox()).y, 0);
+    assert.equal(await page.locator('[data-slot="topbar"]').count(), 0);
     if (!mobile) {
       const sidebar = await page
         .locator('[data-slot="sidebar-container"]')
         .boundingBox();
       const content = await main.boundingBox();
-      assert.equal(
-        sidebar.y,
-        (await header.boundingBox()).height,
-        "Sidebar starts below the top bar",
-      );
-      assert.equal(
-        sidebar.height,
-        content.height,
-        "Sidebar and content share the grid row",
-      );
+      assert.equal(sidebar.y, 0, "Sidebar starts at the top of the viewport");
+      assert.equal(sidebar.height, height, "Sidebar spans the full height");
       assert.equal(
         sidebar.x + sidebar.width,
         content.x,
-        "Sidebar occupies its own grid column",
+        "Content sits flush beside the sidebar",
+      );
+      assert.equal(content.y, 0, "Content has no outer top margin");
+      assert.equal(content.height, height, "Content fills the viewport height");
+      assert.equal(
+        content.x + content.width,
+        width,
+        "Content reaches the right edge",
+      );
+      const footer = await page
+        .locator('[data-slot="sidebar-footer"]')
+        .boundingBox();
+      assert.equal(
+        Math.round(footer.y + footer.height),
+        height,
+        "Account menu stays at the bottom",
       );
     }
     if (mobile) {
       await page.waitForFunction(
         (dark) => document.documentElement.classList.contains("dark") === dark,
         theme === "dark",
-      );
-      // Button transition-colors can still be running after the theme class changes.
-      await page.waitForFunction(() => {
-        const header = document.querySelector('[data-slot="topbar"]');
-        const trigger = header?.querySelector(
-          '[data-slot="topbar-sidebar-trigger"]',
-        );
-        return (
-          trigger &&
-          getComputedStyle(trigger).color === getComputedStyle(header).color
-        );
-      });
-      assert.equal(
-        await toggle.evaluate((element) => getComputedStyle(element).color),
-        await header.evaluate((element) => getComputedStyle(element).color),
-        "Mobile navigation icon follows the header theme",
       );
       const touch = await page.context().newCDPSession(page);
       const x = Math.round(width / 2);
@@ -122,11 +118,13 @@ try {
         touchPoints: [],
       });
       await page.waitForFunction(
-        () => document.querySelector("main").scrollTop > 0,
+        () =>
+          document.querySelector('[data-slot="layout-content-viewport"]')
+            .scrollTop > 0,
       );
       await touch.detach();
       assert(
-        (await main.evaluate((element) => element.scrollTop)) > 0,
+        (await viewport.evaluate((element) => element.scrollTop)) > 0,
         "Mobile content scrolls independently with touch input",
       );
       assert.equal(
@@ -134,12 +132,12 @@ try {
         0,
         "The page itself does not scroll",
       );
-      assert.equal((await header.boundingBox()).y, 0);
-      await main.evaluate((element) => {
+      await viewport.evaluate((element) => {
         element.scrollTop = 0;
       });
     }
 
+    if (mobile) await toggle.click();
     await page
       .getByRole("button", { name: switchLabel("North Studio") })
       .click();
@@ -165,9 +163,11 @@ try {
       await switched.evaluate((element) => element === document.activeElement),
       "Switching restores trigger focus",
     );
-    assert((await main.innerText()).includes("Night Market"));
+    assert((await page.locator("main").innerText()).includes("Night Market"));
 
     if (mobile) {
+      await page.keyboard.press("Escape");
+      await page.getByRole("dialog").waitFor({ state: "hidden" });
       await toggle.click();
       const dialog = page.getByRole("dialog");
       await dialog.waitFor();
@@ -211,24 +211,57 @@ try {
       await page.setViewportSize({ width: 1024, height });
       await dialog.waitFor({ state: "hidden" });
       await page.setViewportSize({ width, height });
-      await page.waitForFunction(
-        () =>
-          document
-            .querySelector('[data-slot="topbar-sidebar-trigger"]')
-            ?.getAttribute("aria-expanded") === "false",
-      );
+      await toggle.waitFor();
+      assert.equal(await page.getByRole("dialog").count(), 0);
     } else {
-      await page.keyboard.press("Control+b");
+      await page.getByRole("button", { name: "Collapse navigation" }).click();
       const sidebar = page.locator('[data-slot="sidebar-container"]');
       assert(await sidebar.isVisible(), "Desktop navigation stays visible");
       assert.equal((await sidebar.boundingBox()).x, 0);
       assert.equal(
         await page.locator('[data-slot="sidebar"]').getAttribute("data-state"),
-        "expanded",
-        "Keyboard shortcuts cannot collapse desktop navigation",
+        "collapsed",
       );
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-slot="sidebar-container"]')
+            .getBoundingClientRect().width === 48,
+      );
+      const account = page.getByRole("button", {
+        name: switchLabel("Night Market"),
+      });
+      assert.equal(
+        (await account.boundingBox()).width,
+        32,
+        "Collapsed account trigger remains inside the rail",
+      );
+      await page.mouse.move(width - 1, 1);
+      await page.screenshot({
+        path: `/tmp/thread-ui-sidebar-collapsed-${width}.png`,
+      });
+      const expand = page.getByRole("button", { name: "Expand navigation" });
+      await expand.hover();
+      await page
+        .locator('[data-slot="tooltip-content"]')
+        .filter({ hasText: "Expand navigation" })
+        .waitFor();
+      await page.screenshot({
+        path: `/tmp/thread-ui-sidebar-hover-${width}.png`,
+      });
+      await account.click();
+      await menu.waitFor();
+      await page.keyboard.press("Escape");
+      await menu.waitFor({ state: "hidden" });
       await page.getByRole("button", { name: "Orders", exact: true }).click();
       await page.getByRole("heading", { name: "Orders", level: 1 }).waitFor();
+      await expand.click();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-slot="sidebar-container"]')
+            .getBoundingClientRect().width === 256,
+      );
     }
     const skipLink = page.getByRole("link", {
       name: locale === "zh" ? "跳转到主要内容" : "Skip to content",
@@ -240,6 +273,7 @@ try {
       "Skip link focuses main content",
     );
     // Preferences work inside the shared account menu, also on narrow screens.
+    if (mobile) await toggle.click();
     await switched.click();
     await page
       .getByRole("menuitem", {
@@ -335,11 +369,20 @@ try {
     assert(
       await main.getByText("alex@example.com", { exact: true }).isVisible(),
     );
+    if (mobile)
+      await page
+        .getByRole("button", {
+          name: "Toggle Sidebar",
+        })
+        .click();
     assert(
       await accountTrigger.isVisible(),
       "Opening profile preserves the workspace",
     );
     assert.deepEqual(errors, []);
+    await page.screenshot({
+      path: `/tmp/thread-ui-sidebar-layout-${width}-${theme}-${locale}.png`,
+    });
     console.log(`Layout passed: ${width}×${height}, ${theme}, ${locale}`);
     await page.close();
   }
@@ -401,15 +444,12 @@ try {
     assert.equal(
       (await main.boundingBox()).width,
       width,
-      "Content fills the width without Sidebar",
+      "Content fills the available width without Sidebar",
     );
-    await page
-      .locator('[data-slot="topbar"]')
-      .evaluate((element) => element.remove());
     assert.equal(
       (await main.boundingBox()).height,
       900,
-      "Content fills the height without Topbar",
+      "Content fills the available height",
     );
     console.log(`Layout optional parts passed: ${width}px`);
     await page.close();

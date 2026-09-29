@@ -1,6 +1,6 @@
 /* Shared theme and source for @thread-ui/default-theme.
    Based on shadcn preset b1au7YYAi: Rhea, Neutral base, Blue theme and charts.
-   Canvas and Topbar have independent surfaces; secondary tokens use Neutral. */
+   Canvas and Sidebar have independent surfaces; secondary tokens use Neutral. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -8,7 +8,6 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-canvas: var(--canvas);
-  --color-topbar: var(--topbar);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -66,14 +65,12 @@
   --radius: 0.625rem;
 }
 
-/* Shared palettes also support a fixed Topbar appearance. */
-:root,
-[data-slot="topbar"][data-variant="light"] {
+/* Shared light and dark palettes. */
+:root {
   /* Page and content surfaces */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --canvas: oklch(0.985 0 0);
-  --topbar: oklch(1 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -113,13 +110,11 @@
   --chart-5: oklch(0.424 0.199 265.638);
 }
 
-.dark,
-[data-slot="topbar"][data-variant="dark"] {
+.dark {
   /* Page and content surfaces */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --canvas: oklch(0.145 0 0);
-  --topbar: oklch(0.205 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);

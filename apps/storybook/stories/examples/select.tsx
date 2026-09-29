@@ -14,21 +14,4 @@ export function ControlledSelectExample(
   );
 }
 
-export function MultipleSelectExample(
-  args: ComponentProps<typeof Select<string>>,
-) {
-  const [value, setValue] = useState<string[]>(["react"]);
-  return (
-    <Select<string, true>
-      multiple
-      items={args.items}
-      label="Frameworks"
-      value={value}
-      onValueChange={setValue}
-    />
-  );
-}
-
-// Keep Code panel component names stable in production builds.
 ControlledSelectExample.displayName = "ControlledSelectExample";
-MultipleSelectExample.displayName = "MultipleSelectExample";
