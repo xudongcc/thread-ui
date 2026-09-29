@@ -10,6 +10,10 @@ description: A powerful data table component with selection, pagination, and row
 `DataTable` uses a [props-first API](/docs/api-design/props-first). Pass row data,
 column definitions, actions, and pagination behavior as configuration props.
 
+Wide tables scroll horizontally inside a shadcn `ScrollArea` with a horizontal
+`ScrollBar`. Pinned columns remain visible while scrolling, and pagination and
+bulk actions stay outside the horizontal scrolling content.
+
 ## Installation
 
 ```bash
