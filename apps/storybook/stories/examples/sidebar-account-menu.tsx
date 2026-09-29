@@ -23,6 +23,8 @@ const workspaces: readonly Workspace[] = [
     description: "Access suspended",
     disabled: true,
   },
+  { id: "east", name: "East Studio", description: "Design workspace" },
+  { id: "west", name: "West Studio", description: "Research workspace" },
 ];
 
 export function SidebarAccountMenuExample(
@@ -40,6 +42,7 @@ function SidebarAccountMenuExampleContent({
   user,
   loading,
   disabled,
+  maxWorkspaces,
 }: SidebarAccountMenuExampleProps) {
   const { t } = useTranslation("thread-ui");
   const [message, setMessage] = useState("");
@@ -49,6 +52,7 @@ function SidebarAccountMenuExampleContent({
       <SidebarAccountMenu
         disabled={disabled}
         loading={loading}
+        maxWorkspaces={maxWorkspaces}
         workspace={workspaces.find((item) => item.id === workspaceId)}
         workspaces={workspaces}
         user={

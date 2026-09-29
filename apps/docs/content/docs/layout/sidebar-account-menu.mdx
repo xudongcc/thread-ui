@@ -71,17 +71,18 @@ on an extra menu item, or on `user` for the profile row.
 
 ## Root props
 
-| Prop                                                          | Purpose                                                                           |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `workspace`                                                   | Current workspace object; supplies the selected ID and trigger context.           |
-| `workspaces`                                                  | Readonly list of available/recent workspace objects.                              |
-| `onWorkspaceChange`                                           | Receives the selected workspace ID and the underlying radio-group event details.  |
-| `workspaceLabel`                                              | Defaults to translated “Recent workspaces”; pass `null` to hide the label.        |
-| `user`                                                        | User name, optional email/avatar, and optional profile-row `onClick` or `render`. |
-| `children`                                                    | Additional menu items and submenus after workspace and user sections.             |
-| `loading`, `disabled`                                         | Disable the trigger; loading also shows a spinner.                                |
-| `render`                                                      | Base UI render element/function for the trigger.                                  |
-| `open`, `defaultOpen`, `onOpenChange`, `onOpenChangeComplete` | Popup state and lifecycle.                                                        |
+| Prop                                                          | Purpose                                                                                     |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `workspace`                                                   | Current workspace object; supplies the selected ID and trigger context.                     |
+| `maxWorkspaces`                                               | Maximum visible workspaces, including the current one. Defaults to `3`; `0` hides the list. |
+| `workspaces`                                                  | Readonly list of available/recent workspace objects.                                        |
+| `onWorkspaceChange`                                           | Receives the selected workspace ID and the underlying radio-group event details.            |
+| `workspaceLabel`                                              | Defaults to translated “Recent workspaces”; pass `null` to hide the label.                  |
+| `user`                                                        | User name, optional email/avatar, and optional profile-row `onClick` or `render`.           |
+| `children`                                                    | Additional menu items and submenus after workspace and user sections.                       |
+| `loading`, `disabled`                                         | Disable the trigger; loading also shows a spinner.                                          |
+| `render`                                                      | Base UI render element/function for the trigger.                                            |
+| `open`, `defaultOpen`, `onOpenChange`, `onOpenChangeComplete` | Popup state and lifecycle.                                                                  |
 
 Both `workspace` and `user` are optional. Without workspaces the entire workspace
 section is omitted. Workspace identity takes priority in the trigger even when
@@ -103,8 +104,12 @@ Without extra children no trailing separator is generated. For a user-only menu:
 The workspace list is deduplicated by `id`, with the current workspace first,
 even if it is absent from the list. Current-workspace fields take priority over
 a matching list entry; list-level link rendering is preserved unless overridden.
-The component does not fetch or truncate the list. The examples supply at most
-three recent workspaces including the current one.
+The component does not fetch workspaces. After merging and deduplicating, it shows
+up to `maxWorkspaces` entries (default `3`), including the current workspace. Set
+`maxWorkspaces={5}` to show five entries, or `maxWorkspaces={0}` to hide the list
+and its label while keeping the trigger identity. Negative limits are treated as
+zero, fractional limits are rounded down, and non-finite limits use the default.
+The supplied array is never modified.
 
 Workspace selection is controlled: update `workspace` after a successful switch.
 Set `loading` during an asynchronous switch and retain the previous workspace on

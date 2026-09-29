@@ -12,7 +12,7 @@ import {
 
 export type SidebarAccountMenuExampleProps = Pick<
   SidebarAccountMenuProps,
-  "user" | "loading" | "disabled"
+  "user" | "loading" | "disabled" | "maxWorkspaces"
 >;
 
 // A router-like Link for this standalone demo. In an app, import your router's Link.

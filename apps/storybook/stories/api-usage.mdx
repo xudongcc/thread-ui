@@ -158,8 +158,9 @@ menu actions. Its trigger, popup, workspace radio list, user row, and separators
 are built in. Set `workspace`, `workspaces`, and `onWorkspaceChange` for controlled
 workspace switching; pass `user.onClick` or `user.render` for profile navigation.
 Workspace entries also accept Base UI `render` for framework links. The current
-workspace appears first and duplicate IDs are removed. Examples supply at most
-three recent tenants; applications own the data and update selection after a
+workspace appears first and duplicate IDs are removed. `maxWorkspaces` limits the
+visible list to three entries by default, including the current workspace; set it
+to `0` to hide the list. Applications own the data and update selection after a
 successful switch.
 
 Use `SidebarAccountMenuItem` for help, sign-out, workspace management, and other business

@@ -52,6 +52,8 @@ export type SidebarAccountMenuProps = Pick<
   children?: ReactNode;
   workspace?: Workspace;
   workspaces?: readonly Workspace[];
+  /** Maximum visible workspaces, including the current one. Defaults to 3; 0 hides the list. */
+  maxWorkspaces?: number;
   onWorkspaceChange?: ComponentProps<
     typeof DropdownMenuRadioGroup
   >["onValueChange"];
@@ -207,7 +209,7 @@ function AccountMenuTrigger({
             <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
               <span className="block truncate">{label}</span>
               {description && (
-                <span className="text-muted-foreground block truncate text-xs font-normal">
+                <span className="text-muted-foreground group-hover/button:text-sidebar-accent-foreground group-aria-expanded/button:text-sidebar-accent-foreground block truncate text-xs font-normal">
                   {description}
                 </span>
               )}
@@ -240,7 +242,7 @@ function AccountMenuContent({
       ]),
     ).values(),
   ];
-  const visibleWorkspaces = selected
+  const mergedWorkspaces = selected
     ? [
         {
           ...workspaces.find((workspace) => workspace.id === selected.id),
@@ -249,6 +251,11 @@ function AccountMenuContent({
         ...workspaces.filter((workspace) => workspace.id !== selected.id),
       ]
     : workspaces;
+  const limit = config.maxWorkspaces ?? 3;
+  const visibleWorkspaces = mergedWorkspaces.slice(
+    0,
+    Number.isFinite(limit) ? Math.max(0, Math.floor(limit)) : 3,
+  );
   const hasWorkspaces = visibleWorkspaces.length > 0;
   const hasChildren = Children.toArray(children).length > 0;
   return (

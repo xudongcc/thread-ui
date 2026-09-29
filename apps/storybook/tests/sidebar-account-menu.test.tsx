@@ -47,6 +47,57 @@ function menu(render?: SidebarAccountMenuProps["render"], loading = false) {
   );
 }
 
+test.each([
+  [undefined, 3],
+  [1, 1],
+  [5, 5],
+  [0, 0],
+  [-1, 0],
+  [2.9, 2],
+  [NaN, 3],
+  [Infinity, 3],
+])(
+  "maxWorkspaces=%s limits the merged list to %s rows",
+  async (limit, count) => {
+    const first = { id: "first", name: "First" };
+    const workspaces = Object.freeze([
+      first,
+      first,
+      { id: "second", name: "Second" },
+      { id: "third", name: "Third" },
+      { id: "fourth", name: "Fourth" },
+    ]);
+    mount(
+      <SidebarAccountMenu
+        maxWorkspaces={limit}
+        user={{ name: "Alex Morgan" }}
+        workspace={{ id: "current", name: "Current" }}
+        workspaces={workspaces}
+      />,
+    );
+    const trigger = page.getByRole("button", {
+      name: "Workspace and account: Current",
+    });
+    await trigger.click();
+    await expect.element(page.getByRole("menu")).toBeVisible();
+    const rows = page.getByRole("menuitemradio").elements();
+    expect(rows.map((row) => row.getAttribute("aria-label"))).toEqual(
+      ["Current", "First", "Second", "Third", "Fourth"].slice(0, count),
+    );
+    expect(workspaces).toHaveLength(5);
+    expect(workspaces[0]).toBe(first);
+    expect(workspaces[1]).toBe(first);
+    if (count) {
+      expect(rows[0]).toHaveAttribute("aria-checked", "true");
+    } else {
+      expect(page.getByText("Recent workspaces").elements()).toHaveLength(0);
+      expect(page.getByRole("separator").elements()).toHaveLength(0);
+      await expect.element(trigger).toHaveTextContent("Current");
+      await expect.element(page.getByText("Alex Morgan")).toBeVisible();
+    }
+  },
+);
+
 for (const width of [375, 1280]) {
   for (const mode of ["element", "function"] as const) {
     test(`${mode} render keeps layout, menu state, events and ref at ${width}px`, async () => {

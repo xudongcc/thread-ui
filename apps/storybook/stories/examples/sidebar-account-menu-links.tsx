@@ -46,6 +46,7 @@ function SidebarAccountMenuLinksExampleContent({
   user,
   loading,
   disabled,
+  maxWorkspaces,
 }: SidebarAccountMenuExampleProps) {
   const { t } = useTranslation("thread-ui");
   const [message, setMessage] = useState("");
@@ -55,6 +56,7 @@ function SidebarAccountMenuLinksExampleContent({
       <SidebarAccountMenu
         disabled={disabled}
         loading={loading}
+        maxWorkspaces={maxWorkspaces}
         workspace={workspaces.find((item) => item.id === workspaceId)}
         user={
           user && {
