@@ -14,7 +14,7 @@ import {
   SidebarAccountMenuSeparator,
 } from "@/components/thread-ui/sidebar-account-menu";
 
-const workspaces: readonly Workspace[] = [
+const recentWorkspaces: readonly Workspace[] = [
   { id: "north", name: "North Studio", description: "Production workspace" },
   { id: "market", name: "Night Market", description: "Commerce workspace" },
   {
@@ -42,7 +42,7 @@ function SidebarAccountMenuExampleContent({
   user,
   loading,
   disabled,
-  maxWorkspaces,
+  maxRecentWorkspaces,
 }: SidebarAccountMenuExampleProps) {
   const { t } = useTranslation("thread-ui");
   const [message, setMessage] = useState("");
@@ -52,9 +52,9 @@ function SidebarAccountMenuExampleContent({
       <SidebarAccountMenu
         disabled={disabled}
         loading={loading}
-        maxWorkspaces={maxWorkspaces}
-        workspace={workspaces.find((item) => item.id === workspaceId)}
-        workspaces={workspaces}
+        maxRecentWorkspaces={maxRecentWorkspaces}
+        recentWorkspaces={recentWorkspaces}
+        workspace={recentWorkspaces.find((item) => item.id === workspaceId)}
         user={
           user && {
             ...user,

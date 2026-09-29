@@ -28,7 +28,7 @@ function SidebarAccountMenuEmptyExampleContent({
   user,
   loading,
   disabled,
-  maxWorkspaces,
+  maxRecentWorkspaces,
 }: SidebarAccountMenuExampleProps) {
   const { t } = useTranslation("thread-ui");
   const [message, setMessage] = useState("");
@@ -37,8 +37,8 @@ function SidebarAccountMenuEmptyExampleContent({
       <SidebarAccountMenu
         disabled={disabled}
         loading={loading}
-        maxWorkspaces={maxWorkspaces}
-        workspaces={[]}
+        maxRecentWorkspaces={maxRecentWorkspaces}
+        recentWorkspaces={[]}
         user={
           user && {
             ...user,

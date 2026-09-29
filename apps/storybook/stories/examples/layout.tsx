@@ -256,9 +256,9 @@ function ApplicationContent({
         </SidebarContent>
         <SidebarFooter>
           <SidebarAccountMenu
+            recentWorkspaces={workspaces}
             workspace={current}
             workspaceLabel={null}
-            workspaces={workspaces}
             user={{
               name: "Alex Morgan",
               email: "alex@example.com",

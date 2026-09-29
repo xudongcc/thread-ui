@@ -155,10 +155,10 @@ is no separate switch. Desktop navigation can collapse to an icon rail using
 
 `SidebarAccountMenu` uses props for workspace/user identity and children for extra
 menu actions. Its trigger, popup, workspace radio list, user row, and separators
-are built in. Set `workspace`, `workspaces`, and `onWorkspaceChange` for controlled
+are built in. Set `workspace`, `recentWorkspaces`, and `onWorkspaceChange` for controlled
 workspace switching; pass `user.onClick` or `user.render` for profile navigation.
 Workspace entries also accept Base UI `render` for framework links. The current
-workspace appears first and duplicate IDs are removed. `maxWorkspaces` limits the
+workspace appears first and duplicate IDs are removed. `maxRecentWorkspaces` limits the
 visible list to three entries by default, including the current workspace; set it
 to `0` to hide the list. Applications own the data and update selection after a
 successful switch.

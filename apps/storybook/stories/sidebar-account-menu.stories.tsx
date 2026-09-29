@@ -31,24 +31,26 @@ const meta = {
   args: {
     children: undefined,
     user: { name: "Alex Morgan", email: "alex@example.com" },
-    maxWorkspaces: 3,
+    maxRecentWorkspaces: 3,
     loading: false,
     disabled: false,
   },
   argTypes: {
     children: { control: false },
-    maxWorkspaces: { control: { type: "number", min: 0, step: 1 } },
+    maxRecentWorkspaces: { control: { type: "number", min: 0, step: 1 } },
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
   },
   render: (args) => <SidebarAccountMenuExample {...args} />,
   parameters: {
-    controls: { include: ["user", "maxWorkspaces", "loading", "disabled"] },
+    controls: {
+      include: ["user", "maxRecentWorkspaces", "loading", "disabled"],
+    },
     docs: {
       source: accountMenuSource(implementation),
       description: {
         component:
-          "Workspace and user identity use props. The trigger, popup and identity rows are built in; children compose additional menu items. Use workspace, workspaces and onWorkspaceChange for controlled switching; user.onClick/render configures the profile row. Help, sign-out and other actions use onClick/render on SidebarAccountMenuItem. Controls expose user, maxWorkspaces, loading and disabled while demo data and handlers stay local.",
+          "Workspace and user identity use props. The trigger, popup and identity rows are built in; children compose additional menu items. Use workspace, recentWorkspaces and onWorkspaceChange for controlled switching; user.onClick/render configures the profile row. Help, sign-out and other actions use onClick/render on SidebarAccountMenuItem. Controls expose user, maxRecentWorkspaces, loading and disabled while demo data and handlers stay local.",
       },
     },
   },
@@ -62,7 +64,7 @@ export const Default: Story = {
     docs: {
       description: {
         story:
-          "Complete workspace and account menu: switch workspaces or open workspace management, open the personal center, change language/theme, get help, and sign out. Five workspaces are supplied; maxWorkspaces defaults to three visible entries, including the current workspace first. Use Controls for user, maxWorkspaces, loading and disabled. Each business action is explicitly composed as a menu item with its own handler.",
+          "Complete workspace and account menu: switch workspaces or open workspace management, open the personal center, change language/theme, get help, and sign out. Five workspaces are supplied; maxRecentWorkspaces defaults to three visible entries, including the current workspace first. Use Controls for user, maxRecentWorkspaces, loading and disabled. Each business action is explicitly composed as a menu item with its own handler.",
       },
     },
   },
@@ -374,13 +376,13 @@ export const Links: Story = {
 };
 
 export const MoreWorkspaces: Story = {
-  args: { maxWorkspaces: 5 },
+  args: { maxRecentWorkspaces: 5 },
   globals: { locale: "en" },
   parameters: {
     docs: {
       description: {
         story:
-          "Show up to five recent workspaces, including the current workspace. Set maxWorkspaces to 0 to hide the list while keeping the trigger identity.",
+          "Show up to five recent workspaces, including the current workspace. Set maxRecentWorkspaces to 0 to hide the list while keeping the trigger identity.",
       },
     },
   },

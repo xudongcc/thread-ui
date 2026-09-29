@@ -20,7 +20,7 @@ import {
   SidebarAccountMenuSeparator,
 } from "@/components/thread-ui/sidebar-account-menu";
 
-const workspaces: readonly Workspace[] = [
+const recentWorkspaces: readonly Workspace[] = [
   { id: "north", name: "North Studio", description: "Production workspace" },
   { id: "market", name: "Night Market", description: "Commerce workspace" },
   {
@@ -46,7 +46,7 @@ function SidebarAccountMenuLinksExampleContent({
   user,
   loading,
   disabled,
-  maxWorkspaces,
+  maxRecentWorkspaces,
 }: SidebarAccountMenuExampleProps) {
   const { t } = useTranslation("thread-ui");
   const [message, setMessage] = useState("");
@@ -56,16 +56,9 @@ function SidebarAccountMenuLinksExampleContent({
       <SidebarAccountMenu
         disabled={disabled}
         loading={loading}
-        maxWorkspaces={maxWorkspaces}
-        workspace={workspaces.find((item) => item.id === workspaceId)}
-        user={
-          user && {
-            ...user,
-            render: <DemoLink to="#profile" />,
-            onClick: () => setMessage("Profile requested"),
-          }
-        }
-        workspaces={workspaces.map((workspace) => ({
+        maxRecentWorkspaces={maxRecentWorkspaces}
+        workspace={recentWorkspaces.find((item) => item.id === workspaceId)}
+        recentWorkspaces={recentWorkspaces.map((workspace) => ({
           ...workspace,
           render: (props, state) => (
             <DemoLink
@@ -75,6 +68,13 @@ function SidebarAccountMenuLinksExampleContent({
             />
           ),
         }))}
+        user={
+          user && {
+            ...user,
+            render: <DemoLink to="#profile" />,
+            onClick: () => setMessage("Profile requested"),
+          }
+        }
         onWorkspaceChange={setWorkspaceId}
       >
         <SidebarAccountMenuItem

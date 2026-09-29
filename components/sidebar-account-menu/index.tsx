@@ -51,9 +51,9 @@ export type SidebarAccountMenuProps = Pick<
   /** Additional menu items, rendered after workspaces and user identity. */
   children?: ReactNode;
   workspace?: Workspace;
-  workspaces?: readonly Workspace[];
+  recentWorkspaces?: readonly Workspace[];
   /** Maximum visible workspaces, including the current one. Defaults to 3; 0 hides the list. */
-  maxWorkspaces?: number;
+  maxRecentWorkspaces?: number;
   onWorkspaceChange?: ComponentProps<
     typeof DropdownMenuRadioGroup
   >["onValueChange"];
@@ -234,9 +234,9 @@ function AccountMenuContent({
 }: AccountMenuContentProps & { config: SidebarAccountMenuProps }) {
   const isMobile = useIsMobile();
   const selected = config.workspace;
-  const workspaces = [
+  const recentWorkspaces = [
     ...new Map(
-      [...(config.workspaces ?? [])].map((workspace) => [
+      [...(config.recentWorkspaces ?? [])].map((workspace) => [
         workspace.id,
         workspace,
       ]),
@@ -245,13 +245,13 @@ function AccountMenuContent({
   const mergedWorkspaces = selected
     ? [
         {
-          ...workspaces.find((workspace) => workspace.id === selected.id),
+          ...recentWorkspaces.find((workspace) => workspace.id === selected.id),
           ...selected,
         },
-        ...workspaces.filter((workspace) => workspace.id !== selected.id),
+        ...recentWorkspaces.filter((workspace) => workspace.id !== selected.id),
       ]
-    : workspaces;
-  const limit = config.maxWorkspaces ?? 3;
+    : recentWorkspaces;
+  const limit = config.maxRecentWorkspaces ?? 3;
   const visibleWorkspaces = mergedWorkspaces.slice(
     0,
     Number.isFinite(limit) ? Math.max(0, Math.floor(limit)) : 3,

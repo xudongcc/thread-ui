@@ -27,7 +27,7 @@ import {
   SidebarAccountMenuSeparator,
 } from "@/components/thread-ui/sidebar-account-menu";
 
-const workspaces = [
+const recentWorkspaces = [
   { id: "north", name: "North Studio", description: "north.example.com" },
   { id: "market", name: "Night Market", description: "market.example.com" },
   { id: "east", name: "East Studio", description: "east.example.com" },
@@ -35,12 +35,12 @@ const workspaces = [
 
 function AccountMenu() {
   const [workspaceId, setWorkspaceId] = useState("north");
-  const workspace = workspaces.find((item) => item.id === workspaceId);
+  const workspace = recentWorkspaces.find((item) => item.id === workspaceId);
 
   return (
     <SidebarAccountMenu
       workspace={workspace}
-      workspaces={workspaces}
+      recentWorkspaces={recentWorkspaces}
       onWorkspaceChange={setWorkspaceId}
       user={{
         name: "Alex Morgan",
@@ -74,8 +74,8 @@ on an extra menu item, or on `user` for the profile row.
 | Prop                                                          | Purpose                                                                                     |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `workspace`                                                   | Current workspace object; supplies the selected ID and trigger context.                     |
-| `maxWorkspaces`                                               | Maximum visible workspaces, including the current one. Defaults to `3`; `0` hides the list. |
-| `workspaces`                                                  | Readonly list of available/recent workspace objects.                                        |
+| `maxRecentWorkspaces`                                         | Maximum visible workspaces, including the current one. Defaults to `3`; `0` hides the list. |
+| `recentWorkspaces`                                            | Readonly list of recently used workspace objects.                                           |
 | `onWorkspaceChange`                                           | Receives the selected workspace ID and the underlying radio-group event details.            |
 | `workspaceLabel`                                              | Defaults to translated “Recent workspaces”; pass `null` to hide the label.                  |
 | `user`                                                        | User name, optional email/avatar, and optional profile-row `onClick` or `render`.           |
@@ -105,8 +105,8 @@ The workspace list is deduplicated by `id`, with the current workspace first,
 even if it is absent from the list. Current-workspace fields take priority over
 a matching list entry; list-level link rendering is preserved unless overridden.
 The component does not fetch workspaces. After merging and deduplicating, it shows
-up to `maxWorkspaces` entries (default `3`), including the current workspace. Set
-`maxWorkspaces={5}` to show five entries, or `maxWorkspaces={0}` to hide the list
+up to `maxRecentWorkspaces` entries (default `3`), including the current workspace. Set
+`maxRecentWorkspaces={5}` to show five entries, or `maxRecentWorkspaces={0}` to hide the list
 and its label while keeping the trigger identity. Negative limits are treated as
 zero, fractional limits are rounded down, and non-finite limits use the default.
 The supplied array is never modified.
@@ -132,7 +132,7 @@ import Link from "next/link";
 
 <SidebarAccountMenu
   workspace={workspace}
-  workspaces={recentWorkspaces.map((item) => ({
+  recentWorkspaces={recentWorkspaces.map((item) => ({
     ...item,
     render: (props, state) => (
       <Link

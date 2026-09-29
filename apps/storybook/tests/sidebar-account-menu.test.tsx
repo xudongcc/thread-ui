@@ -57,10 +57,10 @@ test.each([
   [NaN, 3],
   [Infinity, 3],
 ])(
-  "maxWorkspaces=%s limits the merged list to %s rows",
+  "maxRecentWorkspaces=%s limits the merged list to %s rows",
   async (limit, count) => {
     const first = { id: "first", name: "First" };
-    const workspaces = Object.freeze([
+    const recentWorkspaces = Object.freeze([
       first,
       first,
       { id: "second", name: "Second" },
@@ -69,10 +69,10 @@ test.each([
     ]);
     mount(
       <SidebarAccountMenu
-        maxWorkspaces={limit}
+        maxRecentWorkspaces={limit}
+        recentWorkspaces={recentWorkspaces}
         user={{ name: "Alex Morgan" }}
         workspace={{ id: "current", name: "Current" }}
-        workspaces={workspaces}
       />,
     );
     const trigger = page.getByRole("button", {
@@ -84,9 +84,9 @@ test.each([
     expect(rows.map((row) => row.getAttribute("aria-label"))).toEqual(
       ["Current", "First", "Second", "Third", "Fourth"].slice(0, count),
     );
-    expect(workspaces).toHaveLength(5);
-    expect(workspaces[0]).toBe(first);
-    expect(workspaces[1]).toBe(first);
+    expect(recentWorkspaces).toHaveLength(5);
+    expect(recentWorkspaces[0]).toBe(first);
+    expect(recentWorkspaces[1]).toBe(first);
     if (count) {
       expect(rows[0]).toHaveAttribute("aria-checked", "true");
     } else {
@@ -321,8 +321,8 @@ for (const scenario of ["user", "workspace", "actions"] as const) {
   test(`${scenario}-only props do not add stray separators`, async () => {
     mount(
       <SidebarAccountMenu
+        recentWorkspaces={[]}
         user={scenario === "user" ? { name: "Alex Morgan" } : undefined}
-        workspaces={[]}
         workspace={
           scenario === "workspace"
             ? { id: "north", name: "North Studio" }
@@ -355,7 +355,7 @@ test("workspace props deduplicate, preserve links and wait for controlled select
     <SidebarAccountMenu
       user={{ name: "Alex Morgan" }}
       workspace={workspace}
-      workspaces={[
+      recentWorkspaces={[
         market,
         { ...north, render: <a href="#north" onClick={linkClick} /> },
         market,
