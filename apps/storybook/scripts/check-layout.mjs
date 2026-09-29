@@ -1,4 +1,4 @@
-/* global console, document, URL */
+/* global console, document, getComputedStyle, URL */
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -237,11 +237,35 @@ try {
         "Collapsed account trigger remains inside the rail",
       );
       await page.mouse.move(width - 1, 1);
+      const brand = page.locator(
+        '[data-slot="sidebar-header"] svg[viewBox="0 0 32 32"]',
+      );
+      const expand = page.getByRole("button", { name: "Expand navigation" });
+      assert(
+        await brand.isVisible(),
+        "Collapsed navigation shows its logo by default",
+      );
+      assert.equal(
+        await expand.evaluate(
+          (element) => getComputedStyle(element.parentElement).opacity,
+        ),
+        "0",
+      );
       await page.screenshot({
         path: `/tmp/thread-ui-sidebar-collapsed-${width}.png`,
       });
-      const expand = page.getByRole("button", { name: "Expand navigation" });
       await expand.hover();
+      assert.equal(
+        await brand.isVisible(),
+        false,
+        "Hover replaces the logo with the navigation icon",
+      );
+      assert.equal(
+        await expand.evaluate(
+          (element) => getComputedStyle(element.parentElement).opacity,
+        ),
+        "1",
+      );
       await page
         .locator('[data-slot="tooltip-content"]')
         .filter({ hasText: "Expand navigation" })
@@ -249,6 +273,22 @@ try {
       await page.screenshot({
         path: `/tmp/thread-ui-sidebar-hover-${width}.png`,
       });
+      await page.mouse.move(width - 1, 1);
+      assert(await brand.isVisible(), "Leaving the header restores the logo");
+      await expand.evaluate((element) => element.blur());
+      await page.keyboard.press("Tab");
+      await expand.focus();
+      assert.equal(
+        await expand.evaluate(
+          (element) => getComputedStyle(element.parentElement).opacity,
+        ),
+        "1",
+      );
+      assert.equal(
+        await brand.isVisible(),
+        false,
+        "Keyboard focus reveals the navigation icon",
+      );
       await account.click();
       await menu.waitFor();
       await page.keyboard.press("Escape");

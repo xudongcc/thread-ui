@@ -151,7 +151,11 @@ allows content to fill the width. LayoutSidebar automatically enables floating
 mobile navigation, safe-area spacing, and inner
 content bottom padding. Omit LayoutSidebar to omit the button and padding; there
 is no separate switch. Desktop navigation can collapse to an icon rail using
-`collapsible="icon"`. Layout supports **Composition API only**.
+`collapsible="icon"`. Compose `LayoutSidebarHeader`, `LayoutSidebarLogo`, and
+`LayoutSidebarTitle` for branding with a built-in desktop toggle. When collapsed,
+the logo switches to the toggle on hover or keyboard focus. Without a logo, the
+toggle stays visible. The title hides when collapsed and truncates when needed.
+Layout supports **Composition API only**.
 
 `SidebarAccountMenu` uses props for workspace/user identity and children for extra
 menu actions. Its trigger, popup, workspace radio list, user row, and separators

@@ -14,7 +14,7 @@ pnpm dlx shadcn@latest add @thread-ui/layout @thread-ui/sidebar-account-menu
 
 `Layout` provides `SidebarProvider` with a fixed viewport height. Compose
 `LayoutSidebar` and `LayoutContent` directly, including through fragments or custom
-components. Place branding in `SidebarHeader`, existing navigation in
+components. Place branding in `LayoutSidebarHeader`, existing navigation in
 `SidebarContent`, and `SidebarAccountMenu` in `SidebarFooter`.
 
 ```tsx
@@ -23,52 +23,33 @@ import {
   Layout,
   LayoutContent,
   LayoutSidebar,
+  LayoutSidebarHeader,
+  LayoutSidebarLogo,
+  LayoutSidebarTitle,
 } from "@/components/thread-ui/layout";
 import { Page } from "@/components/thread-ui/page";
 import { SidebarAccountMenu } from "@/components/thread-ui/sidebar-account-menu";
 import {
-  SidebarHeader,
   SidebarContent,
   SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
 function Navigation() {
-  const { isMobile, open, setOpenMobile } = useSidebar();
-  const label = open ? "Collapse navigation" : "Expand navigation";
+  const { isMobile, setOpenMobile } = useSidebar();
   return (
     <LayoutSidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="group-data-[collapsible=icon]:hidden"
-          >
+      <LayoutSidebarHeader>
+        <LayoutSidebarLogo>
+          <span className="bg-primary text-primary-foreground flex size-full items-center justify-center rounded-lg">
             T
           </span>
-          <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
-            Thread UI
-          </span>
-          {!isMobile && (
-            <Tooltip>
-              <TooltipTrigger
-                render={<SidebarTrigger aria-label={label} size="icon" />}
-              />
-              <TooltipContent side="right">{label}</TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      </SidebarHeader>
+        </LayoutSidebarLogo>
+        <LayoutSidebarTitle>Thread UI</LayoutSidebarTitle>
+      </LayoutSidebarHeader>
       <SidebarContent>
         <nav aria-label="Navigation">
           <SidebarMenu>
@@ -144,10 +125,15 @@ is `100svh`; the native desktop sidebar is fixed to the viewport.
 ## Collapsing and mobile
 
 Use `<LayoutSidebar collapsible="icon">` for a desktop icon rail. The default is
-expanded. Compose shadcn `SidebarTrigger` with `Tooltip` in SidebarHeader. It stays
-visible on desktop, including the collapsed rail. Set `aria-label` and tooltip
-text to the same translated action label. The example uses `layout.expandNavigation`
-and `layout.collapseNavigation` from the locale dictionary.
+expanded. `LayoutSidebarHeader` includes a shadcn `SidebarTrigger` with Tooltip. It stays
+visible when expanded. On the collapsed rail, the logo appears by default;
+hovering the header or focusing its trigger reveals the expand icon. The built-in
+`aria-label` and Tooltip use `layout.expandNavigation` and `layout.collapseNavigation`
+from the locale dictionary. `LayoutSidebarTitle` truncates long titles and hides
+automatically in the icon rail. `LayoutSidebarLogo` accepts your own image, SVG,
+or logo component. Omitting the logo keeps the collapsed trigger visible.
+These three components forward native attributes and refs; Header targets shadcn
+SidebarHeader, while Logo and Title render spans.
 Add `tooltip` and `aria-label` to icon-only navigation buttons, and hide custom
 text with `group-data-[collapsible=icon]:hidden`. SidebarAccountMenu automatically
 reduces its default trigger to the avatar.
@@ -164,7 +150,8 @@ padding are both disabled on desktop. No extra button or spacer is needed in pag
 
 `LayoutSidebar` accepts the native shadcn Sidebar props and children, including
 `side`, `variant`, `collapsible`, and `className`. Continue using shadcn
-`SidebarHeader`, `SidebarContent`, and `SidebarFooter` inside it. Floating navigation
+`SidebarContent` and `SidebarFooter` inside it. Use `LayoutSidebarHeader` for the
+built-in branding behavior, or shadcn `SidebarHeader` for a fully custom header. Floating navigation
 and content spacing are coordinated automatically through Layout.
 
 When LayoutSidebar is omitted or unmounted, both the floating button and its

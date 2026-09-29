@@ -17,7 +17,7 @@ let browser;
 // upload workflows. Basic stateless JSX snippets do not contain full modules.
 function hasCompleteExample(id) {
   return (
-    /^components-(calendar|dateinput|datepicker|datafilter|complexfilter|datatable|codeblock|alertdialog|toast|layout|sidebaraccountmenu)--/.test(
+    /^components-(calendar|dateinput|datepicker|datafilter|complexfilter|datatable|codeblock|alertdialog|toast|layout|layoutsidebarheader|sidebaraccountmenu)--/.test(
       id,
     ) ||
     /^components-page--(pagination|link-actions)$/.test(id) ||
