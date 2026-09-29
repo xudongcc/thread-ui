@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, expect, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
-import { StrictMode } from "react";
+import { StrictMode, createRef } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { createInstance } from "i18next";
@@ -10,6 +10,9 @@ import {
   Layout,
   LayoutContent,
   LayoutSidebar,
+  LayoutSidebarHeader,
+  LayoutSidebarLogo,
+  LayoutSidebarTitle,
 } from "@/components/thread-ui/layout";
 import { SidebarContent } from "@/components/ui/sidebar";
 import "../styles.css";
@@ -57,6 +60,82 @@ const contentPadding = () =>
   getComputedStyle(
     container.querySelector('[data-slot="layout-content-body"]')!,
   ).paddingBottom;
+
+test.each([true, false])(
+  "sidebar header forwards native props with logo=%s",
+  async (showLogo) => {
+    await page.viewport(1280, 900);
+    render(false);
+    const headerRef = createRef<HTMLDivElement>();
+    const logoRef = createRef<HTMLSpanElement>();
+    const titleRef = createRef<HTMLSpanElement>();
+    flushSync(() =>
+      root!.render(
+        <I18nextProvider i18n={i18n}>
+          <Layout>
+            <LayoutSidebar collapsible="icon">
+              <LayoutSidebarHeader ref={headerRef} aria-label="Brand header">
+                {showLogo && (
+                  <LayoutSidebarLogo ref={logoRef} data-testid="brand-logo">
+                    T
+                  </LayoutSidebarLogo>
+                )}
+                <LayoutSidebarTitle ref={titleRef} title="Thread UI">
+                  Thread UI
+                </LayoutSidebarTitle>
+              </LayoutSidebarHeader>
+            </LayoutSidebar>
+            <LayoutContent>Content</LayoutContent>
+          </Layout>
+        </I18nextProvider>,
+      ),
+    );
+    expect(headerRef.current).toHaveAttribute("aria-label", "Brand header");
+    expect(titleRef.current).toHaveAttribute("title", "Thread UI");
+    if (showLogo)
+      expect(logoRef.current).toHaveAttribute(
+        "data-slot",
+        "layout-sidebar-logo",
+      );
+    await page.getByRole("button", { name: "Collapse navigation" }).click();
+    await expect
+      .poll(() => getComputedStyle(titleRef.current!).display)
+      .toBe("none");
+    const expand = page.getByRole("button", { name: "Expand navigation" });
+    if (!showLogo)
+      expect(getComputedStyle(expand.element().parentElement!).opacity).toBe(
+        "1",
+      );
+    await expand.click();
+    await expect
+      .poll(() => getComputedStyle(titleRef.current!).display)
+      .not.toBe("none");
+  },
+);
+
+test.each([375, 1280])(
+  "fixed sidebar header has no toggle at %s px",
+  async (width) => {
+    await page.viewport(width, 900);
+    render(false);
+    flushSync(() =>
+      root!.render(
+        <I18nextProvider i18n={i18n}>
+          <Layout>
+            <LayoutSidebar collapsible="none">
+              <LayoutSidebarHeader>
+                <LayoutSidebarTitle>Thread UI</LayoutSidebarTitle>
+              </LayoutSidebarHeader>
+            </LayoutSidebar>
+            <LayoutContent>Content</LayoutContent>
+          </Layout>
+        </I18nextProvider>,
+      ),
+    );
+    await expect.element(page.getByText("Thread UI")).toBeVisible();
+    expect(container.querySelector('[data-slot="sidebar-trigger"]')).toBeNull();
+  },
+);
 
 test("composed sidebar adds floating navigation and scroll padding, then cleans up when removed", async () => {
   await page.viewport(375, 812);

@@ -24,6 +24,9 @@ import {
   Layout,
   LayoutContent,
   LayoutSidebar,
+  LayoutSidebarHeader,
+  LayoutSidebarLogo,
+  LayoutSidebarTitle,
 } from "@/components/thread-ui/layout";
 import {
   SidebarAccountMenu,
@@ -55,18 +58,11 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "@/components/thread-ui/toast";
 
 const workspaces = [
@@ -118,7 +114,7 @@ function ApplicationContent({
   initialPage = "home",
   children,
 }: LayoutExampleProps) {
-  const { isMobile, open, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { t, i18n } = useTranslation("thread-ui");
   const [theme, setTheme] = useState("light");
   useEffect(() => {
@@ -173,21 +169,10 @@ function ApplicationContent({
       ],
     },
   ];
-  const navigationLabel = open
-    ? t("layout.collapseNavigation")
-    : t("layout.expandNavigation");
-  const navigationTrigger = (
-    <Tooltip>
-      <TooltipTrigger
-        render={<SidebarTrigger aria-label={navigationLabel} size="icon" />}
-      />
-      <TooltipContent side="right">{navigationLabel}</TooltipContent>
-    </Tooltip>
-  );
   const brand = (
     <svg
       aria-hidden="true"
-      className="text-primary size-8 shrink-0 group-data-[collapsible=icon]:hidden"
+      className="text-primary"
       fill="none"
       viewBox="0 0 32 32"
     >
@@ -205,15 +190,10 @@ function ApplicationContent({
   return (
     <>
       <LayoutSidebar collapsible="icon">
-        <SidebarHeader>
-          <div className="flex h-12 min-w-0 items-center gap-2.5 px-2 font-semibold group-data-[collapsible=icon]:px-0">
-            {brand}
-            <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
-              Thread UI
-            </span>
-            {!isMobile && navigationTrigger}
-          </div>
-        </SidebarHeader>
+        <LayoutSidebarHeader>
+          <LayoutSidebarLogo>{brand}</LayoutSidebarLogo>
+          <LayoutSidebarTitle>Thread UI</LayoutSidebarTitle>
+        </LayoutSidebarHeader>
         <SidebarContent>
           <nav aria-label={t("layout.navigation", "Navigation")}>
             {navigation.map((group) => (
